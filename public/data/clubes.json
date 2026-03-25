@@ -1,0 +1,22 @@
+[
+  { "id": 1, "nome": "PAL", "nomeApi": "Palmeiras", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 12.63 },
+  { "id": 2, "nome": "Gremio", "nomeApi": "Gremio", "cotasDisponiveis": 1000, "ipoEncerrado": false,"preco": 12.03 },
+  { "id": 117, "nome": "Atletico-MG", "nomeApi": "Atletico-MG", "cotasDisponiveis": 1000, "ipoEncerrado": false,"preco": 11.46 },
+  { "id": 127, "nome": "Flamengo", "nomeApi": "Flamengo", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 10.91 },
+  { "id": 5, "nome": "Botafogo", "nomeApi": "Botafogo", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 10.39 },
+  { "id": 6, "nome": "RB Bragantino", "nomeApi": "RB Bragantino", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 9.90 },
+  { "id": 7, "nome": "Fluminense", "nomeApi": "Fluminense", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 9.43 },
+  { "id": 8, "nome": "Atletico Paranaense", "nomeApi": "Atletico Paranaense", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 8.98 },
+  { "id": 9, "nome": "Internacional", "nomeApi": "Internacional", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 8.55 },
+  { "id": 10, "nome": "Fortaleza EC", "nomeApi": "Fortaleza EC", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 8.14 },
+  { "id": 11, "nome": "Sao Paulo", "nomeApi": "Sao Paulo", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 7.76 },
+  { "id": 12, "nome": "Cuiaba", "nomeApi": "Cuiaba", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 7.39 },
+  { "id": 13, "nome": "Corinthians", "nomeApi": "Corinthians", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 7.04 },
+  { "id": 14, "nome": "Cruzeiro", "nomeApi": "Cruzeiro", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 6.70 },
+  { "id": 15, "nome": "Vasco da Gama", "nomeApi": "Vasco da Gama", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 6.38 },
+  { "id": 16, "nome": "Bahia", "nomeApi": "Bahia", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 6.08 },
+  { "id": 17, "nome": "Santos", "nomeApi": "Santos", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 5.79 },
+  { "id": 18, "nome": "Goias", "nomeApi": "Goias", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 5.51 },
+  { "id": 19, "nome": "Coritiba", "nomeApi": "Coritiba", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 5.25 },
+  { "id": 125, "nome": "America Mineiro", "nomeApi": "America Mineiro", "cotasDisponiveis": 1000, "ipoEncerrado": false, "preco": 5.00 }
+]
