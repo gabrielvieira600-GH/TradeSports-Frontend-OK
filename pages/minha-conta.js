@@ -17,7 +17,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 import withAuth from '../components/withAuth';
 
-export default function withAuth(MinhaConta) {
+ function MinhaConta() {
   const [usuario, setUsuario] = useState(null);
   const [carteira, setCarteira] = useState([]);
   const [historico, setHistorico] = useState([]);
@@ -153,6 +153,8 @@ export default function withAuth(MinhaConta) {
     </Container>
   );
 }
+
+export default withAuth(MinhaConta);
 
 // Styled Components
 const Container = styled.div`
