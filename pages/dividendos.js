@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 export default function Dividendos() {
   const [dados, setDados] = useState([]);
 
