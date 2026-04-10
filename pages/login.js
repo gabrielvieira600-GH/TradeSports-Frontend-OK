@@ -10,13 +10,13 @@ export default function Login() {
   const [erro, setErro] = useState('');
   const router = useRouter();
   const { login } = useContext(AuthContext);
-
+  const API = process.env.NEXT_PUBLIC_API-URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
 
     try {
-      const res = await axios.post('https://trade-sports-frontend-ok-om3a.vercel.app/api/login', formData);
+      const res = await axios.post('${API}/api/login', formData);
 
       if (res.data?.usuario && res.data?.token) {
         login(res.data.usuario, res.data.token);
