@@ -15,7 +15,7 @@ import PoliticaPrivacidadeModal from "../components/PoliticaPrivacidadeModal";
  * Observação: o checkbox de aceite só habilita depois do usuário aceitar no modal de Termos.
  */
 
-const API = process.env.NEXT_PUBLIC_API-URL;
+const API = process.env.NEXT_PUBLIC_API_URL;
 const VERSAO_TERMOS = "1.0";
 const VERSAO_POLITICA_RISCO = 'v1.0';
 const VERSAO_POLITICA_PRIVACIDADE = 'v1.0';
@@ -542,7 +542,7 @@ Dúvidas sobre esta Política:
     }
 
     try {
-      await axios.post("'${API}/cadastro", {
+      await axios.post(`${API}/cadastro`, {
         nome: form.nome,
         sobrenome: form.sobrenome,
         email: form.email,
