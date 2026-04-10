@@ -16,7 +16,7 @@ export default function Login() {
     setErro('');
 
     try {
-      const res = await axios.post('http://localhost:4001/api/login', formData);
+      const res = await axios.post('https://trade-sports-frontend-ok-om3a.vercel.app/login', formData);
 
       if (res.data?.usuario && res.data?.token) {
         login(res.data.usuario, res.data.token);
