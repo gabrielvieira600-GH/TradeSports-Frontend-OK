@@ -27,7 +27,7 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
   useEffect(() => {
     if (aberto && clubeId) {
       setLoading(true);
-      fetch(`http://localhost:4001/clubes/${clubeId}/historico`)
+      fetch(`${API}/clubes/${clubeId}/historico`)
         .then((res) => res.json())
         .then((data) => setHistorico(Array.isArray(data) ? data : []))
         .catch(() => setHistorico([]))

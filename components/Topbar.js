@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:4001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Topbar() {
   const [saldo, setSaldo] = useState('0.00');

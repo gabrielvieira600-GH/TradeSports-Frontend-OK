@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
-const API_BASE = 'http://localhost:4001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const INACTIVITY_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const CHECK_INTERVAL_MS = 30 * 1000;

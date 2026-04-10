@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import NegociacaoModal from '../../components/NegociacaoModal';
 
-const API_BASE = 'http://localhost:4001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
 const LIGA_NOME = 'Brasileirão Série A';
 
