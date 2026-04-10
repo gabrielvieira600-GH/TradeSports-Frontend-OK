@@ -42,16 +42,16 @@ import withAuth from '../components/withAuth';
     const carregarDados = async () => {
       try {
         const [resHistorico, resTransacoes, resCarteira, resPatrimonio] = await Promise.all([
-          axios.get('http://localhost:4001/usuario/historico', {
+          axios.get(`${API}/usuario/historico`, {
             headers: { authorization: `Bearer ${token}` },
           }),
-          axios.get('http://localhost:4001/usuario/transacoes', {
+          axios.get(`${API}/usuario/transacoes`, {
             headers: { authorization: `Bearer ${token}` },
           }),
-          axios.get('http://localhost:4001/usuario/carteira', {
+          axios.get(`${API}/usuario/carteira`, {
             headers: { authorization: `Bearer ${token}` },
           }),
-          axios.get('http://localhost:4001/usuario/patrimonio', {
+          axios.get(`${API}/usuario/patrimonio`, {
             headers: { authorization: `Bearer ${token}` },
           }),
         ]);

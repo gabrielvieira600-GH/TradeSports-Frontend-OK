@@ -45,7 +45,7 @@ const fecharGrafico = () => {
  useEffect(() => {
   const fetchClassificacao = async () => {
     try {
-      const res = await axios.get('http://localhost:4001/api/tabela-premierleague');
+      const res = await axios.get(`${API}/api/tabela-premierleague`);
       const clubesFormatados = res.data.data.map(c => ({
   ...c,
   id: c._id || c.id, // garante compatibilidade

@@ -29,7 +29,7 @@ export default function Suporte() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:4001/suporte',
+      const res = await axios.post(`${API}/suporte`,
         { assunto, mensagem },
         {
           headers: {

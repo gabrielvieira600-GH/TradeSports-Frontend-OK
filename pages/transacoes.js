@@ -10,7 +10,7 @@ export default function Transacoes() {
     const fetchTransacoes = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:4001/usuario/transacoes-completas', {
+        const res = await axios.get(`${API}/usuario/transacoes-completas`, {
           headers: {
             authorization: `Bearer ${token}`
           }

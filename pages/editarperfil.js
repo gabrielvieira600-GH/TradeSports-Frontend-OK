@@ -28,7 +28,7 @@ export default function EditarPerfil() {
     e.preventDefault();
     setMensagem('');
     try {
-      const res = await axios.put('http://localhost:4001/usuario/perfil', {
+      const res = await axios.put(`${API}/usuario/perfil`, {
         nome,
         email
       }, {
@@ -48,7 +48,7 @@ export default function EditarPerfil() {
     e.preventDefault();
     setMensagem('');
     try {
-      await axios.post('http://localhost:4001/usuario/trocar-senha', {
+      await axios.post(`${API}/usuario/trocar-senha`, {
         senhaAtual,
         novaSenha
       }, {

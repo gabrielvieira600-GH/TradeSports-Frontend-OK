@@ -19,7 +19,7 @@ export default function EsqueciSenha() {
 
     setCarregando(true);
     try {
-      const res = await fetch('http://localhost:4001/esqueci-senha', {
+      const res = await fetch(`${API}/esqueci-senha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailOuUsuario }),

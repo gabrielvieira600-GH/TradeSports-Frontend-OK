@@ -43,7 +43,7 @@ export default function Configuracoes() {
         return;
       }
 
-      await axios.delete('http://localhost:4001/usuario', {
+      await axios.delete(`${API}/usuario`, {
         headers: {
           authorization: `Bearer ${token}`,
         },

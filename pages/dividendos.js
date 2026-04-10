@@ -16,7 +16,7 @@ export default function Dividendos() {
     }
 
     axios
-      .get('http://localhost:4001/usuario/dividendos', {
+      .get(`${API}/usuario/dividendos`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

@@ -11,7 +11,7 @@ export default function MensagensSuporte() {
 
     const fetchMensagens = async () => {
       try {
-        const res = await axios.get('http://localhost:4001/suporte/mensagens', {
+        const res = await axios.get(`${API}/suporte/mensagens`, {
           headers: { authorization: `Bearer ${token}` }
         });
         setMensagens(res.data);

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import AdminPainel from './admin-painel';
 
 function getApiBase() {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
+  return process.env.NEXT_PUBLIC_API_URL
 }
 
 function getToken() {

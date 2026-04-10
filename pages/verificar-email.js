@@ -14,7 +14,7 @@ export default function VerificarEmail() {
     const verificar = async () => {
       try {
         const res = await fetch(
-          `http://localhost:4001/verificar-email?token=${encodeURIComponent(
+          `${API}/verificar-email?token=${encodeURIComponent(
             token
           )}`
         );

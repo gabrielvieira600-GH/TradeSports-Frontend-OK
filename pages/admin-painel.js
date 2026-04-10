@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 function getApiBase() {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
+  return process.env.NEXT_PUBLIC_API_URL
 }
 
 function getToken() {

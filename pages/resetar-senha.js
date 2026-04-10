@@ -33,7 +33,7 @@ export default function ResetarSenha() {
 
     setCarregando(true);
     try {
-      const res = await fetch('http://localhost:4001/resetar-senha', {
+      const res = await fetch(`${API}/resetar-senha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, novaSenha }),
