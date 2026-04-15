@@ -5,7 +5,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import NegociacaoModal from '../components/NegociacaoModal';
 
-const API_BASE = process.env.API_FOOTBALL_KEY;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
 const LIGA_NOME = 'Brasileirão Série A';
 
@@ -153,7 +153,7 @@ export default function BrasileiraoA() {
     () => new Set((watchlist?.ligas || []).map((l) => String(l.id))),
     [watchlist]
   );
-
+  console.log('API_BASE=', API_BASE);
   return (
     <Container>
       <Hero>
