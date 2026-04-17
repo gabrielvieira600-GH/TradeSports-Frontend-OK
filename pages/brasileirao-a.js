@@ -124,7 +124,7 @@ export default function BrasileiraoA() {
             return {
               id: clubeLocal.id,
               nome: clubeLocal.nome,
-              escudo: team.team.logo || '',
+              escudo: clubeApi.escudo || '',
               posicao: clubeApi.posicao,
               preco: Number(clubeLocal.preco || 0),
               precoAtual: clubeLocal.precoAtual != null ? Number(clubeLocal.precoAtual) : undefined,
