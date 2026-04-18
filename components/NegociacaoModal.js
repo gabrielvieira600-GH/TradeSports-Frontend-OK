@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import Image from 'next/image';
-import axios from 'axios';
 import LivroDeOrdens from './LivroDeOrdens';
 import { useToast } from '../components/ToastProvider';
 import api from '../lib/api';
-import PoliticaRiscoModal from "./PoliticaRiscoModal"
-
+import PoliticaRiscoModal from './PoliticaRiscoModal';
 
 function verificarTokenValido(token) {
   if (!token) return false;
@@ -20,8 +18,12 @@ function verificarTokenValido(token) {
   }
 }
 
-
-export default function NegociacaoModal({ isOpen, clube, onClose, modoInicial = 'compra' }) {
+export default function NegociacaoModal({
+  isOpen,
+  clube,
+  onClose,
+  modoInicial = 'compra',
+}) {
   const [quantidade, setQuantidade] = useState(1);
   const [precoAtual, setPrecoAtual] = useState(0);
   const [precoInput, setPrecoInput] = useState('');
@@ -34,22 +36,31 @@ export default function NegociacaoModal({ isOpen, clube, onClose, modoInicial = 
   const [ordensVenda, setOrdensVenda] = useState([]);
   const [ipoEncerrado, setIpoEncerrado] = useState(false);
   const [cotasIPO, setCotasIPO] = useState(0);
+  const [mostrarRisco, setMostrarRisco] = useState(false);
+  const [resumoBook, setResumoBook] = useState({
+    bestBid: null,
+    bestAsk: null,
+    mid: null,
+    spreadPct: null,
+  });
+
   const { adicionarToast } = useToast();
-  const [resumoBook, setResumoBook] = useState({ bestBid: null, bestAsk: null, mid: null, spreadPct: null });
+
   const TICK_SIZE = 0.05;
+
   const roundToTick = (value) => {
     const n = Number(value || 0);
     if (!Number.isFinite(n) || n <= 0) return 0;
     return Number((Math.round(n / TICK_SIZE) * TICK_SIZE).toFixed(2));
   };
+
   const isValidTickPrice = (value) => {
     const n = Number(value || 0);
     if (!Number.isFinite(n) || n <= 0) return false;
     const steps = n / TICK_SIZE;
     return Math.abs(steps - Math.round(steps)) < 1e-9;
   };
-  const [mostrarRisco, setMostrarRisco] = useState(false)
-  // handler que o Livro chama quando o usuário clica num nível
+
   const handleSelecionarPreco = (p) => {
     if (Number.isFinite(p)) {
       const n = Number(p);
@@ -67,54 +78,61 @@ export default function NegociacaoModal({ isOpen, clube, onClose, modoInicial = 
   });
 
   const meuId = usuario?.id || usuario?._id || null;
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const clubeId = clube?.id;
-  const precoMercado = precoAtual; // preço de mercado exibido no modal (último preço carregado)
-  
-  
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const clubeId = clube?.id || clube?._id || null;
+  const precoMercado = Number(precoAtual || 0);
+
+  const getAuthHeaders = () =>
+    token ? { Authorization: `Bearer ${token}` } : {};
+
   const registrarAceite = async (tipo, versao) => {
     try {
-      const tokenLocal = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      if (!tokenLocal) return; // sem login, apenas não registra
-      await axios.post(
-        `/usuario/aceites`,
+      const tokenLocal =
+        typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!tokenLocal) return;
+
+      await api.post(
+        '/usuario/aceites',
         { tipo, versao },
-        { headers: { Authorization: `Bearer ${tokenLocal}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${tokenLocal}`,
+          },
+        }
       );
     } catch (err) {
-      // não bloquear fluxo por falha de log
       console.error('Erro ao registrar aceite:', err);
     }
   };
 
-useEffect(() => {
-  const basePreco =
-    clube?.precoMercado !== undefined && clube?.precoMercado !== null
-      ? Number(clube.precoMercado)
-      : clube?.precoAtual !== undefined && clube?.precoAtual !== null
-      ? Number(clube.precoAtual)
-      : clube?.preco !== undefined && clube?.preco !== null
-      ? Number(clube.preco)
-      : 0;
+  useEffect(() => {
+    const basePreco =
+      clube?.precoMercado !== undefined && clube?.precoMercado !== null
+        ? Number(clube.precoMercado)
+        : clube?.precoAtual !== undefined && clube?.precoAtual !== null
+        ? Number(clube.precoAtual)
+        : clube?.preco !== undefined && clube?.preco !== null
+        ? Number(clube.preco)
+        : 0;
 
-  if (Number.isFinite(basePreco) && basePreco > 0) {
-    setPreco(basePreco);
-    setPrecoAtual(basePreco);
-    setPrecoInput(basePreco.toFixed(2));
-  } else {
-    setPreco(0);
-    setPrecoAtual(0);
-    setPrecoInput('');
-  }
-}, [clube]);
+    if (Number.isFinite(basePreco) && basePreco > 0) {
+      setPreco(basePreco);
+      setPrecoAtual(basePreco);
+      setPrecoInput(basePreco.toFixed(2));
+    } else {
+      setPreco(0);
+      setPrecoAtual(0);
+      setPrecoInput('');
+    }
+  }, [clube]);
 
   useEffect(() => {
-    if (isOpen && clube?.id) {
-      if (!token || !verificarTokenValido(token)) return;
-      carregarOrdens();
-      verificarIPO();
-    }
-  }, [isOpen, clube]);
+    if (!isOpen || !clubeId) return;
+
+    carregarOrdens();
+    verificarIPO();
+  }, [isOpen, clubeId]);
 
   useEffect(() => {
     setMensagem('');
@@ -128,92 +146,98 @@ useEffect(() => {
   }, [modoInicial]);
 
   const carregarOrdens = async () => {
-  try {
-    const clubeId = clube._id || clube?.id;
-    const headers = { authorization: `Bearer ${token}` };
-    const { data } = await api.get(`/mercado/livro?clubeId=${clubeId}`, { headers });
-    setOrdensCompra(data.compras || []);
-    setOrdensVenda(data.vendas || []);
-  } catch (err) {
-    console.error('Erro ao carregar ordens:', err);
-  }
-};
-
-
- const buscarClubeInfo = async (clubeId, headers) => {
-  const tentativas = [
-    `/clube/${clubeId}`,
-    `/clube?id=${clubeId}`,
-  ];
-
-  for (const url of tentativas) {
     try {
-      const resp = await api.get(url, { headers });
-      return resp?.data?.data ?? resp?.data ?? null;
-    } catch (e) {
-      // tenta próxima rota
-    }
-  }
+      if (!clubeId) return;
 
-  return null;
-};
+      const { data } = await api.get(`/mercado/livro?clubeId=${clubeId}`, {
+        headers: getAuthHeaders(),
+      });
+
+      setOrdensCompra(data?.compras || []);
+      setOrdensVenda(data?.vendas || []);
+    } catch (err) {
+      console.error('Erro ao carregar ordens:', err);
+      setOrdensCompra([]);
+      setOrdensVenda([]);
+    }
+  };
+
+  const buscarClubeInfo = async (id) => {
+    const tentativas = [`/clube/${id}`, `/clube?id=${id}`];
+
+    for (const url of tentativas) {
+      try {
+        const resp = await api.get(url, { headers: getAuthHeaders() });
+        return resp?.data?.data ?? resp?.data ?? null;
+      } catch (e) {
+        // tenta a próxima rota
+      }
+    }
+
+    return null;
+  };
 
   const verificarIPO = async () => {
     try {
       if (!clubeId) return;
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-      const clubeInfo = await buscarClubeInfo(clubeId, headers);
-       if (!clubeInfo) {
-  console.error('Não foi possível carregar clubeInfo para verificar IPO');
-  setMensagem('❌ Não foi possível verificar status do IPO.');
-  return;
-}
+      const clubeInfo = await buscarClubeInfo(clubeId);
+
+      if (!clubeInfo) {
+        console.error('Não foi possível carregar clubeInfo para verificar IPO');
+        setMensagem('❌ Não foi possível verificar status do IPO.');
+        return;
+      }
 
       const cotas = Number(clubeInfo.cotasDisponiveis ?? 0);
-const ipoEncerrado = cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
+      const encerrado = cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
 
-setCotasIPO(cotas);
-setIpoEncerrado(ipoEncerrado);
+      setCotasIPO(cotas);
+      setIpoEncerrado(encerrado);
 
-// 🔑 DEFINIÇÃO ÚNICA DO PREÇO BASE
-let precoBase = 0;
+      let precoBase = 0;
 
-if (!ipoEncerrado) {
-  // IPO ativo → usa preço do IPO
-  precoBase = Number(clubeInfo.preco ?? 0);
-} else {
-  // Mercado secundário → usa preçoAtual
-  precoBase = Number(clubeInfo.precoAtual ?? clubeInfo.preco ?? 0);
-}
+      if (!encerrado) {
+        precoBase = Number(clubeInfo.preco ?? clubeInfo.precoAtual ?? 0);
+      } else {
+        precoBase = Number(clubeInfo.precoAtual ?? clubeInfo.preco ?? 0);
+      }
 
-// 🔑 SINCRONIZA TUDO
-setPreco(precoBase);
-setPrecoAtual(precoBase);
-setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
-
+      setPreco(precoBase);
+      setPrecoAtual(precoBase);
+      setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     } catch (err) {
       console.error('Erro ao verificar IPO:', err);
-      setCotasIPO(0);
-      setIpoEncerrado(true);
+      setMensagem('❌ Erro ao verificar status do IPO.');
     }
   };
 
-  const precoTotal = (precoAtual * quantidade).toFixed(2);
+  const precoTotal = (Number(precoAtual || 0) * Number(quantidade || 0)).toFixed(
+    2
+  );
 
   const tradeRolePreview = useMemo(() => {
     if (!ipoEncerrado) return { role: 'IPO', feePct: 0, feeValue: 0 };
-    const bestBid = resumoBook?.bestBid != null ? Number(resumoBook.bestBid) : null;
-    const bestAsk = resumoBook?.bestAsk != null ? Number(resumoBook.bestAsk) : null;
+
+    const bestBid =
+      resumoBook?.bestBid != null ? Number(resumoBook.bestBid) : null;
+    const bestAsk =
+      resumoBook?.bestAsk != null ? Number(resumoBook.bestAsk) : null;
     const currentPrice = Number(precoAtual || 0);
     const qty = Number(quantidade || 0);
+
     let role = 'MAKER';
 
-    if (modo === 'compra' && bestAsk != null && currentPrice >= bestAsk) role = 'TAKER';
-    if (modo === 'venda' && bestBid != null && currentPrice <= bestBid) role = 'TAKER';
+    if (modo === 'compra' && bestAsk != null && currentPrice >= bestAsk) {
+      role = 'TAKER';
+    }
+    if (modo === 'venda' && bestBid != null && currentPrice <= bestBid) {
+      role = 'TAKER';
+    }
 
     const feePct = role === 'TAKER' ? 0.005 : 0.002;
     const feeValue = Number((currentPrice * qty * feePct).toFixed(2));
+
     return { role, feePct, feeValue };
   }, [ipoEncerrado, resumoBook, precoAtual, quantidade, modo]);
 
@@ -225,7 +249,8 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       const fallback = Number(preco || 0);
       return {
         valid: false,
-        suggested: Number.isFinite(fallback) && fallback > 0 ? roundToTick(fallback) : null,
+        suggested:
+          Number.isFinite(fallback) && fallback > 0 ? roundToTick(fallback) : null,
         message: 'Informe um preço válido.',
       };
     }
@@ -236,7 +261,11 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     return {
       valid,
       suggested,
-      message: valid ? '' : `O preço deve respeitar o tick de R$ ${TICK_SIZE.toFixed(2)}. Sugestão: R$ ${suggested.toFixed(2)}.`,
+      message: valid
+        ? ''
+        : `O preço deve respeitar o tick de R$ ${TICK_SIZE.toFixed(
+            2
+          )}. Sugestão: R$ ${suggested.toFixed(2)}.`,
     };
   }, [ipoEncerrado, precoAtual, preco]);
 
@@ -249,13 +278,20 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
 
   const melhorarPreco = () => {
     if (!ipoEncerrado) return;
-    const bestBid = resumoBook?.bestBid != null ? Number(resumoBook.bestBid) : null;
-    const bestAsk = resumoBook?.bestAsk != null ? Number(resumoBook.bestAsk) : null;
+
+    const bestBid =
+      resumoBook?.bestBid != null ? Number(resumoBook.bestBid) : null;
+    const bestAsk =
+      resumoBook?.bestAsk != null ? Number(resumoBook.bestAsk) : null;
 
     if (modo === 'compra') {
       if (bestBid != null) {
         const suggested = Number((bestBid + TICK_SIZE).toFixed(2));
-        const next = bestAsk != null && suggested >= bestAsk ? Number((bestAsk - TICK_SIZE).toFixed(2)) : suggested;
+        const next =
+          bestAsk != null && suggested >= bestAsk
+            ? Number((bestAsk - TICK_SIZE).toFixed(2))
+            : suggested;
+
         if (next > 0) {
           setPrecoAtual(next);
           setPrecoInput(next.toFixed(2));
@@ -266,7 +302,11 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
 
     if (modo === 'venda' && bestAsk != null) {
       const suggested = Number((bestAsk - TICK_SIZE).toFixed(2));
-      const next = bestBid != null && suggested <= bestBid ? Number((bestBid + TICK_SIZE).toFixed(2)) : Math.max(TICK_SIZE, suggested);
+      const next =
+        bestBid != null && suggested <= bestBid
+          ? Number((bestBid + TICK_SIZE).toFixed(2))
+          : Math.max(TICK_SIZE, suggested);
+
       if (next > 0) {
         setPrecoAtual(next);
         setPrecoInput(next.toFixed(2));
@@ -274,7 +314,34 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     }
   };
 
-    async function enviarOrdem() {
+  async function atualizarSaldoDoUsuario() {
+    try {
+      const respSaldo = await api.get('/usuario/saldo', {
+        headers: getAuthHeaders(),
+      });
+
+      const novoSaldo = Number(respSaldo?.data?.saldo ?? 0);
+
+      setUsuario((prev) => {
+        if (!prev) {
+          localStorage.setItem('saldo', novoSaldo.toFixed(2));
+          return prev;
+        }
+
+        const atualizado = { ...prev, saldo: novoSaldo };
+        localStorage.setItem('usuario', JSON.stringify(atualizado));
+        localStorage.setItem('saldo', novoSaldo.toFixed(2));
+        return atualizado;
+      });
+
+      setPoderCompra(novoSaldo);
+      window.dispatchEvent(new Event('force-topbar-update'));
+    } catch (e) {
+      console.error('Erro ao atualizar saldo após ordem:', e);
+    }
+  }
+
+  async function enviarOrdem() {
     setCarregando(true);
     setMensagem('');
 
@@ -284,6 +351,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       setCarregando(false);
       return;
     }
+
     if (!usuario || (!usuario.id && !usuario._id)) {
       setMensagem('❌ Não foi possível identificar o usuário logado.');
       adicionarToast('❌ Usuário inválido.', 'erro');
@@ -294,14 +362,15 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     try {
       let response;
 
-      // validação de quantidade disponível na venda
       if (modo === 'venda') {
         const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
         const ativo =
           carteira.find((a) => String(a?.clubeId) === String(clube.id)) ||
           carteira.find((a) => String(a?.clube?.id) === String(clube.id)) ||
           carteira.find((a) => String(a?.idClube) === String(clube.id));
+
         const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
+
         if (quantidade > qtdDisp) {
           setMensagem('❌ Quantidade acima do disponível na carteira.');
           adicionarToast('❌ Quantidade acima do disponível.', 'erro');
@@ -311,46 +380,41 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       }
 
       if (modo === 'compra' && !ipoEncerrado) {
-        // 🟩 COMPRA DURANTE IPO
-        const res = await fetch(
+        const { data } = await api.post(
           `/clube/${clube.id}/comprar`,
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              usuarioId: usuario.id || usuario._id,
-              quantidade: Number(quantidade),
-            }),
+            usuarioId: usuario.id || usuario._id,
+            quantidade: Number(quantidade),
+          },
+          {
+            headers: getAuthHeaders(),
           }
         );
-        response = await res.json();
-        if (response.erro) throw new Error(response.erro);
+
+        response = data;
+        if (response?.erro) throw new Error(response.erro);
       } else {
-        // 🟦 MERCADO SECUNDÁRIO
         if (!isValidTickPrice(Number(precoAtual || 0))) {
           setMensagem(`❌ Preço inválido para o tick de R$ ${TICK_SIZE.toFixed(2)}.`);
-          adicionarToast(`❌ Preço inválido para o tick de R$ ${TICK_SIZE.toFixed(2)}.`, 'erro');
+          adicionarToast(
+            `❌ Preço inválido para o tick de R$ ${TICK_SIZE.toFixed(2)}.`,
+            'erro'
+          );
           setCarregando(false);
           return;
         }
 
         const payload = {
-          tipo: modo, // 'compra' ou 'venda'
+          tipo: modo,
           clubeId: clube.id,
           quantidade: Number(quantidade),
           preco: Number(precoAtual),
         };
 
-        const { data } = await axios.post(
-          `/mercado/ordem`,
-          payload,
-          {
-            headers: { authorization: `Bearer ${token}` },
-          }
-        );
+        const { data } = await api.post('/mercado/ordem', payload, {
+          headers: getAuthHeaders(),
+        });
+
         response = data;
       }
 
@@ -360,39 +424,12 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
         'sucesso'
       );
 
-      // recarrega livro / IPO / último preço
       await carregarOrdens();
       await verificarIPO();
-
-      // 🔄 BUSCA SALDO ATUALIZADO NO BACKEND E ATUALIZA LOCALSTORAGE + ESTADOS
-      try {
-        const respSaldo = await api.get('/usuario/saldo'); // usa seu axios com baseURL
-        const novoSaldo = Number(respSaldo?.data?.saldo ?? 0);
-
-        setUsuario((prev) => {
-          if (!prev) {
-            // se por algum motivo não tiver usuário, ainda assim grava o saldo isolado
-            localStorage.setItem('saldo', novoSaldo.toFixed(2));
-            return prev;
-          }
-
-          const atualizado = { ...prev, saldo: novoSaldo };
-
-          localStorage.setItem('usuario', JSON.stringify(atualizado));
-          localStorage.setItem('saldo', novoSaldo.toFixed(2));
-
-          return atualizado;
-        });
-
-        setPoderCompra(novoSaldo); // atualiza "Poder de Compra" no modal
-
-        // avisa o Topbar para se atualizar
-        window.dispatchEvent(new Event('force-topbar-update'));
-      } catch (e) {
-        console.error('Erro ao atualizar saldo após ordem:', e);
-      }
+      await atualizarSaldoDoUsuario();
     } catch (error) {
       let erroMsg = 'Erro desconhecido';
+
       if (error.response) {
         erroMsg =
           error.response.data?.erro ||
@@ -403,6 +440,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       } else {
         erroMsg = error.message;
       }
+
       setMensagem(`❌ ${erroMsg}`);
       adicionarToast(`❌ Erro: ${erroMsg}`, 'erro');
       console.error('❌ [ERRO AO ENVIAR ORDEM]', erroMsg);
@@ -411,7 +449,6 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     }
   }
 
-  // cancelar ordem do usuário logado
   async function cancelarMinhaOrdem(ordemOuId) {
     try {
       if (!token || !verificarTokenValido(token)) {
@@ -426,18 +463,18 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
 
       if (!ordemId) {
         console.error('ID de ordem inválido ao tentar cancelar:', ordemOuId);
-        adicionarToast('❌ Não foi possível identificar a ordem para cancelar.', 'erro');
+        adicionarToast(
+          '❌ Não foi possível identificar a ordem para cancelar.',
+          'erro'
+        );
         return;
       }
 
-      await axios.post(
-        `/mercado/ordem/cancelar`,
+      await api.post(
+        '/mercado/ordem/cancelar',
         { ordemId },
         {
-          headers: {
-            authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: getAuthHeaders(),
         }
       );
 
@@ -445,6 +482,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
 
       await carregarOrdens();
       await verificarIPO();
+      await atualizarSaldoDoUsuario();
     } catch (error) {
       console.error('Erro ao cancelar ordem:', error);
 
@@ -460,40 +498,47 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
   if (!isOpen || !clube) return null;
 
   return (
-    
     <Overlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <FecharX onClick={onClose}>×</FecharX>
+
         <ModalContentInner>
           <Header>
-            <Image src={clube.escudo} alt={clube.nome} width={40} height={40}/>
+            <Image src={clube.escudo} alt={clube.nome} width={40} height={40} />
             <div>
               <h2>{clube.nome}</h2>
-              <PrecoAtual />
+              <PrecoAtualTexto>
+                {precoMercado > 0 ? `Preço atual: R$ ${precoMercado.toFixed(2)}` : ''}
+              </PrecoAtualTexto>
             </div>
           </Header>
-{mostrarRisco && (
-  <PoliticaRiscoModal
-    exigirAceite
-    onAceitar={async () => {
-      localStorage.setItem("leuPoliticaRisco", "true");
-      setMostrarRisco(false);
-      setMostrarModal(true);
-    }}
-  />
-)}
+
+          {mostrarRisco && (
+            <PoliticaRiscoModal
+              exigirAceite
+              onAceitar={async () => {
+                localStorage.setItem('leuPoliticaRisco', 'true');
+                await registrarAceite('politica_risco', '1.0');
+                setMostrarRisco(false);
+              }}
+            />
+          )}
 
           {!usuario && (
             <div style={{ textAlign: 'center', margin: '1rem 0' }}>
-              <BotaoLogin onClick={() => window.location.href = '/login'}>
+              <BotaoLogin onClick={() => (window.location.href = '/login')}>
                 Ir para Login
               </BotaoLogin>
             </div>
           )}
 
           <Acoes>
-            <Aba $ativa={modo === 'compra'} onClick={() => setModo('compra')}>Compra</Aba>
-            <Aba $ativa={modo === 'venda'} onClick={() => setModo('venda')}>Venda</Aba>
+            <Aba $ativa={modo === 'compra'} onClick={() => setModo('compra')}>
+              Compra
+            </Aba>
+            <Aba $ativa={modo === 'venda'} onClick={() => setModo('venda')}>
+              Venda
+            </Aba>
           </Acoes>
 
           <Bloco>
@@ -505,19 +550,24 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
               readOnly={!ipoEncerrado}
               onChange={(e) => {
                 if (!ipoEncerrado) return;
+
                 const raw = e.target.value.replace(',', '.');
                 if (!/^\d*(\.\d{0,2})?$/.test(raw)) return;
+
                 setPrecoInput(raw);
+
                 if (raw === '') {
                   setPrecoAtual(0);
                   return;
                 }
+
                 const v = Number(raw);
                 setPrecoAtual(Number.isFinite(v) ? v : 0);
               }}
               onBlur={() => {
                 if (!ipoEncerrado) return;
                 if (precoInput === '') return;
+
                 const v = Number(precoInput || 0);
                 setPrecoAtual(Number.isFinite(v) ? v : 0);
               }}
@@ -536,6 +586,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
                       <strong>Preço inválido para o mercado</strong>
                       <span>{tickValidation.message}</span>
                     </div>
+
                     {tickValidation.suggested != null && (
                       <BotaoCorrigirTick type="button" onClick={aplicarPrecoSugerido}>
                         Corrigir para R$ {Number(tickValidation.suggested).toFixed(2)}
@@ -558,28 +609,56 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
               min="0"
               value={quantidade || ''}
               onChange={(e) => {
-                const valor = parseInt(e.target.value);
+                const valor = parseInt(e.target.value, 10);
                 setQuantidade(isNaN(valor) ? 0 : valor);
               }}
             />
           </Bloco>
 
           <Bloco>
-            <LinhaInfo><span>Valor da Ordem</span><strong>R$ {precoTotal}</strong></LinhaInfo>
-            <PrecoAtual />
-            <LinhaInfo><span>Preço de Mercado</span><span>R$ {Number(precoMercado).toFixed(2)}</span></LinhaInfo>
+            <LinhaInfo>
+              <span>Valor da Ordem</span>
+              <strong>R$ {precoTotal}</strong>
+            </LinhaInfo>
+
+            <LinhaInfo>
+              <span>Preço de Mercado</span>
+              <span>R$ {Number(precoMercado).toFixed(2)}</span>
+            </LinhaInfo>
+
             {ipoEncerrado && (
               <>
-                <LinhaInfo><span>Melhor compra</span><span>{resumoBook?.bestBid != null ? `R$ ${Number(resumoBook.bestBid).toFixed(2)}` : '-'}</span></LinhaInfo>
-                <LinhaInfo><span>Melhor venda</span><span>{resumoBook?.bestAsk != null ? `R$ ${Number(resumoBook.bestAsk).toFixed(2)}` : '-'}</span></LinhaInfo>
+                <LinhaInfo>
+                  <span>Melhor compra</span>
+                  <span>
+                    {resumoBook?.bestBid != null
+                      ? `R$ ${Number(resumoBook.bestBid).toFixed(2)}`
+                      : '-'}
+                  </span>
+                </LinhaInfo>
+
+                <LinhaInfo>
+                  <span>Melhor venda</span>
+                  <span>
+                    {resumoBook?.bestAsk != null
+                      ? `R$ ${Number(resumoBook.bestAsk).toFixed(2)}`
+                      : '-'}
+                  </span>
+                </LinhaInfo>
+
                 <LinhaInfo>
                   <span>Você será</span>
-                  <span>{tradeRolePreview.role} — taxa {(tradeRolePreview.feePct * 100).toFixed(2)}%</span>
+                  <span>
+                    {tradeRolePreview.role} — taxa{' '}
+                    {(tradeRolePreview.feePct * 100).toFixed(2)}%
+                  </span>
                 </LinhaInfo>
+
                 <LinhaInfo>
                   <span>Taxa estimada</span>
                   <span>R$ {tradeRolePreview.feeValue.toFixed(2)}</span>
                 </LinhaInfo>
+
                 <BotaoMelhorarPreco type="button" onClick={melhorarPreco}>
                   Melhorar preço em R$ {TICK_SIZE.toFixed(2)}
                 </BotaoMelhorarPreco>
@@ -589,15 +668,24 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
             {modo === 'compra' ? (
               <LinhaInfo>
                 <span>Poder de Compra</span>
-                <span>{usuario ? `R$ ${poderCompra || '0.00'}` : 'Faça login para visualizar'}</span>
+                <span>
+                  {usuario ? `R$ ${Number(poderCompra || 0).toFixed(2)}` : 'Faça login para visualizar'}
+                </span>
               </LinhaInfo>
             ) : (
               <LinhaInfo>
                 <span>Cotas disponíveis</span>
                 <span>
                   {(() => {
-                    const ativo = usuario?.carteira?.find(a => String(a.clubeId) === String(clube.id));
-                    return ativo?.quantidade || 0;
+                    const ativo = Array.isArray(usuario?.carteira)
+                      ? usuario.carteira.find(
+                          (a) =>
+                            String(a?.clubeId) === String(clube.id) ||
+                            String(a?.clube?.id) === String(clube.id) ||
+                            String(a?.idClube) === String(clube.id)
+                        )
+                      : null;
+                    return ativo?.quantidade || ativo?.cotas || 0;
                   })()}
                 </span>
               </LinhaInfo>
@@ -621,15 +709,20 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
               precoAtual <= 0 ||
               quantidade < 1 ||
               !usuario ||
-              (modo === 'venda' && (() => {
-                const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
-                const ativo =
-                  carteira.find(a => String(a?.clubeId) === String(clube.id)) ||
-                  carteira.find(a => String(a?.clube?.id) === String(clube.id)) ||
-                  carteira.find(a => String(a?.idClube) === String(clube.id));
-                const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
-                return quantidade > qtdDisp;
-              })())
+              (modo === 'venda' &&
+                (() => {
+                  const carteira = Array.isArray(usuario?.carteira)
+                    ? usuario.carteira
+                    : [];
+
+                  const ativo =
+                    carteira.find((a) => String(a?.clubeId) === String(clube.id)) ||
+                    carteira.find((a) => String(a?.clube?.id) === String(clube.id)) ||
+                    carteira.find((a) => String(a?.idClube) === String(clube.id));
+
+                  const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
+                  return quantidade > qtdDisp;
+                })())
             }
           >
             {!usuario
@@ -651,14 +744,11 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
             meuId={meuId}
             onCancelar={cancelarMinhaOrdem}
           />
-
         </ModalContentInner>
       </ModalContainer>
     </Overlay>
   );
 }
-
-// Styled Components (iguais ao seu arquivo atual)
 
 const TickMeta = styled.div`
   margin-top: 0.55rem;
@@ -760,13 +850,6 @@ const Overlay = styled.div`
   display: flex;
   justify-content: flex-end;
 `;
-const MensagemErro = styled.p`
-  color: #ef4444;
-  background-color: #fee2e2;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-`;
 
 const BotaoLogin = styled.button`
   background-color: #3b82f6;
@@ -775,6 +858,7 @@ const BotaoLogin = styled.button`
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+
   &:hover {
     background-color: #2563eb;
   }
@@ -840,15 +924,11 @@ const Header = styled.div`
   }
 `;
 
-const PrecoAtual = styled.div`
+const PrecoAtualTexto = styled.div`
   font-weight: bold;
   color: #ffffff;
-
-  span {
-    color: #f87171;
-    font-weight: normal;
-    margin-left: 8px;
-  }
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
 `;
 
 const Acoes = styled.div`
@@ -901,6 +981,7 @@ const Mensagem = styled.p`
   color: #22c55e;
   margin-top: 1rem;
   font-weight: 500;
+  white-space: pre-wrap;
 `;
 
 const BotaoComprar = styled.button`
