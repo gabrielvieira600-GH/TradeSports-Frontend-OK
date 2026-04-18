@@ -101,6 +101,10 @@ useEffect(() => {
     setPreco(basePreco);
     setPrecoAtual(basePreco);
     setPrecoInput(basePreco.toFixed(2));
+  } else {
+    setPreco(0);
+    setPrecoAtual(0);
+    setPrecoInput('');
   }
 }, [clube]);
 
@@ -124,35 +128,35 @@ useEffect(() => {
   }, [modoInicial]);
 
   const carregarOrdens = async () => {
+  try {
+    const clubeId = clube._id || clube?.id;
+    const headers = { authorization: `Bearer ${token}` };
+    const { data } = await api.get(`/mercado/livro?clubeId=${clubeId}`, { headers });
+    setOrdensCompra(data.compras || []);
+    setOrdensVenda(data.vendas || []);
+  } catch (err) {
+    console.error('Erro ao carregar ordens:', err);
+  }
+};
+
+
+ const buscarClubeInfo = async (clubeId, headers) => {
+  const tentativas = [
+    `/clube/${clubeId}`,
+    `/clube?id=${clubeId}`,
+  ];
+
+  for (const url of tentativas) {
     try {
-      const clubeId = clube._id || clube?.id;
-      const headers = { authorization: `Bearer ${token}` };
-      const { data } = await axios.get(`/mercado/livro?clubeId=${clubeId}`, { headers });
-      setOrdensCompra(data.compras || []);
-      setOrdensVenda(data.vendas || []);
-    } catch (err) {
-      console.error('Erro ao carregar ordens:', err);
+      const resp = await api.get(url, { headers });
+      return resp?.data?.data ?? resp?.data ?? null;
+    } catch (e) {
+      // tenta próxima rota
     }
-  };
+  }
 
-
-  const buscarClubeInfo = async (clubeId, headers) => {
-    const base = process.env.NEXT_PUBLIC_API_URL;
-    const tentativas = [
-      `/clube/${clubeId}`,
-      `/clube?id=${clubeId}`,
-    ];
-    for (const url of tentativas) {
-      try {
-        const resp = await axios.get(url, { headers });
-        // alguns endpoints podem retornar { data: clube }
-        return resp?.data?.data ?? resp?.data ?? null;
-      } catch (e) {
-        // tenta próxima rota
-      }
-    }
-    return null;
-  };
+  return null;
+};
 
   const verificarIPO = async () => {
     try {
@@ -160,11 +164,11 @@ useEffect(() => {
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
       const clubeInfo = await buscarClubeInfo(clubeId, headers);
-      if (!clubeInfo) {
-        setCotasIPO(0);
-        setIpoEncerrado(true);
-        return;
-      }
+       if (!clubeInfo) {
+  console.error('Não foi possível carregar clubeInfo para verificar IPO');
+  setMensagem('❌ Não foi possível verificar status do IPO.');
+  return;
+}
 
       const cotas = Number(clubeInfo.cotasDisponiveis ?? 0);
 const ipoEncerrado = cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
