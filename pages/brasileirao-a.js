@@ -199,8 +199,8 @@ export default function BrasileiraoA() {
       )}
 
       <TableSurface>
-        <TableHead>
-        </TableHead>
+        
+        
 
         <TableWrap>
           <Tabela>
