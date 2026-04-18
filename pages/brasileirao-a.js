@@ -299,7 +299,7 @@ const Container = styled.div`
 const Hero = styled.div`
   margin-bottom: 14px;
   padding: 6px 2px 14px;
-  border-bottom: 1px solid rgba(148,163,184,0.1);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -311,6 +311,10 @@ const LeagueMain = styled.div`
   display: flex;
   align-items: center;
   gap: 14px;
+
+  @media (max-width: 640px) {
+    gap: 10px;
+  }
 `;
 
 const LeagueMark = styled.div`
@@ -319,25 +323,30 @@ const LeagueMark = styled.div`
   border-radius: 18px;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-  border: 1px solid rgba(148,163,184,0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03)
+  );
+  border: 1px solid rgba(148, 163, 184, 0.12);
+
+  @media (max-width: 640px) {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
 `;
 
 const LeagueCopy = styled.div``;
-
-const Kicker = styled.div`
-  color: #00ff95;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-`;
 
 const Titulo = styled.h1`
   margin: 0;
   font-size: 1.55rem;
   color: #f8fafc;
+
+  @media (max-width: 640px) {
+    font-size: 1.18rem;
+  }
 `;
 
 const LeagueMeta = styled.div`
@@ -356,7 +365,7 @@ const LeagueActions = styled.div`
 `;
 
 const LeagueStar = styled.button`
-  border: 1px solid rgba(148,163,184,0.16);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   background: ${({ $active }) =>
     $active
       ? 'linear-gradient(180deg, rgba(250,204,21,0.22), rgba(250,204,21,0.06))'
@@ -367,68 +376,71 @@ const LeagueStar = styled.button`
   border-radius: 14px;
   font-size: 1.45rem;
   cursor: pointer;
+
+  @media (max-width: 640px) {
+    width: 42px;
+    height: 42px;
+  }
+`;
+
+const DesktopTable = styled.div`
+  display: block;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const MobileCards = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: grid;
+    gap: 10px;
+  }
 `;
 
 const TableSurface = styled.div`
   background: transparent;
 `;
 
-const TableHead = styled.div`
-  margin-bottom: 10px;
-`;
-
-const TableTitle = styled.h2`
-  margin: 0;
-  color: #f8fafc;
-  font-size: 1.02rem;
-`;
-
-const TableSubtitle = styled.div`
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 0.82rem;
-`;
-
 const TableWrap = styled.div`
   overflow-x: auto;
+  border-radius: 18px;
 `;
 
 const Tabela = styled.table`
   width: 100%;
+  min-width: 780px;
   border-collapse: collapse;
-  color: white;
-  min-width: 880px;
 
-  th,
-  td {
-    padding: 14px 12px;
+  thead th {
     text-align: left;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 800;
+    padding: 14px 10px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tbody td {
+    padding: 14px 10px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
     vertical-align: middle;
   }
 
-  th {
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.72rem;
-    font-weight: 800;
-    border-bottom: 1px solid rgba(148,163,184,0.12);
-  }
-
-  tbody tr {
-    border-bottom: 1px solid rgba(148,163,184,0.08);
-    transition: background 0.16s ease;
-  }
-
   tbody tr:hover {
-    background: rgba(255,255,255,0.025);
+    background: rgba(255, 255, 255, 0.025);
   }
 `;
 
 const Pos = styled.div`
-  color: #dbeafe;
+  width: 28px;
+  text-align: center;
   font-weight: 800;
-  font-size: 1rem;
+  color: #f8fafc;
 `;
 
 const ClubeCell = styled.div`
@@ -440,84 +452,165 @@ const ClubeCell = styled.div`
 const StarButton = styled.button`
   border: none;
   background: transparent;
-  color: ${({ $active }) => ($active ? '#facc15' : '#64748b')};
-  font-size: 1.75rem;
-  line-height: 1;
+  color: ${({ $active }) => ($active ? '#fde68a' : '#64748b')};
+  font-size: 1.3rem;
   cursor: pointer;
   padding: 0;
-  width: 24px;
+  line-height: 1;
   flex: 0 0 auto;
 `;
 
 const ClubNameWrap = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
+  min-width: 0;
 `;
 
 const EscudoWrap = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(148,163,184,0.08);
-  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  overflow: hidden;
 `;
 
 const ClubText = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
   strong {
     color: #f8fafc;
-    font-size: 0.95rem;
-  }
-
-  small {
-    color: #64748b;
-    font-size: 0.76rem;
+    font-size: 0.94rem;
   }
 `;
 
 const NumberCol = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  span {
-    color: #f8fafc;
-    font-size: 0.95rem;
-    font-weight: 800;
-  }
-
-  small {
-    color: #64748b;
-    font-size: 0.75rem;
-  }
+  color: #e2e8f0;
+  font-weight: 700;
 `;
 
-const StatusText = styled.div`
-  color: ${({ $ipo }) => ($ipo ? '#86efac' : '#86efac')};
-  font-size: 0.84rem;
+const StatusText = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
   font-weight: 800;
+  color: ${({ $ipo }) => ($ipo ? '#86efac' : '#93c5fd')};
+  background: ${({ $ipo }) =>
+    $ipo ? 'rgba(34,197,94,0.12)' : 'rgba(59,130,246,0.12)'};
+  border: 1px solid
+    ${({ $ipo }) => ($ipo ? 'rgba(34,197,94,0.16)' : 'rgba(59,130,246,0.16)')};
 `;
 
 const Botao = styled.button`
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  background: #2563eb;
   color: white;
   border: none;
-  padding: 0.6rem 1rem;
+  padding: 9px 14px;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 800;
-  box-shadow: 0 10px 22px rgba(37,99,235,0.22);
 
   &:hover {
-    filter: brightness(1.05);
+    background: #1d4ed8;
   }
 `;
 
+const Card = styled.div`
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(11, 19, 36, 0.96));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  padding: 12px;
+`;
+
+const CardTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+`;
+
+const CardLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+`;
+
+const PosMobile = styled.div`
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 800;
+  color: #f8fafc;
+  flex: 0 0 auto;
+`;
+
+const EscudoMobile = styled.div`
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  overflow: hidden;
+  flex: 0 0 auto;
+`;
+
+const ClubMain = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  strong {
+    color: #f8fafc;
+    font-size: 0.96rem;
+    cursor: pointer;
+  }
+`;
+
+const CardMetrics = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+`;
+
+const MetricBox = styled.div`
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+
+  span {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.76rem;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    color: #f8fafc;
+    font-size: 0.98rem;
+  }
+`;
+
+const CardButton = styled.button`
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+`;

@@ -129,7 +129,6 @@ export default function NegociacaoModal({
 
   useEffect(() => {
     if (!isOpen || !clubeId) return;
-
     carregarOrdens();
     verificarIPO();
   }, [isOpen, clubeId]);
@@ -169,9 +168,7 @@ export default function NegociacaoModal({
       try {
         const resp = await api.get(url, { headers: getAuthHeaders() });
         return resp?.data?.data ?? resp?.data ?? null;
-      } catch (e) {
-        // tenta a próxima rota
-      }
+      } catch (e) {}
     }
 
     return null;
@@ -212,9 +209,9 @@ export default function NegociacaoModal({
     }
   };
 
-  const precoTotal = (Number(precoAtual || 0) * Number(quantidade || 0)).toFixed(
-    2
-  );
+  const precoTotal = (
+    Number(precoAtual || 0) * Number(quantidade || 0)
+  ).toFixed(2);
 
   const tradeRolePreview = useMemo(() => {
     if (!ipoEncerrado) return { role: 'IPO', feePct: 0, feeValue: 0 };
@@ -669,7 +666,9 @@ export default function NegociacaoModal({
               <LinhaInfo>
                 <span>Poder de Compra</span>
                 <span>
-                  {usuario ? `R$ ${Number(poderCompra || 0).toFixed(2)}` : 'Faça login para visualizar'}
+                  {usuario
+                    ? `R$ ${Number(poderCompra || 0).toFixed(2)}`
+                    : 'Faça login para visualizar'}
                 </span>
               </LinhaInfo>
             ) : (
@@ -750,6 +749,183 @@ export default function NegociacaoModal({
   );
 }
 
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.76);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 900px) {
+    justify-content: center;
+    align-items: stretch;
+  }
+`;
+
+const ModalContainer = styled.div`
+  background-color: #0f172a;
+  padding: 18px;
+  width: 380px;
+  max-width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  @media (max-width: 900px) {
+    width: 100vw;
+    height: 100vh;
+    padding: 14px 12px max(14px, env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+`;
+
+const ModalContentInner = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #475569;
+    border-radius: 8px;
+  }
+`;
+
+const FecharX = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 3;
+
+  &:hover {
+    color: white;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 22px;
+
+  h2 {
+    font-size: 1.12rem;
+    color: white;
+    margin: 0;
+  }
+`;
+
+const PrecoAtualTexto = styled.div`
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+`;
+
+const Acoes = styled.div`
+  display: flex;
+  margin-top: 1.25rem;
+`;
+
+const Aba = styled.button`
+  flex: 1;
+  text-align: center;
+  padding: 0.8rem;
+  background-color: ${({ $ativa }) => ($ativa ? '#1d4ed8' : '#1e293b')};
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+
+  &:first-child {
+    border-right: 1px solid #334155;
+  }
+`;
+
+const Bloco = styled.div`
+  margin-top: 1.2rem;
+
+  label {
+    color: #cbd5e1;
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.92rem;
+  }
+`;
+
+const InputNumero = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #1e293b;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  border-radius: 10px;
+  box-sizing: border-box;
+`;
+
+const LinhaInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0.42rem 0;
+  color: #cbd5e1;
+  font-size: 0.93rem;
+`;
+
+const Mensagem = styled.p`
+  color: #22c55e;
+  margin-top: 1rem;
+  font-weight: 600;
+  white-space: pre-wrap;
+`;
+
+const BotaoComprar = styled.button`
+  margin-top: 1.3rem;
+  width: 100%;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  padding: 0.9rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #15803d;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const BotaoLogin = styled.button`
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+`;
+
 const TickMeta = styled.div`
   margin-top: 0.55rem;
   display: flex;
@@ -759,8 +935,8 @@ const TickMeta = styled.div`
   font-size: 0.8rem;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(148,163,184,0.10);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.1);
 
   strong {
     color: #e5e7eb;
@@ -776,8 +952,12 @@ const TickAlert = styled.div`
   justify-content: space-between;
   border-radius: 12px;
   padding: 0.75rem;
-  background: linear-gradient(180deg, rgba(239,68,68,0.16), rgba(239,68,68,0.08));
-  border: 1px solid rgba(239,68,68,0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(239, 68, 68, 0.16),
+    rgba(239, 68, 68, 0.08)
+  );
+  border: 1px solid rgba(239, 68, 68, 0.28);
 
   div {
     display: flex;
@@ -795,14 +975,23 @@ const TickAlert = styled.div`
     font-size: 0.78rem;
     line-height: 1.35;
   }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const TickOk = styled.div`
   margin-top: 0.6rem;
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
-  background: linear-gradient(180deg, rgba(22,163,74,0.14), rgba(22,163,74,0.06));
-  border: 1px solid rgba(22,163,74,0.24);
+  background: linear-gradient(
+    180deg,
+    rgba(22, 163, 74, 0.14),
+    rgba(22, 163, 74, 0.06)
+  );
+  border: 1px solid rgba(22, 163, 74, 0.24);
   color: #bbf7d0;
   font-size: 0.8rem;
   font-weight: 700;
@@ -811,197 +1000,22 @@ const TickOk = styled.div`
 const BotaoCorrigirTick = styled.button`
   border: none;
   border-radius: 10px;
-  padding: 0.65rem 0.8rem;
+  padding: 0.7rem 0.8rem;
   cursor: pointer;
   background: linear-gradient(180deg, #2563eb, #1d4ed8);
   color: white;
   font-weight: 800;
   white-space: nowrap;
-
-  &:hover {
-    filter: brightness(1.05);
-  }
 `;
 
 const BotaoMelhorarPreco = styled.button`
   margin-top: 0.75rem;
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  padding: 0.7rem 0.75rem;
   border-radius: 8px;
   border: 1px solid rgba(59, 130, 246, 0.35);
   background: rgba(59, 130, 246, 0.08);
   color: #e5e7eb;
   font-weight: 700;
   cursor: pointer;
-
-  &:hover {
-    background: rgba(59, 130, 246, 0.16);
-  }
-`;
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-  display: flex;
-  justify-content: flex-end;
-`;
-
-const BotaoLogin = styled.button`
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #2563eb;
-  }
-`;
-
-const ModalContainer = styled.div`
-  background-color: #0f172a;
-  padding: 1.5rem;
-  width: 380px;
-  height: 100%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ModalContentInner = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #1e293b;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #475569;
-    border-radius: 8px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: #64748b;
-  }
-`;
-
-const FecharX = styled.button`
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 1.5rem;
-  color: #94a3b8;
-  background: none;
-  border: none;
-  cursor: pointer;
-
-  &:hover {
-    color: white;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  h2 {
-    font-size: 1.2rem;
-    color: white;
-    margin: 0;
-  }
-`;
-
-const PrecoAtualTexto = styled.div`
-  font-weight: bold;
-  color: #ffffff;
-  font-size: 0.9rem;
-  margin-top: 0.2rem;
-`;
-
-const Acoes = styled.div`
-  display: flex;
-  margin-top: 1.5rem;
-`;
-
-const Aba = styled.div`
-  flex: 1;
-  text-align: center;
-  padding: 0.75rem;
-  background-color: ${({ $ativa }) => ($ativa ? '#1d4ed8' : '#1e293b')};
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:first-child {
-    border-right: 1px solid #334155;
-  }
-`;
-
-const Bloco = styled.div`
-  margin-top: 1.5rem;
-
-  label {
-    color: #cbd5e1;
-    display: block;
-    margin-bottom: 0.25rem;
-  }
-`;
-
-const InputNumero = styled.input`
-  width: 100%;
-  padding: 0.6rem;
-  background-color: #1e293b;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  border-radius: 4px;
-`;
-
-const LinhaInfo = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 0.4rem 0;
-  color: #cbd5e1;
-`;
-
-const Mensagem = styled.p`
-  color: #22c55e;
-  margin-top: 1rem;
-  font-weight: 500;
-  white-space: pre-wrap;
-`;
-
-const BotaoComprar = styled.button`
-  margin-top: 1.5rem;
-  width: 100%;
-  background-color: #16a34a;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #15803d;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 `;
