@@ -77,7 +77,7 @@ export default function NegociacaoModal({ isOpen, clube, onClose, modoInicial = 
       const tokenLocal = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (!tokenLocal) return; // sem login, apenas não registra
       await axios.post(
-        `${API}/usuario/aceites`,
+        `/usuario/aceites`,
         { tipo, versao },
         { headers: { Authorization: `Bearer ${tokenLocal}` } }
       );
@@ -127,7 +127,7 @@ useEffect(() => {
     try {
       const clubeId = clube._id || clube?.id;
       const headers = { authorization: `Bearer ${token}` };
-      const { data } = await axios.get(`${API}/mercado/livro?clubeId=${clubeId}`, { headers });
+      const { data } = await axios.get(`/mercado/livro?clubeId=${clubeId}`, { headers });
       setOrdensCompra(data.compras || []);
       setOrdensVenda(data.vendas || []);
     } catch (err) {
@@ -139,8 +139,8 @@ useEffect(() => {
   const buscarClubeInfo = async (clubeId, headers) => {
     const base = process.env.NEXT_PUBLIC_API_URL;
     const tentativas = [
-      `${base}/clube/${clubeId}`,
-      `${base}/clube?id=${clubeId}`,
+      `/clube/${clubeId}`,
+      `/clube?id=${clubeId}`,
     ];
     for (const url of tentativas) {
       try {
@@ -309,7 +309,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       if (modo === 'compra' && !ipoEncerrado) {
         // 🟩 COMPRA DURANTE IPO
         const res = await fetch(
-          `${API}/clube/${clube.id}/comprar`,
+          `/clube/${clube.id}/comprar`,
           {
             method: 'POST',
             headers: {
@@ -341,7 +341,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
         };
 
         const { data } = await axios.post(
-          `${API}/mercado/ordem`,
+          `/mercado/ordem`,
           payload,
           {
             headers: { authorization: `Bearer ${token}` },
@@ -427,7 +427,7 @@ setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
       }
 
       await axios.post(
-        `${API}/mercado/ordem/cancelar`,
+        `/mercado/ordem/cancelar`,
         { ordemId },
         {
           headers: {
