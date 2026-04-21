@@ -397,8 +397,8 @@ const Usuario = styled.div`
   text-overflow: ellipsis;
 
   @media (max-width: 640px) {
-    font-size: 0.86rem;
-    max-width: 150px;
+    font-size: 1.86rem;
+    max-width: 190px;
   }
 `;
 
@@ -408,7 +408,7 @@ const Saldo = styled.div`
   font-size: 1rem;
 
   @media (max-width: 640px) {
-    font-size: 0.9rem;
+    font-size: 1.9rem;
   }
 `;
 
@@ -472,7 +472,7 @@ const IconButton = styled.button`
   }
 
   @media (max-width: 640px) {
-    height: 380px;
+    height: 38px;
     width: 38px;
   }
 `;
