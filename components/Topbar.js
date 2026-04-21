@@ -339,10 +339,19 @@ const SecondaryRow = styled.div`
 `;
 
 const Logo = styled.h1`
-  margin: 0;
-  font-size: 1.15rem;
+  padding: 10px 15px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  color: white;
   font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  min-height: 42px;
+  white-space: nowrap;
+  
 
   a {
     color: white;
