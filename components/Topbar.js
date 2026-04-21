@@ -396,9 +396,9 @@ const Usuario = styled.div`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  @media (max-width: 640px) {
-    font-size: 1.86rem;
-    max-width: 190px;
+  @media (max-width: 60px) {
+    font-size: 0.86rem;
+    max-width: 150px;
   }
 `;
 
@@ -407,8 +407,8 @@ const Saldo = styled.div`
   font-weight: 800;
   font-size: 1rem;
 
-  @media (max-width: 640px) {
-    font-size: 1.9rem;
+  @media (max-width: 60px) {
+    font-size: 0.9rem;
   }
 `;
 
