@@ -243,11 +243,6 @@ export default function Topbar() {
 
       {usuario ? (
         <SecondaryRow>
-          <IdentityBlock>
-            <Usuario>👤 {usuario.nomeUsuario || usuario.nome}</Usuario>
-            <Saldo>💰 R$ {parseFloat(saldo || 0).toFixed(2)}</Saldo>
-          </IdentityBlock>
-
           <SearchForm onSubmit={handleBusca}>
             <SearchIcon>⌕</SearchIcon>
             <SearchInput
