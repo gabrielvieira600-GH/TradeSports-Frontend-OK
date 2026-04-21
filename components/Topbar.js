@@ -354,9 +354,7 @@ const Logo = styled.h1`
     text-decoration: none;
   }
 
-  @media (max-width: 640px) {
-    font-size: 0.98rem;
-  }
+  
 `;
 
 const GuestActions = styled.div`
@@ -396,7 +394,7 @@ const Usuario = styled.div`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  @media (max-width: 60px) {
+  @media (max-width: 640px) {
     font-size: 0.86rem;
     max-width: 150px;
   }
@@ -407,7 +405,7 @@ const Saldo = styled.div`
   font-weight: 800;
   font-size: 1rem;
 
-  @media (max-width: 60px) {
+  @media (max-width: 640px) {
     font-size: 0.9rem;
   }
 `;
