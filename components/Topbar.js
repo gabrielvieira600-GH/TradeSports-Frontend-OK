@@ -220,7 +220,7 @@ export default function Topbar() {
 
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
-                  Banco
+                  👤
                 </BotaoVerde>
 
                 {bancoAberto && (
@@ -354,7 +354,9 @@ const Logo = styled.h1`
     text-decoration: none;
   }
 
-  
+  @media (max-width: 640px) {
+    font-size: 1.98rem;
+  }
 `;
 
 const GuestActions = styled.div`
