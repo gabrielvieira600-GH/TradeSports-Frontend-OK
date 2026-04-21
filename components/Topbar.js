@@ -472,7 +472,7 @@ const IconButton = styled.button`
   }
 
   @media (max-width: 640px) {
-    height: 38px;
+    height: 380px;
     width: 38px;
   }
 `;
