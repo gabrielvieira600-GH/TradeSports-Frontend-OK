@@ -13,20 +13,17 @@ function calcularPrecoLiquidacao(posicao) {
   const precoBase = 5;
   return precoBase * Math.pow(1.05, 20 - posicao);
 }
-function calcularLiquidezAjustada(clube) {
-    const base = clube.valorLiquidacaoBase || clube.valorLiquidacao || 0;
-    const fator = clube.splitFactorCumulativo || 1;
 
-    return Number((base / fator).toFixed(2));
-  }
 export default function BrasileiraoA() {
   const router = useRouter();
   const [clubes, setClubes] = useState([]);
   const [watchlist, setWatchlist] = useState({ clubes: [], ligas: [] });
   const [modalAberto, setModalAberto] = useState(false);
   const [clubeSelecionado, setClubeSelecionado] = useState(null);
+  const [filtro, setFiltro] = useState('');
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const abrirModal = (clube) => {
     setClubeSelecionado(clube);
@@ -40,9 +37,36 @@ export default function BrasileiraoA() {
 
   const abrirPaginaClube = (clubeId) => router.push(`/clube/${clubeId}`);
 
+  const normalizeName = (txt = '') =>
+    String(txt)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toLowerCase()
+      .trim();
+
+  const aliases = {
+    gremio: 'gremio',
+    saopaulo: 'saopaulo',
+    cuiaba: 'cuiaba',
+    goias: 'goias',
+    athleticoparanaense: 'atleticoparanaense',
+    athletico: 'atleticoparanaense',
+    fortaleza: 'fortalezaec',
+    fortalezaec: 'fortalezaec',
+    americamg: 'americamineiro',
+    americamineiro: 'americamineiro',
+    atleticomg: 'atleticomg',
+  };
+
+  const canon = (nome = '') => {
+    const base = normalizeName(nome);
+    return aliases[base] || base;
+  };
+
   const carregarWatchlist = async () => {
     try {
-      if (!token) return;
+      if (!token || !API_BASE) return;
       const { data } = await axios.get(`${API_BASE}/watchlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -101,22 +125,30 @@ export default function BrasileiraoA() {
   };
 
   useEffect(() => {
+    const termoInicial =
+      typeof router.query.search === 'string' ? router.query.search : '';
+    if (termoInicial) setFiltro(termoInicial);
+  }, [router.query.search]);
+
+  useEffect(() => {
     const fetchDados = async () => {
       try {
+        if (!API_BASE) return;
+
         const [resTabela, resClubes] = await Promise.all([
           axios.get(`${API_BASE}/api/tabela-brasileirao`),
           axios.get(`${API_BASE}/clube/clubes`),
         ]);
 
-        const clubesApi = resTabela.data.data;
-        const clubesJson = resClubes.data;
+        const clubesApi = Array.isArray(resTabela?.data?.data)
+          ? resTabela.data.data
+          : [];
+        const clubesJson = Array.isArray(resClubes?.data) ? resClubes.data : [];
 
         const clubesCruzados = clubesApi
           .map((clubeApi) => {
             const clubeLocal = clubesJson.find(
-              (c) =>
-                (c.nome || '').toLowerCase().replace(/\s/g, '') ===
-                (clubeApi.nome || '').toLowerCase().replace(/\s/g, '')
+              (c) => canon(c.nome || '') === canon(clubeApi.nome || '')
             );
 
             if (!clubeLocal) return null;
@@ -127,7 +159,10 @@ export default function BrasileiraoA() {
               escudo: clubeApi.escudo || '',
               posicao: clubeApi.posicao,
               preco: Number(clubeLocal.preco || 0),
-              precoAtual: clubeLocal.precoAtual != null ? Number(clubeLocal.precoAtual) : undefined,
+              precoAtual:
+                clubeLocal.precoAtual != null
+                  ? Number(clubeLocal.precoAtual)
+                  : undefined,
               cotasDisponiveis: clubeLocal.cotasDisponiveis,
               ipoEncerrado: clubeLocal.ipoEncerrado,
             };
@@ -153,7 +188,13 @@ export default function BrasileiraoA() {
     () => new Set((watchlist?.ligas || []).map((l) => String(l.id))),
     [watchlist]
   );
-  console.log('API_BASE=', API_BASE);
+
+  const clubesFiltrados = useMemo(() => {
+    if (!filtro.trim()) return clubes;
+    const termo = canon(filtro);
+    return clubes.filter((clube) => canon(clube.nome).includes(termo));
+  }, [clubes, filtro]);
+
   return (
     <Container>
       <Hero>
@@ -189,6 +230,16 @@ export default function BrasileiraoA() {
         </LeagueActions>
       </Hero>
 
+      <SearchInline>
+        <SearchInlineIcon>⌕</SearchInlineIcon>
+        <SearchInlineInput
+          type="text"
+          placeholder="Pesquisar clube"
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+        />
+      </SearchInline>
+
       {modalAberto && clubeSelecionado && (
         <NegociacaoModal
           isOpen={modalAberto}
@@ -198,101 +249,77 @@ export default function BrasileiraoA() {
         />
       )}
 
-      <TableSurface>
-        
-        
+      <TableCard>
+        <TableHeader>
+          <HeaderCellSmall>#</HeaderCellSmall>
+          <HeaderCellClub>Clube</HeaderCellClub>
+          <HeaderCellPrice>Liq./IPO</HeaderCellPrice>
+          <HeaderCellPrice>Mercado</HeaderCellPrice>
+          <HeaderCellTrade>Negociar</HeaderCellTrade>
+        </TableHeader>
 
-        <TableWrap>
-          <Tabela>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Clube</th>
-                <th>Liquidação</th>
-                <th>Mercado</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
+        <Rows>
+          {clubesFiltrados.map((clube) => {
+            const mercado = clube.precoAtual ?? clube.preco ?? 0;
+            const liquidation = calcularPrecoLiquidacao(clube.posicao);
+            const inWatchlist = favoritosClubes.has(String(clube.id));
 
-            <tbody>
-              {clubes.map((clube) => {
-                const mercado = clube.precoAtual ?? clube.preco ?? 0;
-                const liquidation = calcularPrecoLiquidacao(clube.posicao);
-                const inWatchlist = favoritosClubes.has(String(clube.id));
-                const liquidez = calcularLiquidezAjustada(clube);
+            return (
+              <Row key={clube.id}>
+                <ColSmall>
+                  <Pos>{clube.posicao}</Pos>
+                </ColSmall>
 
-                return (
-                  <tr key={clube.id}>
-                    <td>
-                      <Pos>{clube.posicao}</Pos>
-                    </td>
+                <ColClub>
+                  <StarButton
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleClube(clube);
+                    }}
+                    $active={inWatchlist}
+                    title="Favoritar clube"
+                  >
+                    {inWatchlist ? '★' : '☆'}
+                  </StarButton>
 
-                    <td>
-                      <ClubeCell>
-                        <StarButton
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleClube(clube);
-                          }}
-                          $active={inWatchlist}
-                          title="Favoritar clube"
-                        >
-                          {inWatchlist ? '★' : '☆'}
-                        </StarButton>
+                  <ClubTap onClick={() => abrirPaginaClube(clube.id)}>
+                    <EscudoWrap>
+                      <Image
+                        src={clube.escudo}
+                        alt={`Escudo do ${clube.nome}`}
+                        width={24}
+                        height={24}
+                      />
+                    </EscudoWrap>
+                    <ClubName>{clube.nome}</ClubName>
+                  </ClubTap>
+                </ColClub>
 
-                        <ClubNameWrap onClick={() => abrirPaginaClube(clube.id)}>
-                          <EscudoWrap>
-                            <Image
-                              src={clube.escudo}
-                              alt={`Escudo do ${clube.nome}`}
-                              width={26}
-                              height={26}
-                            />
-                          </EscudoWrap>
+                <ColPrice>
+                  <PriceValue>{liquidation.toFixed(2)}</PriceValue>
+                </ColPrice>
 
-                          <ClubText>
-                            <strong>{clube.nome}</strong>
-                          </ClubText>
-                        </ClubNameWrap>
-                      </ClubeCell>
-                    </td>
+                <ColPrice>
+                  <PriceValue>{mercado.toFixed(2)}</PriceValue>
+                </ColPrice>
 
-                    <td>
-                      <NumberCol>
-                        <span>{liquidation.toFixed(2)}</span>
-                      </NumberCol>
-                    </td>
-
-                    <td>
-                      <NumberCol>
-                        <span>{mercado.toFixed(2)}</span>
-                      </NumberCol>
-                    </td>
-
-                    <td>
-                      <StatusText $ipo={!clube.ipoEncerrado}>
-                        {!clube.ipoEncerrado ? 'IPO aberto' : 'Mercado aberto'}
-                      </StatusText>
-                    </td>
-
-                    <td>
-                      <Botao onClick={() => abrirModal(clube)}>Negociar</Botao>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Tabela>
-        </TableWrap>
-      </TableSurface>
+                <ColTrade>
+                  <TradeButton onClick={() => abrirModal(clube)}>
+                    Negociar
+                  </TradeButton>
+                </ColTrade>
+              </Row>
+            );
+          })}
+        </Rows>
+      </TableCard>
     </Container>
   );
 }
 
 const Container = styled.div`
-  padding: 0.35rem 0.2rem 1.2rem;
+  padding: 0.2rem 0 1rem;
   color: white;
 `;
 
@@ -383,234 +410,211 @@ const LeagueStar = styled.button`
   }
 `;
 
-const DesktopTable = styled.div`
-  display: block;
-
-  @media (max-width: 900px) {
-    display: none;
-  }
+const SearchInline = styled.div`
+  position: relative;
+  margin-bottom: 14px;
 `;
 
-const MobileCards = styled.div`
-  display: none;
-
-  @media (max-width: 900px) {
-    display: grid;
-    gap: 10px;
-  }
+const SearchInlineIcon = styled.span`
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
 `;
 
-const TableSurface = styled.div`
-  background: transparent;
-`;
-
-const TableWrap = styled.div`
-  overflow-x: auto;
-  border-radius: 18px;
-`;
-
-const Tabela = styled.table`
+const SearchInlineInput = styled.input`
   width: 100%;
-  min-width: 780px;
-  border-collapse: collapse;
+  height: 46px;
+  padding: 0 14px 0 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  outline: none;
 
-  thead th {
-    text-align: left;
-    font-size: 0.78rem;
+  &::placeholder {
     color: #94a3b8;
-    font-weight: 800;
-    padding: 14px 10px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  }
+`;
+
+const TableCard = styled.div`
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.75), rgba(11, 19, 36, 0.95));
+`;
+
+const TableHeader = styled.div`
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.8fr) 82px 82px 96px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 28px minmax(0, 1.6fr) 70px 70px 88px;
+    gap: 6px;
+    padding: 10px 8px;
+  }
+`;
+
+const HeaderCellBase = styled.div`
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+`;
+
+const HeaderCellSmall = styled(HeaderCellBase)`
+  text-align: center;
+`;
+
+const HeaderCellClub = styled(HeaderCellBase)``;
+
+const HeaderCellPrice = styled(HeaderCellBase)`
+  text-align: center;
+`;
+
+const HeaderCellTrade = styled(HeaderCellBase)`
+  text-align: center;
+`;
+
+const Rows = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.8fr) 82px 82px 96px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+
+  &:last-child {
+    border-bottom: none;
   }
 
-  tbody td {
-    padding: 14px 10px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-    vertical-align: middle;
+  @media (max-width: 640px) {
+    grid-template-columns: 28px minmax(0, 1.6fr) 70px 70px 88px;
+    gap: 6px;
+    padding: 10px 8px;
   }
+`;
 
-  tbody tr:hover {
-    background: rgba(255, 255, 255, 0.025);
-  }
+const ColSmall = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const ColClub = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+`;
+
+const ColPrice = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const ColTrade = styled.div`
+  display: flex;
+  justify-content: center;
 `;
 
 const Pos = styled.div`
-  width: 28px;
+  width: 24px;
   text-align: center;
   font-weight: 800;
   color: #f8fafc;
-`;
-
-const ClubeCell = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  font-size: 0.92rem;
 `;
 
 const StarButton = styled.button`
   border: none;
   background: transparent;
   color: ${({ $active }) => ($active ? '#fde68a' : '#64748b')};
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   cursor: pointer;
   padding: 0;
   line-height: 1;
   flex: 0 0 auto;
 `;
 
-const ClubNameWrap = styled.div`
+const ClubTap = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  gap: 8px;
   min-width: 0;
+  cursor: pointer;
 `;
 
 const EscudoWrap = styled.div`
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(148, 163, 184, 0.08);
   overflow: hidden;
-`;
+  flex: 0 0 auto;
 
-const ClubText = styled.div`
-  strong {
-    color: #f8fafc;
-    font-size: 0.94rem;
+  @media (max-width: 640px) {
+    width: 28px;
+    height: 28px;
   }
 `;
 
-const NumberCol = styled.div`
-  color: #e2e8f0;
+const ClubName = styled.div`
+  color: #f8fafc;
+  font-size: 0.93rem;
   font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  @media (max-width: 640px) {
+    font-size: 0.84rem;
+  }
 `;
 
-const StatusText = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.76rem;
+const PriceValue = styled.div`
+  color: #e2e8f0;
   font-weight: 800;
-  color: ${({ $ipo }) => ($ipo ? '#86efac' : '#93c5fd')};
-  background: ${({ $ipo }) =>
-    $ipo ? 'rgba(34,197,94,0.12)' : 'rgba(59,130,246,0.12)'};
-  border: 1px solid
-    ${({ $ipo }) => ($ipo ? 'rgba(34,197,94,0.16)' : 'rgba(59,130,246,0.16)')};
+  font-size: 0.9rem;
+
+  @media (max-width: 640px) {
+    font-size: 0.8rem;
+  }
 `;
 
-const Botao = styled.button`
+const TradeButton = styled.button`
+  width: 100%;
+  max-width: 92px;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 8px;
   background: #2563eb;
   color: white;
-  border: none;
-  padding: 9px 14px;
-  border-radius: 10px;
-  cursor: pointer;
   font-weight: 800;
+  font-size: 0.84rem;
+  cursor: pointer;
 
   &:hover {
     background: #1d4ed8;
   }
-`;
 
-const Card = styled.div`
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(11, 19, 36, 0.96));
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 16px;
-  padding: 12px;
-`;
-
-const CardTop = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-`;
-
-const CardLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-`;
-
-const PosMobile = styled.div`
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  font-weight: 800;
-  color: #f8fafc;
-  flex: 0 0 auto;
-`;
-
-const EscudoMobile = styled.div`
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  overflow: hidden;
-  flex: 0 0 auto;
-`;
-
-const ClubMain = styled.div`
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  strong {
-    color: #f8fafc;
-    font-size: 0.96rem;
-    cursor: pointer;
+  @media (max-width: 640px) {
+    max-width: 84px;
+    padding: 9px 6px;
+    font-size: 0.78rem;
   }
-`;
-
-const CardMetrics = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 12px;
-`;
-
-const MetricBox = styled.div`
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  border-radius: 12px;
-  padding: 10px;
-
-  span {
-    display: block;
-    color: #94a3b8;
-    font-size: 0.76rem;
-    margin-bottom: 6px;
-  }
-
-  strong {
-    color: #f8fafc;
-    font-size: 0.98rem;
-  }
-`;
-
-const CardButton = styled.button`
-  width: 100%;
-  margin-top: 12px;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  background: #2563eb;
-  color: white;
-  font-weight: 800;
-  cursor: pointer;
 `;

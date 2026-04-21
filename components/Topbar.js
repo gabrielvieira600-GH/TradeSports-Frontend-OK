@@ -12,9 +12,11 @@ export default function Topbar() {
   const [notifAberto, setNotifAberto] = useState(false);
   const [notificacoes, setNotificacoes] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [busca, setBusca] = useState('');
 
   const bancoRef = useRef(null);
   const notifRef = useRef(null);
+
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -22,6 +24,7 @@ export default function Topbar() {
     try {
       const usuarioSalvo = localStorage.getItem('usuario');
       const saldoSalvo = localStorage.getItem('saldo');
+
       const parsed =
         usuarioSalvo && usuarioSalvo !== 'undefined'
           ? JSON.parse(usuarioSalvo)
@@ -29,9 +32,12 @@ export default function Topbar() {
 
       setUsuario(parsed);
 
-      if (saldoSalvo) setSaldo(saldoSalvo);
-      else if (parsed?.saldo !== undefined) setSaldo(String(parsed.saldo));
-    } catch (e) {
+      if (saldoSalvo) {
+        setSaldo(saldoSalvo);
+      } else if (parsed?.saldo !== undefined) {
+        setSaldo(String(parsed.saldo));
+      }
+    } catch {
       setUsuario(null);
     }
   };
@@ -84,6 +90,7 @@ export default function Topbar() {
       if (bancoAberto && bancoRef.current && !bancoRef.current.contains(e.target)) {
         setBancoAberto(false);
       }
+
       if (notifAberto && notifRef.current && !notifRef.current.contains(e.target)) {
         setNotifAberto(false);
       }
@@ -95,6 +102,7 @@ export default function Topbar() {
 
   const marcarTodasComoLidas = async () => {
     if (!token || !API_BASE) return;
+
     try {
       await axios.post(
         `${API_BASE}/notifications/read-all`,
@@ -108,6 +116,7 @@ export default function Topbar() {
 
   const marcarUmaComoLida = async (id) => {
     if (!token || !API_BASE) return;
+
     try {
       await axios.post(
         `${API_BASE}/notifications/${id}/read`,
@@ -130,96 +139,25 @@ export default function Topbar() {
     [notificacoes]
   );
 
+  const handleBusca = (e) => {
+    e.preventDefault();
+    const termo = busca.trim();
+    if (!termo) return;
+
+    window.location.href = `/brasileirao-a?search=${encodeURIComponent(termo)}`;
+  };
+
   return (
     <Barra>
       <TopRow>
-        <Logo>
-          <Link href="/">🏆 TradeSports</Link>
-        </Logo>
+        <LeftBlock>
+          <Logo>
+            <Link href="/">🏆 TradeSports</Link>
+          </Logo>
+        </LeftBlock>
 
-        <Menu>
-          {usuario ? (
-            <>
-              <Info>
-                <Usuario>👤 {usuario.nomeUsuario || usuario.nome}</Usuario>
-                <Saldo>💰 R$ {parseFloat(saldo || 0).toFixed(2)}</Saldo>
-              </Info>
-
-              <Actions>
-                <IconWrap ref={notifRef}>
-                  <IconButton
-                    type="button"
-                    onClick={() => setNotifAberto((v) => !v)}
-                    aria-label="Notificações"
-                  >
-                    <Bell>🔔</Bell>
-                    {unreadCount > 0 && (
-                      <Badge>{unreadCount > 99 ? '99+' : unreadCount}</Badge>
-                    )}
-                  </IconButton>
-
-                  {notifAberto && (
-                    <NotifDropdown>
-                      <NotifHeader>
-                        <div>
-                          <strong>Notificações</strong>
-                          <small>{unreadCount} não lida(s)</small>
-                        </div>
-                        <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
-                          Marcar tudo
-                        </MarkAllBtn>
-                      </NotifHeader>
-
-                      {notificationsPreview.length === 0 ? (
-                        <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
-                      ) : (
-                        <NotifList>
-                          {notificationsPreview.map((n) => (
-                            <NotifItem
-                              key={n.id}
-                              $unread={!n.read}
-                              onClick={() => marcarUmaComoLida(n.id)}
-                            >
-                              <NotifDot $unread={!n.read} />
-                              <NotifBody>
-                                <strong>{n.title}</strong>
-                                <p>{n.body}</p>
-                                <small>
-                                  {new Date(n.createdAt).toLocaleString('pt-BR')}
-                                </small>
-                              </NotifBody>
-                            </NotifItem>
-                          ))}
-                        </NotifList>
-                      )}
-                    </NotifDropdown>
-                  )}
-                </IconWrap>
-
-                <BancoWrap ref={bancoRef}>
-                  <BotaoVerde
-                    type="button"
-                    onClick={() => setBancoAberto((v) => !v)}
-                  >
-                    Banco
-                  </BotaoVerde>
-
-                  {bancoAberto && (
-                    <Dropdown>
-                      <DropLink href="/carteira">Carteira</DropLink>
-                      <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
-                      <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
-                      <DropLink href="/extrato">Extrato</DropLink>
-                      <DropLink href="/deposito">Depósito</DropLink>
-                      <DropLink href="/saque">Saque</DropLink>
-                    </Dropdown>
-                  )}
-                </BancoWrap>
-
-                <Botao onClick={handleLogout}>Sair</Botao>
-              </Actions>
-            </>
-          ) : (
+        <RightBlock>
+          {!usuario ? (
             <GuestActions>
               <Link href="/login" passHref>
                 <BotaoAzul as="span">Login</BotaoAzul>
@@ -228,26 +166,130 @@ export default function Topbar() {
                 <BotaoVerde as="span">Registrar</BotaoVerde>
               </Link>
             </GuestActions>
+          ) : (
+            <UserRow>
+              <IconWrap ref={notifRef}>
+                <IconButton
+                  type="button"
+                  onClick={() => setNotifAberto((v) => !v)}
+                  aria-label="Notificações"
+                >
+                  <Bell>🔔</Bell>
+                  {unreadCount > 0 && (
+                    <Badge>{unreadCount > 99 ? '99+' : unreadCount}</Badge>
+                  )}
+                </IconButton>
+
+                {notifAberto && (
+                  <NotifDropdown>
+                    <NotifHeader>
+                      <div>
+                        <strong>Notificações</strong>
+                        <small>{unreadCount} não lida(s)</small>
+                      </div>
+                      <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
+                        Marcar tudo
+                      </MarkAllBtn>
+                    </NotifHeader>
+
+                    {notificationsPreview.length === 0 ? (
+                      <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
+                    ) : (
+                      <NotifList>
+                        {notificationsPreview.map((n) => (
+                          <NotifItem
+                            key={n.id}
+                            $unread={!n.read}
+                            onClick={() => marcarUmaComoLida(n.id)}
+                          >
+                            <NotifDot $unread={!n.read} />
+                            <NotifBody>
+                              <strong>{n.title}</strong>
+                              <p>{n.body}</p>
+                              <small>
+                                {new Date(n.createdAt).toLocaleString('pt-BR')}
+                              </small>
+                            </NotifBody>
+                          </NotifItem>
+                        ))}
+                      </NotifList>
+                    )}
+                  </NotifDropdown>
+                )}
+              </IconWrap>
+
+              <BancoWrap ref={bancoRef}>
+                <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
+                  Banco
+                </BotaoVerde>
+
+                {bancoAberto && (
+                  <Dropdown>
+                    <DropLink href="/carteira">Carteira</DropLink>
+                    <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
+                    <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
+                    <DropLink href="/extrato">Extrato</DropLink>
+                    <DropLink href="/deposito">Depósito</DropLink>
+                    <DropLink href="/saque">Saque</DropLink>
+                  </Dropdown>
+                )}
+              </BancoWrap>
+
+              <Botao onClick={handleLogout}>Sair</Botao>
+            </UserRow>
           )}
-        </Menu>
+        </RightBlock>
       </TopRow>
+
+      {usuario ? (
+        <SecondaryRow>
+          <IdentityBlock>
+            <Usuario>👤 {usuario.nomeUsuario || usuario.nome}</Usuario>
+            <Saldo>💰 R$ {parseFloat(saldo || 0).toFixed(2)}</Saldo>
+          </IdentityBlock>
+
+          <SearchForm onSubmit={handleBusca}>
+            <SearchIcon>⌕</SearchIcon>
+            <SearchInput
+              type="text"
+              placeholder="Pesquisar clube ou mercado"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </SearchForm>
+        </SecondaryRow>
+      ) : (
+        <SecondaryRow>
+          <SearchForm onSubmit={handleBusca}>
+            <SearchIcon>⌕</SearchIcon>
+            <SearchInput
+              type="text"
+              placeholder="Pesquisar clube ou mercado"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </SearchForm>
+        </SecondaryRow>
+      )}
     </Barra>
   );
 }
 
 const Barra = styled.header`
   width: 100%;
-  padding: 12px 18px;
-  background: linear-gradient(180deg, #0f172a, #0b1324);
+  padding: 12px 16px 14px;
+  background:
+    radial-gradient(circle at top center, rgba(37, 99, 235, 0.18), transparent 35%),
+    linear-gradient(180deg, #0f172a, #0b1324);
   color: white;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   box-sizing: border-box;
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 50;
 
   @media (max-width: 640px) {
-    padding: 10px 10px;
+    padding: 10px 10px 12px;
   }
 `;
 
@@ -255,11 +297,50 @@ const TopRow = styled.div`
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+`;
+
+const LeftBlock = styled.div`
   display: flex;
   align-items: center;
+`;
+
+const RightBlock = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    justify-content: flex-end;
+  }
+`;
+
+const SecondaryRow = styled.div`
+  width: 100%;
+  max-width: 1600px;
+  margin: 12px auto 0;
+  display: grid;
+  grid-template-columns: auto minmax(260px, 520px);
   justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 640px) {
+    margin-top: 10px;
+    gap: 10px;
+  }
 `;
 
 const Logo = styled.h1`
@@ -274,60 +355,7 @@ const Logo = styled.h1`
   }
 
   @media (max-width: 640px) {
-    font-size: 1rem;
-  }
-`;
-
-const Menu = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: wrap;
-
-  @media (max-width: 820px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  @media (max-width: 640px) {
-    gap: 8px;
-  }
-`;
-
-const Info = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-
-  @media (max-width: 820px) {
-    order: 2;
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const Actions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-
-  @media (max-width: 820px) {
-    order: 1;
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 640px) {
-    width: 100%;
-    justify-content: space-between;
+    font-size: 0.98rem;
   }
 `;
 
@@ -335,37 +363,92 @@ const GuestActions = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
   flex-wrap: wrap;
+`;
+
+const UserRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+`;
+
+const IdentityBlock = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
 
   @media (max-width: 640px) {
-    width: 100%;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 8px;
   }
 `;
 
 const Usuario = styled.div`
   color: #cbd5e1;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   max-width: 180px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 
   @media (max-width: 640px) {
-    max-width: 120px;
-    font-size: 0.82rem;
+    font-size: 0.86rem;
+    max-width: 150px;
   }
 `;
 
 const Saldo = styled.div`
   color: #f8fafc;
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 1rem;
 
   @media (max-width: 640px) {
-    font-size: 0.82rem;
+    font-size: 0.9rem;
+  }
+`;
+
+const SearchForm = styled.form`
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+`;
+
+const SearchIcon = styled.span`
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1rem;
+  pointer-events: none;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  outline: none;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:focus {
+    border-color: rgba(96, 165, 250, 0.5);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  @media (max-width: 640px) {
+    height: 44px;
   }
 `;
 
@@ -377,9 +460,9 @@ const IconButton = styled.button`
   position: relative;
   height: 40px;
   width: 40px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
   cursor: pointer;
   font-size: 1.05rem;
@@ -428,10 +511,10 @@ const NotifDropdown = styled.div`
   border-radius: 16px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  z-index: 50;
+  z-index: 60;
 
   @media (max-width: 640px) {
-    right: -4px;
+    right: -2px;
   }
 `;
 
@@ -534,7 +617,7 @@ const Dropdown = styled.div`
   padding: 8px;
   display: flex;
   flex-direction: column;
-  z-index: 30;
+  z-index: 50;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
 `;
 
@@ -551,18 +634,19 @@ const DropLink = styled(Link)`
 
 const BaseButton = styled.button`
   border: none;
-  border-radius: 10px;
-  padding: 9px 13px;
-  font-size: 0.88rem;
+  border-radius: 14px;
+  padding: 10px 15px;
+  font-size: 0.92rem;
   cursor: pointer;
   color: white;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  min-height: 38px;
+  min-height: 42px;
+  white-space: nowrap;
 `;
 
 const BotaoAzul = styled(BaseButton)`
