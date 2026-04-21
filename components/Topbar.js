@@ -220,7 +220,7 @@ export default function Topbar() {
 
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
-                  👤
+                  👤<Saldo>R$ {parseFloat(saldo || 0).toFixed(2)}</Saldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
