@@ -350,7 +350,7 @@ const Logo = styled.h1`
   }
 
   @media (max-width: 640px) {
-    font-size: 1.98rem;
+    font-size: 1.00rem;
   }
 `;
 
