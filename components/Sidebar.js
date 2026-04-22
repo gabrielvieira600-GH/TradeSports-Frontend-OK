@@ -25,8 +25,7 @@ export default function Sidebar() {
 
             {!minimizado && (
               <BrandText>
-              <BrandIcon>⚽</BrandIcon>
-                <Title>Mercados</Title>
+                <BrandIcon>⚽</BrandIcon><Title>Mercados</Title>
                 <Subtitle>{mercadoCount} ligas disponíveis</Subtitle>
               </BrandText>
             )}
