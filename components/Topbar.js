@@ -158,16 +158,38 @@ export default function Topbar() {
 
         <RightBlock>
           {!usuario ? (
-            <GuestActions>
-              <Link href="/login" passHref>
-                <BotaoAzul as="span">Login</BotaoAzul>
-              </Link>
-              <Link href="/cadastro" passHref>
-                <BotaoVerde as="span">Registrar</BotaoVerde>
-              </Link>
-            </GuestActions>
+            <>
+              <DesktopSearchForm onSubmit={handleBusca}>
+                <SearchIcon>⌕</SearchIcon>
+                <SearchInput
+                  type="text"
+                  placeholder="Pesquisar clube ou mercado"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                />
+              </DesktopSearchForm>
+
+              <GuestActions>
+                <Link href="/login" passHref>
+                  <BotaoAzul as="span">Login</BotaoAzul>
+                </Link>
+                <Link href="/cadastro" passHref>
+                  <BotaoVerde as="span">Registrar</BotaoVerde>
+                </Link>
+              </GuestActions>
+            </>
           ) : (
             <UserRow>
+              <DesktopSearchForm onSubmit={handleBusca}>
+                <SearchIcon>⌕</SearchIcon>
+                <SearchInput
+                  type="text"
+                  placeholder="Pesquisar clube ou mercado"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                />
+              </DesktopSearchForm>
+
               <IconWrap ref={notifRef}>
                 <IconButton
                   type="button"
@@ -220,7 +242,10 @@ export default function Topbar() {
 
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
-                  👤<Saldo>R$ {parseFloat(saldo || 0).toFixed(2)}</Saldo>
+                  <UserAndSaldo>
+                    <span>👤 {usuario?.nomeUsuario || usuario?.nome || 'Usuário'}</span>
+                    <SaldoInline>💰 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
+                  </UserAndSaldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
@@ -241,38 +266,24 @@ export default function Topbar() {
         </RightBlock>
       </TopRow>
 
-      {usuario ? (
-        <SecondaryRow>
-          <SearchForm onSubmit={handleBusca}>
-            <SearchIcon>⌕</SearchIcon>
-            <SearchInput
-              type="text"
-              placeholder="Pesquisar clube ou mercado"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-          </SearchForm>
-        </SecondaryRow>
-      ) : (
-        <SecondaryRow>
-          <SearchForm onSubmit={handleBusca}>
-            <SearchIcon>⌕</SearchIcon>
-            <SearchInput
-              type="text"
-              placeholder="Pesquisar clube ou mercado"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-          </SearchForm>
-        </SecondaryRow>
-      )}
+      <MobileSearchRow>
+        <SearchForm onSubmit={handleBusca}>
+          <SearchIcon>⌕</SearchIcon>
+          <SearchInput
+            type="text"
+            placeholder="Pesquisar clube ou mercado"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </SearchForm>
+      </MobileSearchRow>
     </Barra>
   );
 }
 
 const Barra = styled.header`
   width: 100%;
-  padding: 12px 16px 14px;
+  padding: 10px 18px 12px;
   background:
     radial-gradient(circle at top center, rgba(37, 99, 235, 0.18), transparent 35%),
     linear-gradient(180deg, #0f172a, #0b1324);
@@ -290,76 +301,64 @@ const Barra = styled.header`
 
 const TopRow = styled.div`
   width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 
   @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: center;
   }
 `;
 
 const LeftBlock = styled.div`
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
 `;
 
 const RightBlock = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  min-width: 0;
+  gap: 10px;
 
   @media (max-width: 640px) {
-    justify-content: flex-end;
-  }
-`;
-
-const SecondaryRow = styled.div`
-  width: 100%;
-  max-width: 1600px;
-  margin: 12px auto 0;
-  display: grid;
-  grid-template-columns: auto minmax(260px, 520px);
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-
-  @media (max-width: 860px) {
-    grid-template-columns: 1fr;
-  }
-
-  @media (max-width: 640px) {
-    margin-top: 10px;
-    gap: 10px;
+    gap: 8px;
   }
 `;
 
 const Logo = styled.h1`
-  padding: 10px 15px;
-  font-size: 0.92rem;
-  cursor: pointer;
-  color: white;
+  margin: 0;
+  padding: 0;
+  font-size: 1.04rem;
   font-weight: 800;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   line-height: 1;
+  display: flex;
+  align-items: center;
   min-height: 42px;
-  white-space: nowrap;
-  
 
   a {
     color: white;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
   }
 
   @media (max-width: 640px) {
-    font-size: 1.00rem;
+    font-size: 0.98rem;
+    min-height: 38px;
+
+    a {
+      height: 38px;
+    }
   }
 `;
 
@@ -367,59 +366,45 @@ const GuestActions = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 `;
 
 const UserRow = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-`;
-
-const IdentityBlock = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
   min-width: 0;
+`;
+
+const DesktopSearchForm = styled.form`
+  position: relative;
+  width: min(420px, 32vw);
+  min-width: 220px;
+
+  @media (max-width: 900px) {
+    width: min(290px, 28vw);
+    min-width: 180px;
+  }
 
   @media (max-width: 640px) {
-    justify-content: space-between;
-    gap: 8px;
+    display: none;
   }
 `;
 
-const Usuario = styled.div`
-  color: #cbd5e1;
-  font-weight: 700;
-  font-size: 0.96rem;
-  max-width: 180px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+const MobileSearchRow = styled.div`
+  display: none;
 
   @media (max-width: 640px) {
-    font-size: 0.86rem;
-    max-width: 150px;
-  }
-`;
-
-const Saldo = styled.div`
-  color: #f8fafc;
-  font-weight: 800;
-  font-size: 1rem;
-
-  @media (max-width: 640px) {
-    font-size: 0.9rem;
+    display: block;
+    margin-top: 10px;
   }
 `;
 
 const SearchForm = styled.form`
   position: relative;
   width: 100%;
-  max-width: 520px;
 `;
 
 const SearchIcon = styled.span`
@@ -434,7 +419,7 @@ const SearchIcon = styled.span`
 
 const SearchInput = styled.input`
   width: 100%;
-  height: 48px;
+  height: 44px;
   padding: 0 14px 0 42px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.14);
@@ -450,26 +435,26 @@ const SearchInput = styled.input`
     border-color: rgba(96, 165, 250, 0.5);
     background: rgba(255, 255, 255, 0.07);
   }
-
-  @media (max-width: 640px) {
-    height: 44px;
-  }
 `;
 
 const IconWrap = styled.div`
   position: relative;
+  flex: 0 0 auto;
 `;
 
 const IconButton = styled.button`
   position: relative;
-  height: 40px;
-  width: 40px;
+  height: 42px;
+  width: 42px;
   border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.05);
   color: white;
   cursor: pointer;
   font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background: rgba(255, 255, 255, 0.08);
@@ -478,6 +463,7 @@ const IconButton = styled.button`
   @media (max-width: 640px) {
     height: 38px;
     width: 38px;
+    border-radius: 12px;
   }
 `;
 
@@ -607,6 +593,7 @@ const NotifEmpty = styled.div`
 
 const BancoWrap = styled.div`
   position: relative;
+  flex: 0 0 auto;
 `;
 
 const Dropdown = styled.div`
@@ -639,7 +626,7 @@ const DropLink = styled(Link)`
 const BaseButton = styled.button`
   border: none;
   border-radius: 14px;
-  padding: 10px 15px;
+  padding: 10px 14px;
   font-size: 0.92rem;
   cursor: pointer;
   color: white;
@@ -651,6 +638,13 @@ const BaseButton = styled.button`
   line-height: 1;
   min-height: 42px;
   white-space: nowrap;
+
+  @media (max-width: 640px) {
+    min-height: 38px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+  }
 `;
 
 const BotaoAzul = styled(BaseButton)`
@@ -674,5 +668,27 @@ const Botao = styled(BaseButton)`
 
   &:hover {
     background: #475569;
+  }
+`;
+
+const UserAndSaldo = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  @media (max-width: 900px) {
+    gap: 6px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 6px;
+  }
+`;
+
+const SaldoInline = styled.span`
+  font-weight: 800;
+
+  @media (max-width: 900px) {
+    display: none;
   }
 `;
