@@ -21,7 +21,7 @@ export default function Sidebar() {
       <SidebarContainer $minimizado={minimizado}>
         <Header>
           <BrandWrap>
-            <BrandIcon>⚽</BrandIcon>
+            
 
             {!minimizado && (
               <BrandText>
