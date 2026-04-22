@@ -21,10 +21,11 @@ export default function Sidebar() {
       <SidebarContainer $minimizado={minimizado}>
         <Header>
           <BrandWrap>
-            
+            <BrandIcon>⚽</BrandIcon>
 
             {!minimizado && (
               <BrandText>
+              <BrandIcon>⚽</BrandIcon>
                 <Title>Mercados</Title>
                 <Subtitle>{mercadoCount} ligas disponíveis</Subtitle>
               </BrandText>
