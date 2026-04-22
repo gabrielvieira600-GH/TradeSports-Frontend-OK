@@ -91,7 +91,11 @@ export default function Topbar() {
         setBancoAberto(false);
       }
 
-      if (notifAberto && notifRef.current && !notifRef.current.contains(e.target)) {
+      if (
+        notifAberto &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target)
+      ) {
         setNotifAberto(false);
       }
     };
@@ -99,6 +103,19 @@ export default function Topbar() {
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [bancoAberto, notifAberto]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isMobile = window.innerWidth <= 640;
+    if (notifAberto && isMobile) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [notifAberto]);
 
   const marcarTodasComoLidas = async () => {
     if (!token || !API_BASE) return;
@@ -203,47 +220,60 @@ export default function Topbar() {
                 </IconButton>
 
                 {notifAberto && (
-                  <NotifDropdown>
-                    <NotifHeader>
-                      <div>
-                        <strong>Notificações</strong>
-                        <small>{unreadCount} não lida(s)</small>
-                      </div>
-                      <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
-                        Marcar tudo
-                      </MarkAllBtn>
-                    </NotifHeader>
+                  <>
+                    <NotifMobileOverlay onClick={() => setNotifAberto(false)} />
 
-                    {notificationsPreview.length === 0 ? (
-                      <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
-                    ) : (
-                      <NotifList>
-                        {notificationsPreview.map((n) => (
-                          <NotifItem
-                            key={n.id}
-                            $unread={!n.read}
-                            onClick={() => marcarUmaComoLida(n.id)}
+                    <NotifDropdown>
+                      <NotifHeader>
+                        <NotifHeaderText>
+                          <strong>Notificações</strong>
+                          <small>{unreadCount} não lida(s)</small>
+                        </NotifHeaderText>
+
+                        <NotifHeaderActions>
+                          <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
+                            Marcar tudo
+                          </MarkAllBtn>
+                          <CloseNotifBtn
+                            type="button"
+                            onClick={() => setNotifAberto(false)}
+                            aria-label="Fechar notificações"
                           >
-                            <NotifDot $unread={!n.read} />
-                            <NotifBody>
-                              <strong>{n.title}</strong>
-                              <p>{n.body}</p>
-                              <small>
-                                {new Date(n.createdAt).toLocaleString('pt-BR')}
-                              </small>
-                            </NotifBody>
-                          </NotifItem>
-                        ))}
-                      </NotifList>
-                    )}
-                  </NotifDropdown>
+                            ✕
+                          </CloseNotifBtn>
+                        </NotifHeaderActions>
+                      </NotifHeader>
+
+                      {notificationsPreview.length === 0 ? (
+                        <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
+                      ) : (
+                        <NotifList>
+                          {notificationsPreview.map((n) => (
+                            <NotifItem
+                              key={n.id}
+                              $unread={!n.read}
+                              onClick={() => marcarUmaComoLida(n.id)}
+                            >
+                              <NotifDot $unread={!n.read} />
+                              <NotifBody>
+                                <strong>{n.title}</strong>
+                                <p>{n.body}</p>
+                                <small>
+                                  {new Date(n.createdAt).toLocaleString('pt-BR')}
+                                </small>
+                              </NotifBody>
+                            </NotifItem>
+                          ))}
+                        </NotifList>
+                      )}
+                    </NotifDropdown>
+                  </>
                 )}
               </IconWrap>
 
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
                   <UserAndSaldo>
-                    
                     <SaldoInline>👤 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
@@ -490,6 +520,18 @@ const Badge = styled.span`
   justify-content: center;
 `;
 
+const NotifMobileOverlay = styled.div`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.72);
+    z-index: 69;
+  }
+`;
+
 const NotifDropdown = styled.div`
   position: absolute;
   right: 0;
@@ -501,17 +543,25 @@ const NotifDropdown = styled.div`
   border-radius: 16px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  z-index: 60;
+  z-index: 70;
 
   @media (max-width: 640px) {
-    right: -2px;
+    position: fixed;
+    left: 50%;
+    right: auto;
+    top: 76px;
+    transform: translateX(-50%);
+    width: calc(100vw - 16px);
+    max-width: 430px;
+    max-height: calc(100vh - 96px);
+    border-radius: 18px;
   }
 `;
 
 const NotifHeader = styled.div`
   padding: 14px 16px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -525,6 +575,21 @@ const NotifHeader = styled.div`
   small {
     color: #94a3b8;
   }
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
+`;
+
+const NotifHeaderText = styled.div`
+  min-width: 0;
+`;
+
+const NotifHeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
 `;
 
 const MarkAllBtn = styled.button`
@@ -535,9 +600,31 @@ const MarkAllBtn = styled.button`
   cursor: pointer;
 `;
 
+const CloseNotifBtn = styled.button`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e7eb;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+`;
+
 const NotifList = styled.div`
   max-height: 420px;
   overflow: auto;
+
+  @media (max-width: 640px) {
+    max-height: calc(100vh - 190px);
+  }
 `;
 
 const NotifItem = styled.button`
@@ -555,6 +642,10 @@ const NotifItem = styled.button`
   &:hover {
     background: rgba(255, 255, 255, 0.05);
   }
+
+  @media (max-width: 640px) {
+    padding: 14px 14px 15px;
+  }
 `;
 
 const NotifDot = styled.span`
@@ -571,6 +662,7 @@ const NotifBody = styled.div`
     color: #f8fafc;
     display: block;
     margin-bottom: 4px;
+    font-size: 0.92rem;
   }
 
   p {
@@ -582,6 +674,16 @@ const NotifBody = styled.div`
 
   small {
     color: #64748b;
+  }
+
+  @media (max-width: 640px) {
+    strong {
+      font-size: 0.9rem;
+    }
+
+    p {
+      font-size: 0.88rem;
+    }
   }
 `;
 
@@ -687,8 +789,4 @@ const UserAndSaldo = styled.div`
 
 const SaldoInline = styled.span`
   font-weight: 800;
-
-  @media (max-width: 900px) {
-    gap: 6px;
-  }
 `;
