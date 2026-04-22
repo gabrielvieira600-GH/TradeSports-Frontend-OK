@@ -243,8 +243,8 @@ export default function Topbar() {
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
                   <UserAndSaldo>
-                    <span>👤 {usuario?.nomeUsuario || usuario?.nome || 'Usuário'}</span>
-                    <SaldoInline>💰 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
+                    
+                    <SaldoInline>👤 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
 
