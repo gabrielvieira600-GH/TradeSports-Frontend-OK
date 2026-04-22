@@ -689,6 +689,6 @@ const SaldoInline = styled.span`
   font-weight: 800;
 
   @media (max-width: 900px) {
-    display: none;
+    gap: 6px;
   }
 `;
