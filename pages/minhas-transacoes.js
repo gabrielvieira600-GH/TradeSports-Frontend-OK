@@ -49,11 +49,10 @@ function MinhasTransacoes() {
 
   const [filtroClubeId, setFiltroClubeId] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
+  const [filtroOrigem, setFiltroOrigem] = useState('');
 
-  // Paginação (5/10/20 por página)
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [filtroOrigem, setFiltroOrigem] = useState('');
 
   async function carregar() {
     setCarregando(true);
@@ -99,41 +98,43 @@ function MinhasTransacoes() {
       <Titulo>Minhas Transações</Titulo>
       <Sub>Execuções realizadas (não inclui ordens abertas)</Sub>
 
-      <Filtros>
-        <Filtro>
-          <label>Clube</label>
-          <select value={filtroClubeId} onChange={(e) => setFiltroClubeId(e.target.value)}>
-            <option value="">Todos</option>
-            {clubes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
-        </Filtro>
+      <FiltrosCard>
+        <Filtros>
+          <Filtro>
+            <label>Clube</label>
+            <select value={filtroClubeId} onChange={(e) => setFiltroClubeId(e.target.value)}>
+              <option value="">Todos</option>
+              {clubes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Tipo</label>
-          <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-            <option value="">Todos</option>
-            <option value="COMPRA">Compra</option>
-            <option value="VENDA">Venda</option>
-            <option value="LIQUIDACAO">Liquidação</option>
-            <option value="DEPOSITO">Depósito</option>
-            <option value="SAQUE">Saque</option>
-          </select>
-        </Filtro>
+          <Filtro>
+            <label>Tipo</label>
+            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="COMPRA">Compra</option>
+              <option value="VENDA">Venda</option>
+              <option value="LIQUIDACAO">Liquidação</option>
+              <option value="DEPOSITO">Depósito</option>
+              <option value="SAQUE">Saque</option>
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Origem</label>
-          <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
-            <option value="">Todas</option>
-            <option value="IPO">IPO</option>
-            <option value="SECUNDARIO">Mercado Secundário</option>
-            <option value="LIQUIDACAO">Liquidação</option>
-          </select>
-        </Filtro>
-      </Filtros>
+          <Filtro>
+            <label>Origem</label>
+            <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
+              <option value="">Todas</option>
+              <option value="IPO">IPO</option>
+              <option value="SECUNDARIO">Mercado Secundário</option>
+              <option value="LIQUIDACAO">Liquidação</option>
+            </select>
+          </Filtro>
+        </Filtros>
+      </FiltrosCard>
 
       <PaginacaoBar>
         <PaginacaoEsq>
@@ -148,9 +149,10 @@ function MinhasTransacoes() {
               <option value={20}>20</option>
             </select>
           </label>
+
           <Resumo>
             {itensFiltrados.length === 0
-              ? "0 transações"
+              ? '0 transações'
               : `${itensFiltrados.length} transações • Página ${paginaAtual} de ${totalPaginas}`}
           </Resumo>
         </PaginacaoEsq>
@@ -174,76 +176,223 @@ function MinhasTransacoes() {
         </PaginacaoDir>
       </PaginacaoBar>
 
-      <Card>
+      <DesktopCard>
         {carregando ? (
           <Vazio>Carregando...</Vazio>
         ) : itensFiltrados.length === 0 ? (
           <Vazio>Nenhuma transação encontrada.</Vazio>
         ) : (
-          <Tabela>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Origem</th>
-                <th>Clube</th>
-                <th>Qtd</th>
-                <th>Preço</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itensPaginados.map((x) => (
-                <tr key={x.id}>
-                  <td>{formatData(x.data)}</td>
-                  <Tipo style={{ color: corTipo(x.tipo) }}>{labelTipo(x.tipo)}</Tipo>
-                  <td>{x.origem || '-'}</td>
-                  <td>{x.clubeNome || '-'}</td>
-                  <td>{x.quantidade || '-'}</td>
-                  <td>{x.valorUnitario ? formatBRL(x.valorUnitario) : '-'}</td>
-                  <td>{x.totalPago ? formatBRL(x.totalPago) : formatBRL(x.valor)}</td>
+          <TabelaWrap>
+            <Tabela>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th>Origem</th>
+                  <th>Clube</th>
+                  <th>Qtd</th>
+                  <th>Preço</th>
+                  <th>Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </Tabela>
+              </thead>
+              <tbody>
+                {itensPaginados.map((x) => (
+                  <tr key={x.id}>
+                    <td>{formatData(x.data)}</td>
+                    <Tipo style={{ color: corTipo(x.tipo) }}>{labelTipo(x.tipo)}</Tipo>
+                    <td>{x.origem || '-'}</td>
+                    <td>{x.clubeNome || '-'}</td>
+                    <td>{x.quantidade || '-'}</td>
+                    <td>{x.valorUnitario ? formatBRL(x.valorUnitario) : '-'}</td>
+                    <td>{x.totalPago ? formatBRL(x.totalPago) : formatBRL(x.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Tabela>
+          </TabelaWrap>
         )}
-      </Card>
+      </DesktopCard>
+
+      <MobileLista>
+        {carregando ? (
+          <Vazio>Carregando...</Vazio>
+        ) : itensFiltrados.length === 0 ? (
+          <Vazio>Nenhuma transação encontrada.</Vazio>
+        ) : (
+          itensPaginados.map((x) => (
+            <MobileItem key={x.id}>
+              <MobileTop>
+                <TipoPill style={{ color: corTipo(x.tipo), borderColor: corTipo(x.tipo) }}>
+                  {labelTipo(x.tipo)}
+                </TipoPill>
+                <MobileData>{formatData(x.data)}</MobileData>
+              </MobileTop>
+
+              <MobileGrid>
+                <InfoBloco>
+                  <span>Origem</span>
+                  <strong>{x.origem || '-'}</strong>
+                </InfoBloco>
+
+                <InfoBloco>
+                  <span>Clube</span>
+                  <strong>{x.clubeNome || '-'}</strong>
+                </InfoBloco>
+
+                <InfoBloco>
+                  <span>Qtd</span>
+                  <strong>{x.quantidade || '-'}</strong>
+                </InfoBloco>
+
+                <InfoBloco>
+                  <span>Preço</span>
+                  <strong>{x.valorUnitario ? formatBRL(x.valorUnitario) : '-'}</strong>
+                </InfoBloco>
+
+                <InfoBloco>
+                  <span>Total</span>
+                  <strong>{x.totalPago ? formatBRL(x.totalPago) : formatBRL(x.valor)}</strong>
+                </InfoBloco>
+              </MobileGrid>
+            </MobileItem>
+          ))
+        )}
+      </MobileLista>
     </Wrap>
   );
 }
 
 export default withAuth(MinhasTransacoes);
 
-/* -------------------- estilos -------------------- */
-
 const Wrap = styled.div`
-  padding: 2rem;
+  padding: 24px;
   color: #e2e8f0;
+
+  @media (max-width: 900px) {
+    padding: 14px 10px 18px;
+  }
 `;
 
 const Titulo = styled.h1`
   color: #ffffff;
   margin: 0;
+  font-size: 2rem;
+
+  @media (max-width: 900px) {
+    font-size: 1.55rem;
+  }
 `;
 
 const Sub = styled.p`
-  margin: 0.35rem 0 1.2rem;
+  margin: 0.35rem 0 1rem;
   color: #94a3b8;
 `;
 
-const Card = styled.div`
+const FiltrosCard = styled.div`
   background: #0f172a;
   border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 1rem;
-  overflow-x: auto;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
 `;
 
-const Filtros = styled.div`
+const DesktopCard = styled.div`
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 1rem;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const MobileLista = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: grid;
+    gap: 12px;
+  }
+`;
+
+const MobileItem = styled.div`
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 12px;
+`;
+
+const MobileTop = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+`;
+
+const MobileData = styled.div`
+  color: #94a3b8;
+  font-size: 0.8rem;
+  text-align: right;
+`;
+
+const TipoPill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid currentColor;
+`;
+
+const MobileGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const InfoBloco = styled.div`
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+
+  span {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    word-break: break-word;
+  }
+`;
+
+const Card = styled.div``;
+
+const Filtros = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Filtro = styled.div`
@@ -257,9 +406,10 @@ const Filtro = styled.div`
   }
 
   select {
-    min-width: 180px;
-    padding: 0.55rem;
-    border-radius: 8px;
+    width: 100%;
+    min-width: 0;
+    padding: 0.7rem 0.75rem;
+    border-radius: 10px;
     border: 1px solid #1e293b;
     background: #111827;
     color: #e2e8f0;
@@ -269,6 +419,10 @@ const Filtro = styled.div`
 const Vazio = styled.div`
   padding: 1rem;
   color: #94a3b8;
+`;
+
+const TabelaWrap = styled.div`
+  overflow-x: auto;
 `;
 
 const Tabela = styled.table`

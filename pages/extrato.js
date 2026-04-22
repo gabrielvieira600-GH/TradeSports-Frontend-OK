@@ -58,6 +58,7 @@ export default function Extrato() {
 
   const carregar = async () => {
     setCarregando(true);
+
     try {
       const params = {};
       if (from) params.from = from;
@@ -137,54 +138,92 @@ export default function Extrato() {
         </LinhaChecks>
       </Resumo>
 
-      <CardTabela>
-        <Tabela>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Descrição</th>
-              <th style={{ textAlign: 'right' }}>Valor</th>
-              <th style={{ textAlign: 'right' }}>Saldo após</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {!carregando && itens.length === 0 && (
+      <DesktopTableCard>
+        <TabelaWrap>
+          <Tabela>
+            <thead>
               <tr>
-                <td colSpan={5} className="vazio">
-                  Nenhuma movimentação encontrada.
-                </td>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th style={{ textAlign: 'right' }}>Valor</th>
+                <th style={{ textAlign: 'right' }}>Saldo após</th>
               </tr>
-            )}
+            </thead>
 
-            {itens.map((i, idx) => (
-              <tr key={`${i.data}-${idx}`}>
-                <td>{new Date(i.data).toLocaleString('pt-BR')}</td>
-                <td>{i.tipo}</td>
-                <td>{i.descricao}</td>
+            <tbody>
+              {!carregando && itens.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="vazio">
+                    Nenhuma movimentação encontrada.
+                  </td>
+                </tr>
+              )}
 
-                <td style={{ textAlign: 'right', fontWeight: 700 }}>
-                  <Badge dir={i.direcao}>
-                    {i.direcao === 'C' ? '+' : '-'} {formatBRL(i.valor)}
-                  </Badge>
-                </td>
+              {itens.map((i, idx) => (
+                <tr key={`${i.data}-${idx}`}>
+                  <td>{new Date(i.data).toLocaleString('pt-BR')}</td>
+                  <td>{i.tipo}</td>
+                  <td>{i.descricao}</td>
 
-                <td style={{ textAlign: 'right' }}>{formatBRL(i.saldoApos)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Tabela>
-      </CardTabela>
+                  <td style={{ textAlign: 'right', fontWeight: 700 }}>
+                    <Badge dir={i.direcao}>
+                      {i.direcao === 'C' ? '+' : '-'} {formatBRL(i.valor)}
+                    </Badge>
+                  </td>
+
+                  <td style={{ textAlign: 'right' }}>{formatBRL(i.saldoApos)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Tabela>
+        </TabelaWrap>
+      </DesktopTableCard>
+
+      <MobileLista>
+        {!carregando && itens.length === 0 && (
+          <MobileVazio>Nenhuma movimentação encontrada.</MobileVazio>
+        )}
+
+        {itens.map((i, idx) => (
+          <MobileItem key={`${i.data}-${idx}`}>
+            <MobileTop>
+              <MobileTipo>{i.tipo}</MobileTipo>
+              <Badge dir={i.direcao}>
+                {i.direcao === 'C' ? '+' : '-'} {formatBRL(i.valor)}
+              </Badge>
+            </MobileTop>
+
+            <MobileGrid>
+              <InfoBloco>
+                <span>Data</span>
+                <strong>{new Date(i.data).toLocaleString('pt-BR')}</strong>
+              </InfoBloco>
+
+              <InfoBloco>
+                <span>Saldo após</span>
+                <strong>{formatBRL(i.saldoApos)}</strong>
+              </InfoBloco>
+
+              <InfoBlocoFull>
+                <span>Descrição</span>
+                <strong>{i.descricao}</strong>
+              </InfoBlocoFull>
+            </MobileGrid>
+          </MobileItem>
+        ))}
+      </MobileLista>
     </Wrap>
   );
 }
 
-/* ===================== ESTILO (theme Carteira) ===================== */
-
 const Wrap = styled.div`
-  padding: 28px;
+  padding: 24px;
   color: #e5e7eb;
+
+  @media (max-width: 900px) {
+    padding: 14px 10px 18px;
+  }
 `;
 
 const Header = styled.div`
@@ -196,6 +235,10 @@ const H1 = styled.h1`
   font-size: 34px;
   font-weight: 800;
   color: #ffffff;
+
+  @media (max-width: 900px) {
+    font-size: 1.55rem;
+  }
 `;
 
 const Sub = styled.p`
@@ -207,7 +250,7 @@ const Sub = styled.p`
 const Resumo = styled.div`
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 16px;
 `;
 
@@ -331,12 +374,20 @@ const Check = styled.label`
   }
 `;
 
-const CardTabela = styled.div`
+const DesktopTableCard = styled.div`
   margin-top: 14px;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const TabelaWrap = styled.div`
+  overflow-x: auto;
 `;
 
 const Tabela = styled.table`
@@ -367,11 +418,75 @@ const Tabela = styled.table`
     padding: 16px;
     color: #94a3b8;
   }
+`;
+
+const MobileLista = styled.div`
+  display: none;
 
   @media (max-width: 900px) {
-    display: block;
-    overflow: auto;
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
   }
+`;
+
+const MobileItem = styled.div`
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 14px;
+  padding: 12px;
+`;
+
+const MobileTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+`;
+
+const MobileTipo = styled.div`
+  color: #fff;
+  font-weight: 800;
+`;
+
+const MobileGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const InfoBloco = styled.div`
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+
+  span {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    word-break: break-word;
+  }
+`;
+
+const InfoBlocoFull = styled(InfoBloco)`
+  grid-column: 1 / -1;
+`;
+
+const MobileVazio = styled.div`
+  color: #94a3b8;
+  padding: 12px 4px;
 `;
 
 const Badge = styled.span`

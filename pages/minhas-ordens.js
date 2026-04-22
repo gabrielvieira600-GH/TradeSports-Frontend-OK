@@ -41,8 +41,7 @@ function MinhasOrdens() {
   const [editPreco, setEditPreco] = useState('');
   const [editQtd, setEditQtd] = useState('');
 
-  // -------- Paginação --------
-  const [pageSize, setPageSize] = useState(10); // 5 | 10 | 20
+  const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
   async function carregarTudo() {
@@ -68,11 +67,12 @@ function MinhasOrdens() {
       const itensOrdens = ordens.map((o) => {
         const st =
           o.status || (Number(o.restante || 0) <= 0 ? 'executada' : 'aberta');
+
         return {
           fonte: 'ORDEM',
           id: o.id,
           origem: 'SECUNDARIO',
-          tipo: o.tipo, // compra|venda
+          tipo: o.tipo,
           clubeId: o.clubeId,
           clubeNome: mapClubeNome(o.clubeId),
           preco: Number(o.preco || 0),
@@ -87,6 +87,7 @@ function MinhasOrdens() {
         const tipoRaw = String(h.tipo || '').toUpperCase();
         const tipo =
           tipoRaw === 'COMPRA' ? 'compra' : tipoRaw === 'VENDA' ? 'venda' : 'outro';
+
         return {
           fonte: 'HISTORICO',
           id: h.id,
@@ -107,6 +108,7 @@ function MinhasOrdens() {
       const tudo = [...itensOrdens, ...itensHist].sort(
         (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
       );
+
       setItens(tudo);
     } catch (e) {
       console.error(e);
@@ -134,7 +136,6 @@ function MinhasOrdens() {
     });
   }, [itens, filtroClubeId, filtroTipo, filtroStatus, filtroOrigem]);
 
-  // Sempre que filtros/tamanho mudarem, volta para página 1
   useEffect(() => {
     setPage(1);
   }, [filtroClubeId, filtroTipo, filtroStatus, filtroOrigem, pageSize]);
@@ -142,7 +143,6 @@ function MinhasOrdens() {
   const totalItens = itensFiltrados.length;
   const totalPaginas = Math.max(1, Math.ceil(totalItens / Number(pageSize || 10)));
 
-  // Garante page dentro do intervalo caso a lista diminua
   useEffect(() => {
     if (page > totalPaginas) setPage(totalPaginas);
     if (page < 1) setPage(1);
@@ -180,10 +180,12 @@ function MinhasOrdens() {
   async function salvarEdicao(ordemId) {
     const qtd = Number(editQtd);
     const preco = Number(editPreco);
+
     if (!Number.isFinite(qtd) || qtd <= 0 || !Number.isFinite(preco) || preco <= 0) {
       alert('Quantidade e preço precisam ser válidos.');
       return;
     }
+
     try {
       await api.put('/mercado/ordem/editar', { ordemId, quantidade: qtd, preco });
       cancelarEdicao();
@@ -198,213 +200,215 @@ function MinhasOrdens() {
     <Container>
       <Titulo>Minhas Ordens</Titulo>
 
-      <Filtros>
-        <Filtro>
-          <label>Clube</label>
-          <select value={filtroClubeId} onChange={(e) => setFiltroClubeId(e.target.value)}>
-            <option value="">Todos</option>
-            {clubes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
-        </Filtro>
+      <FiltrosCard>
+        <Filtros>
+          <Filtro>
+            <label>Clube</label>
+            <select value={filtroClubeId} onChange={(e) => setFiltroClubeId(e.target.value)}>
+              <option value="">Todos</option>
+              {clubes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Tipo</label>
-          <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-            <option value="">Todos</option>
-            <option value="compra">Compra</option>
-            <option value="venda">Venda</option>
-          </select>
-        </Filtro>
+          <Filtro>
+            <label>Tipo</label>
+            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="compra">Compra</option>
+              <option value="venda">Venda</option>
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Status</label>
-          <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-            <option value="">Todos</option>
-            <option value="aberta">Aberta</option>
-            <option value="executada">Executada</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
-        </Filtro>
+          <Filtro>
+            <label>Status</label>
+            <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="aberta">Aberta</option>
+              <option value="executada">Executada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Origem</label>
-          <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
-            <option value="">Todas</option>
-            <option value="SECUNDARIO">Mercado Secundário</option>
-            <option value="IPO/HISTÓRICO">IPO/Histórico</option>
-            <option value="LIQUIDACAO">Liquidação</option>
-          </select>
-        </Filtro>
+          <Filtro>
+            <label>Origem</label>
+            <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
+              <option value="">Todas</option>
+              <option value="SECUNDARIO">Mercado Secundário</option>
+              <option value="IPO/HISTÓRICO">IPO/Histórico</option>
+              <option value="LIQUIDACAO">Liquidação</option>
+            </select>
+          </Filtro>
 
-        <Filtro>
-          <label>Por página</label>
-          <select
-            value={String(pageSize)}
-            onChange={(e) => setPageSize(Number(e.target.value))}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-          </select>
-        </Filtro>
+          <Filtro>
+            <label>Por página</label>
+            <select
+              value={String(pageSize)}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </Filtro>
 
-        <Botao onClick={carregarTudo} disabled={carregando}>
-          {carregando ? 'Atualizando…' : 'Atualizar'}
-        </Botao>
-      </Filtros>
+          <Botao onClick={carregarTudo} disabled={carregando}>
+            {carregando ? 'Atualizando…' : 'Atualizar'}
+          </Botao>
+        </Filtros>
+      </FiltrosCard>
 
       {erro && <Erro>{erro}</Erro>}
 
-      <Card>
+      <ResumoTopo>
+        <span>
+          Exibindo <b>{Math.min((page - 1) * pageSize + 1, totalItens || 0)}</b>–
+          <b>{Math.min(page * pageSize, totalItens)}</b> de <b>{totalItens}</b>
+        </span>
+
+        <Paginacao>
+          <MiniSec
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+          >
+            Anterior
+          </MiniSec>
+
+          <PaginaInfo>
+            Página <b>{page}</b> de <b>{totalPaginas}</b>
+          </PaginaInfo>
+
+          <MiniSec
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
+            disabled={page >= totalPaginas}
+          >
+            Próxima
+          </MiniSec>
+        </Paginacao>
+      </ResumoTopo>
+
+      <DesktopCard>
         {itensFiltrados.length === 0 ? (
           <Vazio>Nenhuma ordem encontrada com esses filtros.</Vazio>
         ) : (
           <>
-            <ResumoTopo>
-              <span>
-                Exibindo{' '}
-                <b>
-                  {Math.min((page - 1) * pageSize + 1, totalItens)}–
-                  {Math.min(page * pageSize, totalItens)}
-                </b>{' '}
-                de <b>{totalItens}</b>
-              </span>
+            <TabelaWrap>
+              <Tabela>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Origem</th>
+                    <th>Tipo</th>
+                    <th>Clube</th>
+                    <th>Preço</th>
+                    <th>Qtd</th>
+                    <th>Restante</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
 
-              <Paginacao>
-                <MiniSec
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                >
-                  Anterior
-                </MiniSec>
+                <tbody>
+                  {itensPaginados.map((x) => {
+                    const tipoHist = String(x.tipoHistorico || '').toUpperCase();
+                    const isCompra = x.tipo === 'compra' || tipoHist === 'COMPRA';
 
-                <PaginaInfo>
-                  Página <b>{page}</b> de <b>{totalPaginas}</b>
-                </PaginaInfo>
+                    const podeEditar =
+                      x.fonte === 'ORDEM' &&
+                      x.status === 'aberta' &&
+                      Number(x.restante || 0) === Number(x.quantidade || 0);
 
-                <MiniSec
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
-                  disabled={page >= totalPaginas}
-                >
-                  Próxima
-                </MiniSec>
-              </Paginacao>
-            </ResumoTopo>
+                    const podeCancelar =
+                      x.fonte === 'ORDEM' &&
+                      x.status === 'aberta' &&
+                      Number(x.restante || 0) > 0;
 
-            <Tabela>
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Origem</th>
-                  <th>Tipo</th>
-                  <th>Clube</th>
-                  <th>Preço</th>
-                  <th>Qtd</th>
-                  <th>Restante</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {itensPaginados.map((x) => {
-                  const tipoHist = String(x.tipoHistorico || '').toUpperCase();
-                  const isCompra = x.tipo === 'compra' || tipoHist === 'COMPRA';
+                    const emEdicao = editandoId === x.id;
 
-                  const podeEditar =
-                    x.fonte === 'ORDEM' &&
-                    x.status === 'aberta' &&
-                    Number(x.restante || 0) === Number(x.quantidade || 0);
+                    return (
+                      <tr key={`${x.fonte}-${x.id}`}>
+                        <td>{formatData(x.criadoEm)}</td>
+                        <td>{x.origem}</td>
+                        <Tipo $compra={isCompra}>
+                          {x.tipo === 'outro'
+                            ? tipoHist || '—'
+                            : isCompra
+                            ? 'COMPRA'
+                            : 'VENDA'}
+                        </Tipo>
 
-                  const podeCancelar =
-                    x.fonte === 'ORDEM' &&
-                    x.status === 'aberta' &&
-                    Number(x.restante || 0) > 0;
+                        <td>{x.clubeNome}</td>
 
-                  const emEdicao = editandoId === x.id;
+                        <td>
+                          {emEdicao ? (
+                            <Input
+                              type="number"
+                              value={editPreco}
+                              onChange={(e) => setEditPreco(e.target.value)}
+                            />
+                          ) : (
+                            formatBRL(x.preco)
+                          )}
+                        </td>
 
-                  return (
-                    <tr key={`${x.fonte}-${x.id}`}>
-                      <td>{formatData(x.criadoEm)}</td>
-                      <td>{x.origem}</td>
-                      <Tipo $compra={isCompra}>
-                        {x.tipo === 'outro' ? tipoHist || '—' : isCompra ? 'COMPRA' : 'VENDA'}
-                      </Tipo>
-                      <td>{x.clubeNome}</td>
+                        <td>
+                          {emEdicao ? (
+                            <Input
+                              type="number"
+                              value={editQtd}
+                              onChange={(e) => setEditQtd(e.target.value)}
+                            />
+                          ) : (
+                            x.quantidade
+                          )}
+                        </td>
 
-                      <td>
-                        {emEdicao ? (
-                          <Input
-                            type="number"
-                            value={editPreco}
-                            onChange={(e) => setEditPreco(e.target.value)}
-                          />
-                        ) : (
-                          formatBRL(x.preco)
-                        )}
-                      </td>
+                        <td>{x.restante ?? '-'}</td>
+                        <td>{statusLabel(x.status)}</td>
 
-                      <td>
-                        {emEdicao ? (
-                          <Input
-                            type="number"
-                            value={editQtd}
-                            onChange={(e) => setEditQtd(e.target.value)}
-                          />
-                        ) : (
-                          x.quantidade
-                        )}
-                      </td>
-
-                      <td>{x.restante ?? '-'}</td>
-                      <td>{statusLabel(x.status)}</td>
-
-                      <td>
-                        {emEdicao ? (
-                          <AcoesLinha>
-                            <Mini type="button" onClick={() => salvarEdicao(x.id)}>
-                              Salvar
-                            </Mini>
-                            <MiniSec type="button" onClick={cancelarEdicao}>
-                              Cancelar
-                            </MiniSec>
-                          </AcoesLinha>
-                        ) : (
-                          <AcoesLinha>
-                            {podeEditar && (
-                              <Mini type="button" onClick={() => iniciarEdicao(x)}>
-                                Editar
+                        <td>
+                          {emEdicao ? (
+                            <AcoesLinha>
+                              <Mini type="button" onClick={() => salvarEdicao(x.id)}>
+                                Salvar
                               </Mini>
-                            )}
-                            {podeCancelar && (
-                              <MiniDanger type="button" onClick={() => cancelarOrdem(x.id)}>
-                                Cancelar ordem
-                              </MiniDanger>
-                            )}
-                            {!podeEditar && !podeCancelar && (
-                              <span style={{ color: '#64748b' }}>—</span>
-                            )}
-                          </AcoesLinha>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Tabela>
+                              <MiniSec type="button" onClick={cancelarEdicao}>
+                                Cancelar
+                              </MiniSec>
+                            </AcoesLinha>
+                          ) : (
+                            <AcoesLinha>
+                              {podeEditar && (
+                                <Mini type="button" onClick={() => iniciarEdicao(x)}>
+                                  Editar
+                                </Mini>
+                              )}
+                              {podeCancelar && (
+                                <MiniDanger type="button" onClick={() => cancelarOrdem(x.id)}>
+                                  Cancelar ordem
+                                </MiniDanger>
+                              )}
+                              {!podeEditar && !podeCancelar && (
+                                <span style={{ color: '#64748b' }}>—</span>
+                              )}
+                            </AcoesLinha>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Tabela>
+            </TabelaWrap>
 
             <ResumoRodape>
               <Paginacao>
-                <MiniSec
-                  type="button"
-                  onClick={() => setPage(1)}
-                  disabled={page <= 1}
-                >
+                <MiniSec type="button" onClick={() => setPage(1)} disabled={page <= 1}>
                   Primeira
                 </MiniSec>
                 <MiniSec
@@ -435,7 +439,120 @@ function MinhasOrdens() {
             </ResumoRodape>
           </>
         )}
-      </Card>
+      </DesktopCard>
+
+      <MobileLista>
+        {itensFiltrados.length === 0 ? (
+          <Vazio>Nenhuma ordem encontrada com esses filtros.</Vazio>
+        ) : (
+          itensPaginados.map((x) => {
+            const tipoHist = String(x.tipoHistorico || '').toUpperCase();
+            const isCompra = x.tipo === 'compra' || tipoHist === 'COMPRA';
+
+            const podeEditar =
+              x.fonte === 'ORDEM' &&
+              x.status === 'aberta' &&
+              Number(x.restante || 0) === Number(x.quantidade || 0);
+
+            const podeCancelar =
+              x.fonte === 'ORDEM' &&
+              x.status === 'aberta' &&
+              Number(x.restante || 0) > 0;
+
+            const emEdicao = editandoId === x.id;
+
+            return (
+              <MobileItem key={`${x.fonte}-${x.id}`}>
+                <MobileTop>
+                  <MobileClube>{x.clubeNome}</MobileClube>
+                  <TipoPill $compra={isCompra}>
+                    {x.tipo === 'outro' ? tipoHist || '—' : isCompra ? 'COMPRA' : 'VENDA'}
+                  </TipoPill>
+                </MobileTop>
+
+                <MobileGrid>
+                  <InfoBloco>
+                    <span>Data</span>
+                    <strong>{formatData(x.criadoEm)}</strong>
+                  </InfoBloco>
+
+                  <InfoBloco>
+                    <span>Origem</span>
+                    <strong>{x.origem}</strong>
+                  </InfoBloco>
+
+                  <InfoBloco>
+                    <span>Preço</span>
+                    <strong>
+                      {emEdicao ? (
+                        <Input
+                          type="number"
+                          value={editPreco}
+                          onChange={(e) => setEditPreco(e.target.value)}
+                        />
+                      ) : (
+                        formatBRL(x.preco)
+                      )}
+                    </strong>
+                  </InfoBloco>
+
+                  <InfoBloco>
+                    <span>Quantidade</span>
+                    <strong>
+                      {emEdicao ? (
+                        <Input
+                          type="number"
+                          value={editQtd}
+                          onChange={(e) => setEditQtd(e.target.value)}
+                        />
+                      ) : (
+                        x.quantidade
+                      )}
+                    </strong>
+                  </InfoBloco>
+
+                  <InfoBloco>
+                    <span>Restante</span>
+                    <strong>{x.restante ?? '-'}</strong>
+                  </InfoBloco>
+
+                  <InfoBloco>
+                    <span>Status</span>
+                    <strong>{statusLabel(x.status)}</strong>
+                  </InfoBloco>
+                </MobileGrid>
+
+                <MobileAcoes>
+                  {emEdicao ? (
+                    <>
+                      <Mini type="button" onClick={() => salvarEdicao(x.id)}>
+                        Salvar
+                      </Mini>
+                      <MiniSec type="button" onClick={cancelarEdicao}>
+                        Cancelar
+                      </MiniSec>
+                    </>
+                  ) : (
+                    <>
+                      {podeEditar && (
+                        <Mini type="button" onClick={() => iniciarEdicao(x)}>
+                          Editar
+                        </Mini>
+                      )}
+                      {podeCancelar && (
+                        <MiniDanger type="button" onClick={() => cancelarOrdem(x.id)}>
+                          Cancelar ordem
+                        </MiniDanger>
+                      )}
+                      {!podeEditar && !podeCancelar && <SemAcao>Sem ações</SemAcao>}
+                    </>
+                  )}
+                </MobileAcoes>
+              </MobileItem>
+            );
+          })
+        )}
+      </MobileLista>
 
       <Nota>
         * Edição só é permitida enquanto a ordem estiver <b>aberta</b> e <b>ainda não tiver execução parcial</b>.
@@ -446,32 +563,149 @@ function MinhasOrdens() {
 
 export default withAuth(MinhasOrdens);
 
-// -------------------- estilos --------------------
-
 const Container = styled.div`
-  padding: 2rem;
+  padding: 24px;
   color: #e2e8f0;
+
+  @media (max-width: 900px) {
+    padding: 14px 10px 18px;
+  }
 `;
 
 const Titulo = styled.h1`
   color: #ffffff;
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
+  font-size: 2rem;
+
+  @media (max-width: 900px) {
+    font-size: 1.55rem;
+  }
 `;
 
-const Card = styled.div`
+const FiltrosCard = styled.div`
   background: #0f172a;
   border: 1px solid #1e293b;
-  border-radius: 10px;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+`;
+
+const DesktopCard = styled.div`
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
   padding: 1rem;
-  overflow-x: auto;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const MobileLista = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: grid;
+    gap: 12px;
+  }
+`;
+
+const MobileItem = styled.div`
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 12px;
+`;
+
+const MobileTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+`;
+
+const MobileClube = styled.div`
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+`;
+
+const TipoPill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: ${({ $compra }) => ($compra ? '#86efac' : '#fecaca')};
+  background: ${({ $compra }) =>
+    $compra ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'};
+  border: 1px solid
+    ${({ $compra }) =>
+      $compra ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'};
+`;
+
+const MobileGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const InfoBloco = styled.div`
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+
+  span {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    word-break: break-word;
+  }
+`;
+
+const MobileAcoes = styled.div`
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const SemAcao = styled.span`
+  color: #64748b;
+  font-size: 0.9rem;
 `;
 
 const Filtros = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Filtro = styled.div`
@@ -485,9 +719,10 @@ const Filtro = styled.div`
   }
 
   select {
-    min-width: 180px;
-    padding: 0.55rem 0.65rem;
-    border-radius: 8px;
+    width: 100%;
+    min-width: 0;
+    padding: 0.7rem 0.75rem;
+    border-radius: 10px;
     border: 1px solid #1e293b;
     background: #111827;
     color: #e2e8f0;
@@ -496,18 +731,19 @@ const Filtro = styled.div`
 `;
 
 const Botao = styled.button`
-  padding: 0.65rem 0.9rem;
-  border-radius: 8px;
+  padding: 0.75rem 0.95rem;
+  border-radius: 10px;
   border: none;
   background: #3b82f6;
   color: #ffffff;
   cursor: pointer;
-  font-weight: 600;
-  height: 40px;
+  font-weight: 700;
+  min-height: 44px;
 
   &:hover {
     background: #2563eb;
   }
+
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
@@ -518,7 +754,7 @@ const Erro = styled.div`
   margin: 0.75rem 0;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.35);
-  padding: 0.75rem;
+  padding: 0.85rem;
   border-radius: 10px;
   color: #fecaca;
 `;
@@ -528,12 +764,17 @@ const Vazio = styled.div`
   color: #94a3b8;
 `;
 
+const TabelaWrap = styled.div`
+  overflow-x: auto;
+`;
+
 const Tabela = styled.table`
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
 
-  th, td {
+  th,
+  td {
     padding: 0.75rem;
     border-bottom: 1px solid #1e293b;
     text-align: left;
@@ -558,7 +799,7 @@ const AcoesLinha = styled.div`
 `;
 
 const Mini = styled.button`
-  padding: 0.35rem 0.55rem;
+  padding: 0.45rem 0.65rem;
   border-radius: 8px;
   border: 1px solid #1e293b;
   background: #111827;
@@ -568,6 +809,7 @@ const Mini = styled.button`
   &:hover {
     background: #0b1220;
   }
+
   &:disabled {
     opacity: 0.65;
     cursor: not-allowed;
@@ -585,8 +827,9 @@ const MiniDanger = styled(Mini)`
 `;
 
 const Input = styled.input`
-  width: 110px;
-  padding: 0.45rem 0.55rem;
+  width: 100%;
+  max-width: 120px;
+  padding: 0.5rem 0.6rem;
   border-radius: 8px;
   border: 1px solid #1e293b;
   background: #111827;
@@ -605,8 +848,9 @@ const ResumoTopo = styled.div`
   gap: 1rem;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.25rem 0.9rem;
+  padding: 0.25rem 0 0.9rem;
   color: #94a3b8;
+  flex-wrap: wrap;
 
   b {
     color: #e2e8f0;
