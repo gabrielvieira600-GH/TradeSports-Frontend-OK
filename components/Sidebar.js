@@ -217,7 +217,7 @@ const LinkInner = styled.div`
   align-items: center;
   justify-content: ${({ $minimizado }) =>
     $minimizado ? 'center' : 'flex-start'};
-  gap: 120px;
+  gap: 12px;
   padding: ${({ $minimizado }) => ($minimizado ? '8px 4px' : '8px 10px')};
   border-radius: 14px;
   color: #f8fafc;
