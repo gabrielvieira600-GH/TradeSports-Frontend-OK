@@ -20,6 +20,8 @@ const PALETA_CORES = [
 ];
 
 function CarteiraPage() {
+  const router = useRouter();
+
   const [carteira, setCarteira] = useState([]);
   const [clubes, setClubes] = useState([]);
   const [erro, setErro] = useState('');
@@ -28,18 +30,20 @@ function CarteiraPage() {
   const [clubeSelecionado, setClubeSelecionado] = useState(null);
   const [historico, setHistorico] = useState([]);
 
-  // Paginação (tabela de cotas e histórico de transações)
   const [itensPorPaginaCarteira, setItensPorPaginaCarteira] = useState(10);
   const [paginaCarteira, setPaginaCarteira] = useState(1);
   const [itensPorPaginaHistorico, setItensPorPaginaHistorico] = useState(10);
   const [paginaHistorico, setPaginaHistorico] = useState(1);
   const [saldo, setSaldo] = useState(0);
 
-  // série histórica de valor da carteira
   const [serieCarteira, setSerieCarteira] = useState([]);
-  const [intervaloGrafico, setIntervaloGrafico] = useState('SEASON'); // 1D, 7D, 30D, SEASON
+  const [intervaloGrafico, setIntervaloGrafico] = useState('SEASON');
 
-      const abrirModalDeVenda = (ativo) => {
+  const abrirPaginaClube = (clubeId) => {
+    router.push(`/clube/${clubeId}`);
+  };
+
+  const abrirModalDeVenda = (ativo) => {
     const clubeCompleto = clubes.find((c) => c.id === ativo.clubeId);
     if (!clubeCompleto) return;
     setClubeSelecionado(clubeCompleto);
@@ -51,7 +55,6 @@ function CarteiraPage() {
     return clube ? clube.precoAtual || clube.preco : 0;
   };
 
-  // P/L realizado (histórico)
   const calcularPLRealizado = (historicoBruto) => {
     if (!historicoBruto || historicoBruto.length === 0) return 0;
 
@@ -105,7 +108,6 @@ function CarteiraPage() {
     return plRealizado;
   };
 
-  // Dividendos recebidos (histórico)
   const calcularTotalDividendos = (historicoBruto) => {
     if (!historicoBruto || historicoBruto.length === 0) return 0;
     return historicoBruto
@@ -113,7 +115,6 @@ function CarteiraPage() {
       .reduce((acc, op) => acc + Number(op.totalPago || 0), 0);
   };
 
-  // Carregar carteira + clubes + saldo
   useEffect(() => {
     let cancelado = false;
 
@@ -146,7 +147,6 @@ function CarteiraPage() {
     };
   }, []);
 
-  // Histórico (p/ P/L realizado e tabela)
   useEffect(() => {
     let cancelado = false;
 
@@ -167,7 +167,6 @@ function CarteiraPage() {
     };
   }, []);
 
-  // Resumo da carteira (incluindo saldo)
   useEffect(() => {
     if (carteira.length > 0 && clubes.length > 0) {
       let totalInvestido = 0;
@@ -185,11 +184,7 @@ function CarteiraPage() {
       const plRealizado = calcularPLRealizado(historico);
       const totalDividendos = calcularTotalDividendos(historico);
       const plTotal = plRealizado + plNaoRealizado;
-
-      // 💰 Valor total da carteira = valor de mercado das cotas + saldo em conta
       const valorTotalCarteira = totalAtual + saldo;
-
-      // 📈 Variação da carteira em % sobre o valor total da carteira
       const variacaoCarteira =
         valorTotalCarteira > 0 ? (plTotal / valorTotalCarteira) * 100 : 0;
 
@@ -209,33 +204,27 @@ function CarteiraPage() {
     }
   }, [carteira, clubes, historico, saldo]);
 
-  // --------- SÉRIE HISTÓRICA DO VALOR DA CARTEIRA (POR OPERAÇÃO) ----------
   useEffect(() => {
-    // precisamos de histórico, carteira final, clubes (para preços atuais) e saldo final
     if (!historico.length || !clubes.length) {
       setSerieCarteira([]);
       return;
     }
 
     try {
-      // mapa de preço atual por clube (usando preços atuais mesmo para o histórico)
       const precoAtualPorClube = {};
       clubes.forEach((c) => {
         const key = String(c.id);
         precoAtualPorClube[key] = Number(c.precoAtual || c.preco || 0);
       });
 
-      // quantidades atuais por clube (estado final)
       const quantidades = {};
       carteira.forEach((ativo) => {
         const key = String(ativo.clubeId);
         quantidades[key] = Number(ativo.quantidade || 0);
       });
 
-      // saldo atual
       let saldoCorrente = Number(saldo || 0);
 
-      // função para calcular valor total da carteira (saldo + cotas a preço atual)
       const calcularValorCarteira = () => {
         let totalAtivos = 0;
         Object.entries(quantidades).forEach(([id, qtd]) => {
@@ -247,14 +236,12 @@ function CarteiraPage() {
 
       const pontosReverso = [];
 
-      // ponto atual (agora)
       const agora = new Date();
       pontosReverso.push({
         data: agora,
         valor: calcularValorCarteira(),
       });
 
-      // histórico do mais recente para o mais antigo
       const histOrdenado = [...historico].sort(
         (a, b) => new Date(b.data) - new Date(a.data)
       );
@@ -272,14 +259,12 @@ function CarteiraPage() {
         const isVenda = tipo.includes('VENDA') || tipo.includes('LIQUIDA');
 
         if (isCompra) {
-          // indo PARA TRÁS no tempo: desfaz a compra (devolve saldo, reduz posição)
           saldoCorrente += totalPago;
           if (clubeKey) {
             if (!quantidades[clubeKey]) quantidades[clubeKey] = 0;
             quantidades[clubeKey] -= quantidade;
           }
         } else if (isVenda) {
-          // indo PARA TRÁS: desfaz a venda (tira saldo, aumenta posição)
           saldoCorrente -= totalPago;
           if (clubeKey) {
             if (!quantidades[clubeKey]) quantidades[clubeKey] = 0;
@@ -287,7 +272,6 @@ function CarteiraPage() {
           }
         }
 
-        // valor da carteira imediatamente ANTES dessa operação
         const dataOp = new Date(op.data);
         pontosReverso.push({
           data: dataOp,
@@ -295,10 +279,8 @@ function CarteiraPage() {
         });
       });
 
-      // agora ordenamos cronologicamente (do mais antigo para o mais recente)
       const pontosOrdenados = pontosReverso
         .sort((a, b) => a.data - b.data)
-        // opcional: remove pontos duplicados de mesmo timestamp
         .filter((p, idx, arr) => {
           if (idx === 0) return true;
           return p.data.getTime() !== arr[idx - 1].data.getTime();
@@ -311,7 +293,6 @@ function CarteiraPage() {
     }
   }, [historico, clubes, carteira, saldo]);
 
-  // pontos filtrados de acordo com o intervalo escolhido
   const pontosFiltrados = useMemo(() => {
     if (!serieCarteira.length) return [];
 
@@ -344,11 +325,9 @@ function CarteiraPage() {
     }
 
     if (!cutoff) return serieCarteira;
-
     return serieCarteira.filter((p) => p.data >= cutoff);
   }, [serieCarteira, intervaloGrafico]);
 
-  // ----------------- GRÁFICO PIZZA -----------------
   const distribuicaoCarteira = (() => {
     if (!carteira.length || !clubes.length) return [];
 
@@ -389,7 +368,6 @@ function CarteiraPage() {
     return `conic-gradient(${segmentos.join(', ')})`;
   })();
 
-  // ----------------- GRÁFICO BARRAS P/L por clube -----------------
   const plPorClube = (() => {
     if (!carteira.length || !clubes.length) return [];
     return carteira.map((ativo) => {
@@ -410,11 +388,11 @@ function CarteiraPage() {
     0
   );
 
-  // Paginação da tabela de cotas
   const totalPaginasCarteira = Math.max(
     1,
     Math.ceil((carteira?.length || 0) / itensPorPaginaCarteira)
   );
+
   useEffect(() => {
     if (paginaCarteira > totalPaginasCarteira) {
       setPaginaCarteira(totalPaginasCarteira);
@@ -428,7 +406,6 @@ function CarteiraPage() {
     return (carteira || []).slice(start, end);
   }, [carteira, paginaCarteira, itensPorPaginaCarteira]);
 
-  // Paginação do histórico (mais recentes primeiro)
   const historicoOrdenado = useMemo(() => {
     return [...(historico || [])].sort((a, b) => {
       const da = a?.data ? new Date(a.data).getTime() : 0;
@@ -441,6 +418,7 @@ function CarteiraPage() {
     1,
     Math.ceil((historicoOrdenado?.length || 0) / itensPorPaginaHistorico)
   );
+
   useEffect(() => {
     if (paginaHistorico > totalPaginasHistorico) {
       setPaginaHistorico(totalPaginasHistorico);
@@ -459,61 +437,60 @@ function CarteiraPage() {
       {modalAberto && clubeSelecionado && (
         <NegociacaoModal
           isOpen={modalAberto}
-          onClose={() => { setModalAberto(false); setClubeSelecionado(null); }}
+          onClose={() => {
+            setModalAberto(false);
+            setClubeSelecionado(null);
+          }}
           clube={clubeSelecionado}
           modoInicial="venda"
         />
       )}
 
       <Container>
-        <h1>Minha Carteira</h1>
+        <Titulo>Minha Carteira</Titulo>
 
         {erro && <Erro>{erro}</Erro>}
 
         {resumo && (
-          <Resumo>
-            <LinhaResumo>
-              <strong>Valor total da carteira:</strong>{' '}
-              R$ {resumo.valorTotalCarteira.toFixed(2)}
-            </LinhaResumo>
-            <LinhaResumo>
-              <strong>Total investido:</strong>{' '}
-              R$ {resumo.totalInvestido.toFixed(2)}
-            </LinhaResumo>
-            <LinhaResumo>
-              <strong>P/L total (realizado + não realizado):</strong>{' '}
-              <span
-                style={{
-                  color: resumo.plTotal >= 0 ? '#22c55e' : '#ef4444',
-                }}
-              >
+          <ResumoGrid>
+            <ResumoCard>
+              <LabelResumo>Valor total da carteira</LabelResumo>
+              <ValorPrincipal>R$ {resumo.valorTotalCarteira.toFixed(2)}</ValorPrincipal>
+            </ResumoCard>
+
+            <ResumoCard>
+              <LabelResumo>Total investido</LabelResumo>
+              <ValorSecundario>R$ {resumo.totalInvestido.toFixed(2)}</ValorSecundario>
+            </ResumoCard>
+
+            <ResumoCard>
+              <LabelResumo>P/L total</LabelResumo>
+              <ValorSecundario $positivo={resumo.plTotal >= 0}>
                 R$ {resumo.plTotal.toFixed(2)}
-              </span>
-            </LinhaResumo>
-            <LinhaResumo>
-              <strong>Dividendos recebidos:</strong>{' '}
-              <span style={{ color: '#22c55e' }}>
+              </ValorSecundario>
+            </ResumoCard>
+
+            <ResumoCard>
+              <LabelResumo>Dividendos recebidos</LabelResumo>
+              <ValorSecundario $positivo>
                 R$ {Number(resumo.totalDividendos || 0).toFixed(2)}
-              </span>
-            </LinhaResumo>
-            <LinhaResumo>
-              <strong>Variação da carteira:</strong>{' '}
-              <span
-                style={{
-                  color:
-                    resumo.variacaoCarteira >= 0 ? '#22c55e' : '#ef4444',
-                }}
-              >
+              </ValorSecundario>
+            </ResumoCard>
+
+            <ResumoCard>
+              <LabelResumo>Variação da carteira</LabelResumo>
+              <ValorSecundario $positivo={resumo.variacaoCarteira >= 0}>
                 {resumo.variacaoCarteira.toFixed(2)}%
-              </span>
-            </LinhaResumo>
-            <LinhaResumo>
-              <strong>Total de Cotas:</strong> {resumo.totalCotas}
-            </LinhaResumo>
-          </Resumo>
+              </ValorSecundario>
+            </ResumoCard>
+
+            <ResumoCard>
+              <LabelResumo>Total de cotas</LabelResumo>
+              <ValorSecundario>{resumo.totalCotas}</ValorSecundario>
+            </ResumoCard>
+          </ResumoGrid>
         )}
 
-        {/* GRÁFICOS */}
         {(serieCarteira.length > 0 ||
           distribuicaoCarteira.length > 0 ||
           plPorClube.length > 0) && (
@@ -545,7 +522,8 @@ function CarteiraPage() {
                     onClick={() => setIntervaloGrafico('SEASON')}
                   >
                     3 meses
-                  </RangeButton></RangeSelector>
+                  </RangeButton>
+                </RangeSelector>
                 <GraficoLinhaCarteira pontos={pontosFiltrados} />
               </GraficoCard>
             )}
@@ -562,19 +540,16 @@ function CarteiraPage() {
                       .map((item, idx) => {
                         const perc =
                           totalValorCarteiraGrafico > 0
-                            ? (item.totalAtual /
-                                totalValorCarteiraGrafico) *
-                              100
+                            ? (item.totalAtual / totalValorCarteiraGrafico) * 100
                             : 0;
-                        const cor =
-                          PALETA_CORES[idx % PALETA_CORES.length];
+                        const cor = PALETA_CORES[idx % PALETA_CORES.length];
+
                         return (
                           <LegendaItem key={item.clubeId}>
                             <CorDot style={{ backgroundColor: cor }} />
                             <span>{item.nome}</span>
                             <span>
-                              R$ {item.totalAtual.toFixed(2)} (
-                              {perc.toFixed(1)}%)
+                              R$ {item.totalAtual.toFixed(2)} ({perc.toFixed(1)}%)
                             </span>
                           </LegendaItem>
                         );
@@ -583,187 +558,334 @@ function CarteiraPage() {
                 </PizzaWrapper>
               </GraficoCard>
             )}
-
-           
-            
           </GraficosWrapper>
         )}
 
-        {/* TABELA DA CARTEIRA */}
         {carteira.length === 0 ? (
-          <p>Você ainda não possui cotas.</p>
+          <VazioText>Você ainda não possui cotas.</VazioText>
         ) : (
           <>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 12,
-                flexWrap: 'wrap',
-                margin: '8px 0 12px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ opacity: 0.9 }}>Itens por página:</span>
+            <Toolbar>
+              <ToolbarLeft>
+                <span>Itens por página:</span>
                 <select
                   value={itensPorPaginaCarteira}
                   onChange={(e) => {
                     setItensPorPaginaCarteira(Number(e.target.value));
                     setPaginaCarteira(1);
                   }}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    background: '#0b1220',
-                    color: '#e5e7eb',
-                    border: '1px solid rgba(255,255,255,0.12)',
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </ToolbarLeft>
+
+              <ToolbarRight>
+                <PageButton
+                  type="button"
+                  onClick={() => setPaginaCarteira((p) => Math.max(1, p - 1))}
+                  disabled={paginaCarteira <= 1}
+                >
+                  Anterior
+                </PageButton>
+
+                <PageInfo>
+                  Página {paginaCarteira} de {totalPaginasCarteira}
+                </PageInfo>
+
+                <PageButton
+                  type="button"
+                  onClick={() =>
+                    setPaginaCarteira((p) => Math.min(totalPaginasCarteira, p + 1))
+                  }
+                  disabled={paginaCarteira >= totalPaginasCarteira}
+                >
+                  Próxima
+                </PageButton>
+              </ToolbarRight>
+            </Toolbar>
+
+            <DesktopTableWrap>
+              <Tabela>
+                <thead>
+                  <tr>
+                    <th>Clube</th>
+                    <th>Cotas</th>
+                    <th>Preço Médio</th>
+                    <th>Preço Atual</th>
+                    <th>Total Investido</th>
+                    <th>Valorização (%)</th>
+                    <th>Lucro/Prejuízo</th>
+                    <th>Valor Atual</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {carteiraPaginada.map((ativo, index) => {
+                    const precoAtual = getPrecoAtual(ativo.clubeId);
+                    const totalInvestidoAtivo = ativo.quantidade * ativo.precoMedio;
+                    const valorAtual = ativo.quantidade * precoAtual;
+                    const lucro = valorAtual - totalInvestidoAtivo;
+                    const variacaoPerc =
+                      totalInvestidoAtivo > 0
+                        ? (lucro / totalInvestidoAtivo) * 100
+                        : 0;
+
+                    return (
+                      <tr key={index}>
+                        <td
+                          onClick={() => abrirPaginaClube(ativo.clubeId)}
+                          style={{
+                            cursor: 'pointer',
+                            color: '#60a5fa',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Image
+                            src={ativo.escudo}
+                            alt={`Escudo do ${ativo.nome}`}
+                            width={24}
+                            height={24}
+                            style={{ marginRight: '8px', verticalAlign: 'middle' }}
+                          />
+                          {ativo.nome}
+                        </td>
+                        <td>{ativo.quantidade}</td>
+                        <td>R$ {ativo.precoMedio.toFixed(2)}</td>
+                        <td>R$ {precoAtual.toFixed(2)}</td>
+                        <td>R$ {totalInvestidoAtivo.toFixed(2)}</td>
+                        <td style={{ color: variacaoPerc >= 0 ? '#22c55e' : '#ef4444' }}>
+                          {variacaoPerc.toFixed(2)}%
+                        </td>
+                        <td style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
+                          R$ {lucro.toFixed(2)}
+                        </td>
+                        <td>R$ {valorAtual.toFixed(2)}</td>
+                        <td>
+                          <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
+                            Negociar
+                          </BotaoVender>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Tabela>
+            </DesktopTableWrap>
+
+            <MobileLista>
+              {carteiraPaginada.map((ativo, index) => {
+                const precoAtual = getPrecoAtual(ativo.clubeId);
+                const totalInvestidoAtivo = ativo.quantidade * ativo.precoMedio;
+                const valorAtual = ativo.quantidade * precoAtual;
+                const lucro = valorAtual - totalInvestidoAtivo;
+                const variacaoPerc =
+                  totalInvestidoAtivo > 0 ? (lucro / totalInvestidoAtivo) * 100 : 0;
+
+                return (
+                  <MobileCard key={index}>
+                    <MobileTop>
+                      <MobileClub
+                        onClick={() => abrirPaginaClube(ativo.clubeId)}
+                      >
+                        <Image
+                          src={ativo.escudo}
+                          alt={`Escudo do ${ativo.nome}`}
+                          width={28}
+                          height={28}
+                        />
+                        <strong>{ativo.nome}</strong>
+                      </MobileClub>
+
+                      <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
+                        Negociar
+                      </BotaoVender>
+                    </MobileTop>
+
+                    <MobileMetrics>
+                      <MetricBox>
+                        <span>Cotas</span>
+                        <strong>{ativo.quantidade}</strong>
+                      </MetricBox>
+
+                      <MetricBox>
+                        <span>Preço Médio</span>
+                        <strong>R$ {ativo.precoMedio.toFixed(2)}</strong>
+                      </MetricBox>
+
+                      <MetricBox>
+                        <span>Preço Atual</span>
+                        <strong>R$ {precoAtual.toFixed(2)}</strong>
+                      </MetricBox>
+
+                      <MetricBox>
+                        <span>Total Investido</span>
+                        <strong>R$ {totalInvestidoAtivo.toFixed(2)}</strong>
+                      </MetricBox>
+
+                      <MetricBox>
+                        <span>Valorização</span>
+                        <strong style={{ color: variacaoPerc >= 0 ? '#22c55e' : '#ef4444' }}>
+                          {variacaoPerc.toFixed(2)}%
+                        </strong>
+                      </MetricBox>
+
+                      <MetricBox>
+                        <span>Lucro/Prejuízo</span>
+                        <strong style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
+                          R$ {lucro.toFixed(2)}
+                        </strong>
+                      </MetricBox>
+
+                      <MetricBoxFull>
+                        <span>Valor Atual</span>
+                        <strong>R$ {valorAtual.toFixed(2)}</strong>
+                      </MetricBoxFull>
+                    </MobileMetrics>
+                  </MobileCard>
+                );
+              })}
+            </MobileLista>
+          </>
+        )}
+
+        {historicoOrdenado.length > 0 && (
+          <>
+            <SectionTitle>Histórico de Transações</SectionTitle>
+
+            <Toolbar>
+              <ToolbarLeft>
+                <span>Itens por página:</span>
+                <select
+                  value={itensPorPaginaHistorico}
+                  onChange={(e) => {
+                    setItensPorPaginaHistorico(Number(e.target.value));
+                    setPaginaHistorico(1);
                   }}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={20}>20</option>
                 </select>
-              </div>
+              </ToolbarLeft>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button
+              <ToolbarRight>
+                <PageButton
                   type="button"
-                  onClick={() => setPaginaCarteira((p) => Math.max(1, p - 1))}
-                  disabled={paginaCarteira <= 1}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    background: 'transparent',
-                    color: '#e5e7eb',
-                    cursor: paginaCarteira <= 1 ? 'not-allowed' : 'pointer',
-                    opacity: paginaCarteira <= 1 ? 0.5 : 1,
-                  }}
+                  onClick={() => setPaginaHistorico((p) => Math.max(1, p - 1))}
+                  disabled={paginaHistorico <= 1}
                 >
                   Anterior
-                </button>
-                <span style={{ opacity: 0.9 }}>
-                  Página {paginaCarteira} de {totalPaginasCarteira}
-                </span>
-                <button
+                </PageButton>
+
+                <PageInfo>
+                  Página {paginaHistorico} de {totalPaginasHistorico}
+                </PageInfo>
+
+                <PageButton
                   type="button"
                   onClick={() =>
-                    setPaginaCarteira((p) =>
-                      Math.min(totalPaginasCarteira, p + 1)
-                    )
+                    setPaginaHistorico((p) => Math.min(totalPaginasHistorico, p + 1))
                   }
-                  disabled={paginaCarteira >= totalPaginasCarteira}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    background: 'transparent',
-                    color: '#e5e7eb',
-                    cursor:
-                      paginaCarteira >= totalPaginasCarteira
-                        ? 'not-allowed'
-                        : 'pointer',
-                    opacity: paginaCarteira >= totalPaginasCarteira ? 0.5 : 1,
-                  }}
+                  disabled={paginaHistorico >= totalPaginasHistorico}
                 >
                   Próxima
-                </button>
-              </div>
-            </div>
+                </PageButton>
+              </ToolbarRight>
+            </Toolbar>
 
-            <Tabela>
-              <thead>
-                <tr>
-                  <th>Clube</th>
-                  <th>Cotas</th>
-                  <th>Preço Médio</th>
-                  <th>Preço Atual</th>
-                  <th>Total Investido</th>
-                  <th>Valorização (%)</th>
-                  <th>Lucro/Prejuízo</th>
-                  <th>Valor Atual</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {carteiraPaginada.map((ativo, index) => {
-                  const precoAtual = getPrecoAtual(ativo.clubeId);
-                  const totalInvestidoAtivo =
-                    ativo.quantidade * ativo.precoMedio;
-                  const valorAtual = ativo.quantidade * precoAtual;
-                  const lucro = valorAtual - totalInvestidoAtivo;
-                  const variacaoPerc =
-                    totalInvestidoAtivo > 0
-                      ? (lucro / totalInvestidoAtivo) * 100
-                      : 0;
-
-                  return (
+            <DesktopTableWrap>
+              <Tabela>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Clube</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unitário</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historicoPaginado.map((item, index) => (
                     <tr key={index}>
-                      <td
-                        onClick={() => abrirPaginaClube(ativo.clubeId)}
-                        style={{
-                          cursor: 'pointer',
-                          color: '#60a5fa',
-                          display: 'flex',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Image
-                          src={ativo.escudo}
-                          alt={`Escudo do ${ativo.nome}`}
-                          width={24}
-                          height={24}
-                          style={{
-                            marginRight: '8px',
-                            verticalAlign: 'middle',
-                          }}
-                        />
-                        {ativo.nome}
-                      </td>
-                      <td>{ativo.quantidade}</td>
-                      <td>R$ {ativo.precoMedio.toFixed(2)}</td>
-                      <td>R$ {precoAtual.toFixed(2)}</td>
-                      <td>R$ {totalInvestidoAtivo.toFixed(2)}</td>
-                      <td
-                        style={{
-                          color:
-                            variacaoPerc >= 0 ? '#22c55e' : '#ef4444',
-                        }}
-                      >
-                        {variacaoPerc.toFixed(2)}%
-                      </td>
-                      <td
-                        style={{
-                          color: lucro >= 0 ? '#22c55e' : '#ef4444',
-                        }}
-                      >
-                        R$ {lucro.toFixed(2)}
-                      </td>
-                      <td>R$ {valorAtual.toFixed(2)}</td>
+                      <td>{item.data ? new Date(item.data).toLocaleString('pt-BR') : '-'}</td>
+                      <td>{item.tipo || '-'}</td>
+                      <td>{item.clubeNome || item.nome || '-'}</td>
+                      <td>{item.quantidade || '-'}</td>
                       <td>
-                        <BotaoVender
-                          onClick={() => abrirModalDeVenda(ativo)}
-                        >
-                          Negociar
-                        </BotaoVender>
+                        {item.valorUnitario != null
+                          ? `R$ ${Number(item.valorUnitario).toFixed(2)}`
+                          : '-'}
+                      </td>
+                      <td>
+                        {item.totalPago != null
+                          ? `R$ ${Number(item.totalPago).toFixed(2)}`
+                          : item.valor != null
+                          ? `R$ ${Number(item.valor).toFixed(2)}`
+                          : '-'}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </Tabela>
+                  ))}
+                </tbody>
+              </Tabela>
+            </DesktopTableWrap>
+
+            <MobileLista>
+              {historicoPaginado.map((item, index) => (
+                <MobileCard key={index}>
+                  <MobileTop>
+                    <MobileTitle>{item.tipo || '-'}</MobileTitle>
+                    <MobileDate>
+                      {item.data ? new Date(item.data).toLocaleString('pt-BR') : '-'}
+                    </MobileDate>
+                  </MobileTop>
+
+                  <MobileMetrics>
+                    <MetricBox>
+                      <span>Clube</span>
+                      <strong>{item.clubeNome || item.nome || '-'}</strong>
+                    </MetricBox>
+
+                    <MetricBox>
+                      <span>Quantidade</span>
+                      <strong>{item.quantidade || '-'}</strong>
+                    </MetricBox>
+
+                    <MetricBox>
+                      <span>Valor Unitário</span>
+                      <strong>
+                        {item.valorUnitario != null
+                          ? `R$ ${Number(item.valorUnitario).toFixed(2)}`
+                          : '-'}
+                      </strong>
+                    </MetricBox>
+
+                    <MetricBoxFull>
+                      <span>Total</span>
+                      <strong>
+                        {item.totalPago != null
+                          ? `R$ ${Number(item.totalPago).toFixed(2)}`
+                          : item.valor != null
+                          ? `R$ ${Number(item.valor).toFixed(2)}`
+                          : '-'}
+                      </strong>
+                    </MetricBoxFull>
+                  </MobileMetrics>
+                </MobileCard>
+              ))}
+            </MobileLista>
           </>
         )}
-
       </Container>
     </>
   );
 }
 
 export default withAuth(CarteiraPage);
-
-/* ------------------ COMPONENTE DO GRÁFICO DE LINHA ------------------ */
 
 function GraficoLinhaCarteira({ pontos }) {
   const [hoverIndex, setHoverIndex] = useState(null);
@@ -820,7 +942,9 @@ function GraficoLinhaCarteira({ pontos }) {
 
   const areaPathD =
     pathD +
-    ` L ${last.x.toFixed(2)} ${(height - paddingY).toFixed(2)} L ${first.x.toFixed(2)} ${(height - paddingY).toFixed(2)} Z`;
+    ` L ${last.x.toFixed(2)} ${(height - paddingY).toFixed(2)} L ${first.x.toFixed(
+      2
+    )} ${(height - paddingY).toFixed(2)} Z`;
 
   const yTicks = Array.from({ length: 4 }).map((_, i) => {
     const value = minValor + (rangeValor / 3) * i;
@@ -989,26 +1113,63 @@ function GraficoLinhaCarteira({ pontos }) {
   );
 }
 
-
-/* ------------------ STYLED COMPONENTS ------------------ */
-
 const Container = styled.div`
-  padding: 2rem;
+  padding: 24px;
   color: white;
-`;
 
-const Resumo = styled.div`
-  background-color: #1e293b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-`;
-
-const LinhaResumo = styled.p`
-  margin: 0.4rem 0;
-  strong {
-    color: #94a3b8;
+  @media (max-width: 900px) {
+    padding: 14px 10px 18px;
   }
+`;
+
+const Titulo = styled.h1`
+  margin: 0 0 1rem;
+  font-size: 2rem;
+
+  @media (max-width: 900px) {
+    font-size: 1.55rem;
+  }
+`;
+
+const ResumoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ResumoCard = styled.div`
+  background-color: #1e293b;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+`;
+
+const LabelResumo = styled.div`
+  color: #94a3b8;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+`;
+
+const ValorPrincipal = styled.div`
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 900;
+`;
+
+const ValorSecundario = styled.div`
+  color: ${({ $positivo }) =>
+    $positivo === undefined ? '#ffffff' : $positivo ? '#22c55e' : '#ef4444'};
+  font-size: 1.05rem;
+  font-weight: 800;
 `;
 
 const GraficosWrapper = styled.div`
@@ -1025,13 +1186,17 @@ const GraficosWrapper = styled.div`
 const GraficoCard = styled.div`
   background-color: #0f172a;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #1f2937;
 
   h3 {
     margin: 0 0 0.75rem 0;
     font-size: 1rem;
     color: #e5e7eb;
+  }
+
+  @media (max-width: 520px) {
+    padding: 0.85rem;
   }
 `;
 
@@ -1043,7 +1208,7 @@ const RangeSelector = styled.div`
 `;
 
 const RangeButton = styled.button`
-  padding: 0.25rem 0.6rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px solid ${({ ativo }) => (ativo ? '#22c55e' : '#1f2937')};
   background-color: ${({ ativo }) => (ativo ? '#16a34a' : '#020617')};
@@ -1055,7 +1220,6 @@ const RangeButton = styled.button`
     background-color: #15803d;
   }
 `;
-
 
 const HeroMetric = styled.div`
   margin-bottom: 0.8rem;
@@ -1090,7 +1254,11 @@ const ChartShell = styled.div`
   position: relative;
   border-radius: 18px;
   padding: 12px 10px 6px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.03),
+    rgba(255,255,255,0.015)
+  );
   border: 1px solid rgba(148,163,184,0.10);
 `;
 
@@ -1147,6 +1315,11 @@ const PizzaWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: 680px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const Pizza = styled.div`
@@ -1156,6 +1329,12 @@ const Pizza = styled.div`
   background-color: #1f2937;
   border: 4px solid #111827;
   box-shadow: 0 0 0 1px #111827;
+  flex: 0 0 auto;
+
+  @media (max-width: 520px) {
+    width: 120px;
+    height: 120px;
+  }
 `;
 
 const Legenda = styled.div`
@@ -1163,6 +1342,7 @@ const Legenda = styled.div`
   flex-direction: column;
   gap: 0.35rem;
   flex: 1;
+  width: 100%;
 `;
 
 const LegendaItem = styled.div`
@@ -1175,6 +1355,18 @@ const LegendaItem = styled.div`
   span:last-child {
     text-align: right;
   }
+
+  @media (max-width: 520px) {
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem;
+
+    span:last-child {
+      grid-column: 2;
+      text-align: left;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+  }
 `;
 
 const CorDot = styled.span`
@@ -1184,37 +1376,152 @@ const CorDot = styled.span`
   display: inline-block;
 `;
 
-const LinhaGrafico = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 120px) 1fr minmax(0, 110px);
+const Toolbar = styled.div`
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.45rem;
-  font-size: 0.85rem;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+`;
+
+const ToolbarLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 
   span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    opacity: 0.9;
+  }
+
+  select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #0b1220;
+    color: #e5e7eb;
+    border: 1px solid rgba(255,255,255,0.12);
   }
 `;
 
-const BarWrapper = styled.div`
-  height: 10px;
-  background-color: #1f2937;
-  border-radius: 999px;
-  overflow: hidden;
+const ToolbarRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 `;
 
-const Bar = styled.div`
-  height: 100%;
-  background: #3b82f6;
-`;
-
-const ValorGrafico = styled.div`
-  text-align: right;
-  font-size: 0.8rem;
+const PageButton = styled.button`
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
   color: #e5e7eb;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const PageInfo = styled.span`
+  opacity: 0.9;
+`;
+
+const DesktopTableWrap = styled.div`
+  overflow-x: auto;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const MobileLista = styled.div`
+  display: none;
+
+  @media (max-width: 900px) {
+    display: grid;
+    gap: 12px;
+  }
+`;
+
+const MobileCard = styled.div`
+  background-color: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 12px;
+`;
+
+const MobileTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+`;
+
+const MobileClub = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #60a5fa;
+  cursor: pointer;
+
+  strong {
+    color: #fff;
+    font-size: 0.98rem;
+  }
+`;
+
+const MobileTitle = styled.div`
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+`;
+
+const MobileDate = styled.div`
+  color: #94a3b8;
+  font-size: 0.8rem;
+  text-align: right;
+`;
+
+const MobileMetrics = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const MetricBox = styled.div`
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.08);
+  border-radius: 10px;
+  padding: 10px;
+
+  span {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    word-break: break-word;
+  }
+`;
+
+const MetricBoxFull = styled(MetricBox)`
+  grid-column: 1 / -1;
+`;
+
+const VazioText = styled.p`
+  color: #94a3b8;
 `;
 
 const Tabela = styled.table`
@@ -1244,36 +1551,31 @@ const Tabela = styled.table`
   tr:hover {
     background-color: #0f172a;
   }
-
-  @media (max-width: 768px) {
-    font-size: 0.85rem;
-    th,
-    td {
-      padding: 0.5rem;
-    }
-  }
 `;
 
 const BotaoVender = styled.button`
   background-color: #3b82f6;
   color: white;
   border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
+  padding: 0.48rem 0.85rem;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
+  white-space: nowrap;
 
   &:hover {
     background-color: #2563eb;
   }
 `;
 
+const SectionTitle = styled.h2`
+  margin: 1.8rem 0 0.8rem;
+  font-size: 1.2rem;
+  color: #fff;
+`;
+
 const Erro = styled.p`
   color: #f87171;
   margin-top: 1rem;
 `;
-
-
-
-
