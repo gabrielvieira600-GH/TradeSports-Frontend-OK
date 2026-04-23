@@ -147,7 +147,25 @@ function CarteiraPage() {
     };
   }, []);
 
-  
+  useEffect(() => {
+    let cancelado = false;
+
+    const carregarHistorico = async () => {
+      try {
+        const resp = await api.get('/usuario/historico');
+        if (cancelado) return;
+        setHistorico(resp.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar histórico de transações:', err);
+      }
+    };
+
+    carregarHistorico();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (carteira.length > 0 && clubes.length > 0) {
