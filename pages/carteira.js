@@ -32,8 +32,6 @@ function CarteiraPage() {
 
   const [itensPorPaginaCarteira, setItensPorPaginaCarteira] = useState(10);
   const [paginaCarteira, setPaginaCarteira] = useState(1);
-  const [itensPorPaginaHistorico, setItensPorPaginaHistorico] = useState(10);
-  const [paginaHistorico, setPaginaHistorico] = useState(1);
   const [saldo, setSaldo] = useState(0);
 
   const [serieCarteira, setSerieCarteira] = useState([]);
@@ -383,11 +381,6 @@ function CarteiraPage() {
     });
   })();
 
-  const plMaxAbs = plPorClube.reduce(
-    (acc, item) => Math.max(acc, Math.abs(item.pl)),
-    0
-  );
-
   const totalPaginasCarteira = Math.max(
     1,
     Math.ceil((carteira?.length || 0) / itensPorPaginaCarteira)
@@ -406,32 +399,6 @@ function CarteiraPage() {
     return (carteira || []).slice(start, end);
   }, [carteira, paginaCarteira, itensPorPaginaCarteira]);
 
-  const historicoOrdenado = useMemo(() => {
-    return [...(historico || [])].sort((a, b) => {
-      const da = a?.data ? new Date(a.data).getTime() : 0;
-      const db = b?.data ? new Date(b.data).getTime() : 0;
-      return db - da;
-    });
-  }, [historico]);
-
-  const totalPaginasHistorico = Math.max(
-    1,
-    Math.ceil((historicoOrdenado?.length || 0) / itensPorPaginaHistorico)
-  );
-
-  useEffect(() => {
-    if (paginaHistorico > totalPaginasHistorico) {
-      setPaginaHistorico(totalPaginasHistorico);
-    }
-    if (paginaHistorico < 1) setPaginaHistorico(1);
-  }, [paginaHistorico, totalPaginasHistorico]);
-
-  const historicoPaginado = useMemo(() => {
-    const start = (paginaHistorico - 1) * itensPorPaginaHistorico;
-    const end = start + itensPorPaginaHistorico;
-    return (historicoOrdenado || []).slice(start, end);
-  }, [historicoOrdenado, paginaHistorico, itensPorPaginaHistorico]);
-
   return (
     <>
       {modalAberto && clubeSelecionado && (
@@ -447,6 +414,85 @@ function CarteiraPage() {
       )}
 
       <Container>
+        {/* GRÁFICOS PRIMEIRO */}
+        {(serieCarteira.length > 0 || distribuicaoCarteira.length > 0 || plPorClube.length > 0) && (
+          <GraficosSection>
+            <GraficosCarousel>
+              {serieCarteira.length > 0 && (
+                <GraficoSlide>
+                  <GraficoCard>
+                    <h3>Evolução do Valor da Carteira</h3>
+                    <RangeSelector>
+                      <RangeButton
+                        ativo={intervaloGrafico === '1D'}
+                        onClick={() => setIntervaloGrafico('1D')}
+                      >
+                        24h
+                      </RangeButton>
+                      <RangeButton
+                        ativo={intervaloGrafico === '7D'}
+                        onClick={() => setIntervaloGrafico('7D')}
+                      >
+                        7 dias
+                      </RangeButton>
+                      <RangeButton
+                        ativo={intervaloGrafico === '30D'}
+                        onClick={() => setIntervaloGrafico('30D')}
+                      >
+                        1 mês
+                      </RangeButton>
+                      <RangeButton
+                        ativo={intervaloGrafico === 'SEASON'}
+                        onClick={() => setIntervaloGrafico('SEASON')}
+                      >
+                        3 meses
+                      </RangeButton>
+                    </RangeSelector>
+                    <GraficoLinhaCarteira pontos={pontosFiltrados} />
+                  </GraficoCard>
+                </GraficoSlide>
+              )}
+
+              {distribuicaoCarteira.length > 0 && (
+                <GraficoSlide>
+                  <GraficoCard>
+                    <h3>Distribuição da Carteira por Clube</h3>
+                    <PizzaWrapper>
+                      <Pizza style={{ backgroundImage: gradDistribuicao }} />
+                      <Legenda>
+                        {distribuicaoCarteira
+                          .slice()
+                          .sort((a, b) => b.totalAtual - a.totalAtual)
+                          .map((item, idx) => {
+                            const perc =
+                              totalValorCarteiraGrafico > 0
+                                ? (item.totalAtual / totalValorCarteiraGrafico) * 100
+                                : 0;
+                            const cor = PALETA_CORES[idx % PALETA_CORES.length];
+
+                            return (
+                              <LegendaItem key={item.clubeId}>
+                                <CorDot style={{ backgroundColor: cor }} />
+                                <span>{item.nome}</span>
+                                <span>
+                                  R$ {item.totalAtual.toFixed(2)} ({perc.toFixed(1)}%)
+                                </span>
+                              </LegendaItem>
+                            );
+                          })}
+                      </Legenda>
+                    </PizzaWrapper>
+                  </GraficoCard>
+                </GraficoSlide>
+              )}
+            </GraficosCarousel>
+
+            {(serieCarteira.length > 0 && distribuicaoCarteira.length > 0) && (
+              <GraficosHint>Deslize para o lado para alternar entre os gráficos.</GraficosHint>
+            )}
+          </GraficosSection>
+        )}
+
         <Titulo>Minha Carteira</Titulo>
 
         {erro && <Erro>{erro}</Erro>}
@@ -489,76 +535,6 @@ function CarteiraPage() {
               <ValorSecundario>{resumo.totalCotas}</ValorSecundario>
             </ResumoCard>
           </ResumoGrid>
-        )}
-
-        {(serieCarteira.length > 0 ||
-          distribuicaoCarteira.length > 0 ||
-          plPorClube.length > 0) && (
-          <GraficosWrapper>
-            {serieCarteira.length > 0 && (
-              <GraficoCard>
-                <h3>Evolução do Valor da Carteira</h3>
-                <RangeSelector>
-                  <RangeButton
-                    ativo={intervaloGrafico === '1D'}
-                    onClick={() => setIntervaloGrafico('1D')}
-                  >
-                    24h
-                  </RangeButton>
-                  <RangeButton
-                    ativo={intervaloGrafico === '7D'}
-                    onClick={() => setIntervaloGrafico('7D')}
-                  >
-                    7 dias
-                  </RangeButton>
-                  <RangeButton
-                    ativo={intervaloGrafico === '30D'}
-                    onClick={() => setIntervaloGrafico('30D')}
-                  >
-                    1 mês
-                  </RangeButton>
-                  <RangeButton
-                    ativo={intervaloGrafico === 'SEASON'}
-                    onClick={() => setIntervaloGrafico('SEASON')}
-                  >
-                    3 meses
-                  </RangeButton>
-                </RangeSelector>
-                <GraficoLinhaCarteira pontos={pontosFiltrados} />
-              </GraficoCard>
-            )}
-
-            {distribuicaoCarteira.length > 0 && (
-              <GraficoCard>
-                <h3>Distribuição da Carteira por Clube</h3>
-                <PizzaWrapper>
-                  <Pizza style={{ backgroundImage: gradDistribuicao }} />
-                  <Legenda>
-                    {distribuicaoCarteira
-                      .slice()
-                      .sort((a, b) => b.totalAtual - a.totalAtual)
-                      .map((item, idx) => {
-                        const perc =
-                          totalValorCarteiraGrafico > 0
-                            ? (item.totalAtual / totalValorCarteiraGrafico) * 100
-                            : 0;
-                        const cor = PALETA_CORES[idx % PALETA_CORES.length];
-
-                        return (
-                          <LegendaItem key={item.clubeId}>
-                            <CorDot style={{ backgroundColor: cor }} />
-                            <span>{item.nome}</span>
-                            <span>
-                              R$ {item.totalAtual.toFixed(2)} ({perc.toFixed(1)}%)
-                            </span>
-                          </LegendaItem>
-                        );
-                      })}
-                  </Legenda>
-                </PizzaWrapper>
-              </GraficoCard>
-            )}
-          </GraficosWrapper>
         )}
 
         {carteira.length === 0 ? (
@@ -688,9 +664,7 @@ function CarteiraPage() {
                 return (
                   <MobileCard key={index}>
                     <MobileTop>
-                      <MobileClub
-                        onClick={() => abrirPaginaClube(ativo.clubeId)}
-                      >
+                      <MobileClub onClick={() => abrirPaginaClube(ativo.clubeId)}>
                         <Image
                           src={ativo.escudo}
                           alt={`Escudo do ${ativo.nome}`}
@@ -748,135 +722,6 @@ function CarteiraPage() {
                   </MobileCard>
                 );
               })}
-            </MobileLista>
-          </>
-        )}
-
-        {historicoOrdenado.length > 0 && (
-          <>
-            <SectionTitle>Histórico de Transações</SectionTitle>
-
-            <Toolbar>
-              <ToolbarLeft>
-                <span>Itens por página:</span>
-                <select
-                  value={itensPorPaginaHistorico}
-                  onChange={(e) => {
-                    setItensPorPaginaHistorico(Number(e.target.value));
-                    setPaginaHistorico(1);
-                  }}
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
-              </ToolbarLeft>
-
-              <ToolbarRight>
-                <PageButton
-                  type="button"
-                  onClick={() => setPaginaHistorico((p) => Math.max(1, p - 1))}
-                  disabled={paginaHistorico <= 1}
-                >
-                  Anterior
-                </PageButton>
-
-                <PageInfo>
-                  Página {paginaHistorico} de {totalPaginasHistorico}
-                </PageInfo>
-
-                <PageButton
-                  type="button"
-                  onClick={() =>
-                    setPaginaHistorico((p) => Math.min(totalPaginasHistorico, p + 1))
-                  }
-                  disabled={paginaHistorico >= totalPaginasHistorico}
-                >
-                  Próxima
-                </PageButton>
-              </ToolbarRight>
-            </Toolbar>
-
-            <DesktopTableWrap>
-              <Tabela>
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Tipo</th>
-                    <th>Clube</th>
-                    <th>Quantidade</th>
-                    <th>Valor Unitário</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {historicoPaginado.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.data ? new Date(item.data).toLocaleString('pt-BR') : '-'}</td>
-                      <td>{item.tipo || '-'}</td>
-                      <td>{item.clubeNome || item.nome || '-'}</td>
-                      <td>{item.quantidade || '-'}</td>
-                      <td>
-                        {item.valorUnitario != null
-                          ? `R$ ${Number(item.valorUnitario).toFixed(2)}`
-                          : '-'}
-                      </td>
-                      <td>
-                        {item.totalPago != null
-                          ? `R$ ${Number(item.totalPago).toFixed(2)}`
-                          : item.valor != null
-                          ? `R$ ${Number(item.valor).toFixed(2)}`
-                          : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Tabela>
-            </DesktopTableWrap>
-
-            <MobileLista>
-              {historicoPaginado.map((item, index) => (
-                <MobileCard key={index}>
-                  <MobileTop>
-                    <MobileTitle>{item.tipo || '-'}</MobileTitle>
-                    <MobileDate>
-                      {item.data ? new Date(item.data).toLocaleString('pt-BR') : '-'}
-                    </MobileDate>
-                  </MobileTop>
-
-                  <MobileMetrics>
-                    <MetricBox>
-                      <span>Clube</span>
-                      <strong>{item.clubeNome || item.nome || '-'}</strong>
-                    </MetricBox>
-
-                    <MetricBox>
-                      <span>Quantidade</span>
-                      <strong>{item.quantidade || '-'}</strong>
-                    </MetricBox>
-
-                    <MetricBox>
-                      <span>Valor Unitário</span>
-                      <strong>
-                        {item.valorUnitario != null
-                          ? `R$ ${Number(item.valorUnitario).toFixed(2)}`
-                          : '-'}
-                      </strong>
-                    </MetricBox>
-
-                    <MetricBoxFull>
-                      <span>Total</span>
-                      <strong>
-                        {item.totalPago != null
-                          ? `R$ ${Number(item.totalPago).toFixed(2)}`
-                          : item.valor != null
-                          ? `R$ ${Number(item.valor).toFixed(2)}`
-                          : '-'}
-                      </strong>
-                    </MetricBoxFull>
-                  </MobileMetrics>
-                </MobileCard>
-              ))}
             </MobileLista>
           </>
         )}
@@ -1131,6 +976,53 @@ const Titulo = styled.h1`
   }
 `;
 
+const GraficosSection = styled.section`
+  margin-bottom: 1.5rem;
+`;
+
+const GraficosCarousel = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 999px;
+    }
+  }
+`;
+
+const GraficoSlide = styled.div`
+  min-width: 0;
+
+  @media (max-width: 900px) {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+`;
+
+const GraficosHint = styled.p`
+  margin: 10px 2px 0;
+  color: #94a3b8;
+  font-size: 0.82rem;
+
+  @media (min-width: 901px) {
+    display: none;
+  }
+`;
+
 const ResumoGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1172,22 +1064,12 @@ const ValorSecundario = styled.div`
   font-weight: 800;
 `;
 
-const GraficosWrapper = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
 const GraficoCard = styled.div`
   background-color: #0f172a;
   padding: 1rem;
   border-radius: 12px;
   border: 1px solid #1f2937;
+  height: 100%;
 
   h3 {
     margin: 0 0 0.75rem 0;
@@ -1474,18 +1356,6 @@ const MobileClub = styled.div`
   }
 `;
 
-const MobileTitle = styled.div`
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.95rem;
-`;
-
-const MobileDate = styled.div`
-  color: #94a3b8;
-  font-size: 0.8rem;
-  text-align: right;
-`;
-
 const MobileMetrics = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1567,12 +1437,6 @@ const BotaoVender = styled.button`
   &:hover {
     background-color: #2563eb;
   }
-`;
-
-const SectionTitle = styled.h2`
-  margin: 1.8rem 0 0.8rem;
-  font-size: 1.2rem;
-  color: #fff;
 `;
 
 const Erro = styled.p`
