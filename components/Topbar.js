@@ -170,7 +170,7 @@ export default function Topbar() {
         <LeftBlock>
   <Logo>
     <Link href="/" aria-label="TradeSports">
-      <LogoImagem src="/tradesports-logo.jpeg" alt="TradeSports" />
+      <LogoImagem src="/tradesports-logo.png" alt="TradeSports" />
     </Link>
   </Logo>
 </LeftBlock>
