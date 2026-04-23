@@ -396,11 +396,11 @@ const LogoImagem = styled.img`
   object-fit: contain;
 
   @media (max-width: 900px) {
-    height: 46px;
+    height: 146px;
   }
 
   @media (max-width: 640px) {
-    height: 34px;
+    height: 134px;
   }
 `;
 
