@@ -1,586 +1,775 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import styled from 'styled-components';
-import { useRouter } from 'next/router';
-import { FiBell, FiSearch, FiX, FiMenu } from 'react-icons/fi';
-import { MdOutlineAccountCircle } from 'react-icons/md';
-import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import axios from 'axios';
 
-export default function Topbar({
-  title = 'TradeSports',
-  subtitle,
-  searchValue = '',
-  onSearchChange,
-  showSearch = false,
-  onOpenSidebar,
-}) {
-  const router = useRouter();
-  const { user, saldo = 0, notifications = [], markNotificationsAsRead, logout } = useAuth();
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  const [openNotif, setOpenNotif] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+export default function Topbar() {
+  const [saldo, setSaldo] = useState('0.00');
+  const [usuario, setUsuario] = useState(null);
+  const [bancoAberto, setBancoAberto] = useState(false);
+  const [notifAberto, setNotifAberto] = useState(false);
+  const [notificacoes, setNotificacoes] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [busca, setBusca] = useState('');
+
+  const bancoRef = useRef(null);
   const notifRef = useRef(null);
 
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !n.read).length,
-    [notifications]
-  );
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setOpenNotif(false);
+  const hydrateUser = () => {
+    try {
+      const usuarioSalvo = localStorage.getItem('usuario');
+      const saldoSalvo = localStorage.getItem('saldo');
+
+      const parsed =
+        usuarioSalvo && usuarioSalvo !== 'undefined'
+          ? JSON.parse(usuarioSalvo)
+          : null;
+
+      setUsuario(parsed);
+
+      if (saldoSalvo) {
+        setSaldo(saldoSalvo);
+      } else if (parsed?.saldo !== undefined) {
+        setSaldo(String(parsed.saldo));
       }
+    } catch {
+      setUsuario(null);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleOpenNotifications = () => {
-    setOpenNotif((prev) => !prev);
-    if (!openNotif && unreadCount > 0) markNotificationsAsRead?.();
   };
 
-  const authButtons = user ? (
-    <RightCluster>
-      {showSearch && (
-        <DesktopSearchWrap>
-          <SearchBox>
-            <FiSearch />
-            <input
-              type="text"
-              placeholder="Pesquisar clubes..."
-              value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-            />
-          </SearchBox>
-        </DesktopSearchWrap>
-      )}
+  const carregarNotificacoes = async () => {
+    try {
+      if (!token || !API_BASE) return;
 
-      <NotifWrap ref={notifRef}>
-        <IconButton
-          type="button"
-          onClick={handleOpenNotifications}
-          aria-label="Notificações"
-        >
-          <FiBell />
-          {unreadCount > 0 && <Badge>{unreadCount}</Badge>}
-        </IconButton>
+      const { data } = await axios.get(`${API_BASE}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        {openNotif && (
-          <NotifDropdown>
-            <NotifHeader>
-              <strong>Notificações</strong>
-              <button type="button" onClick={() => markNotificationsAsRead?.()}>
-                Marcar todas como lidas
-              </button>
-            </NotifHeader>
+      setNotificacoes(Array.isArray(data?.notifications) ? data.notifications : []);
+      setUnreadCount(Number(data?.unreadCount || 0));
+    } catch {}
+  };
 
-            <NotifList>
-              {notifications.length === 0 ? (
-                <NotifEmpty>Nenhuma notificação.</NotifEmpty>
-              ) : (
-                notifications.map((n) => (
-                  <NotifItem key={n.id} $unread={!n.read}>
-                    <div>
-                      <strong>{n.title}</strong>
-                      <p>{n.message}</p>
-                    </div>
-                    {n.time && <span>{n.time}</span>}
-                  </NotifItem>
-                ))
-              )}
-            </NotifList>
-          </NotifDropdown>
-        )}
-      </NotifWrap>
+  useEffect(() => {
+    hydrateUser();
+    carregarNotificacoes();
+  }, []);
 
-      <BankButton type="button" onClick={() => router.push('/banco')}>
-        Banco
-      </BankButton>
+  useEffect(() => {
+    const atualizar = () => {
+      hydrateUser();
+      carregarNotificacoes();
+    };
 
-      <UserInfo>
-        <MdOutlineAccountCircle />
-        <div>
-          <span>{user?.nome || 'Usuário'}</span>
-          <strong>R$ {Number(saldo || 0).toFixed(2)}</strong>
-        </div>
-      </UserInfo>
+    window.addEventListener('storage', atualizar);
+    window.addEventListener('force-topbar-update', atualizar);
+    window.addEventListener('watchlist-updated', atualizar);
+    window.addEventListener('notifications-updated', atualizar);
 
-      <LogoutButton type="button" onClick={logout}>
-        Sair
-      </LogoutButton>
-    </RightCluster>
-  ) : (
-    <RightCluster>
-      {showSearch && (
-        <DesktopSearchWrap>
-          <SearchBox>
-            <FiSearch />
-            <input
-              type="text"
-              placeholder="Pesquisar clubes..."
-              value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-            />
-          </SearchBox>
-        </DesktopSearchWrap>
-      )}
+    return () => {
+      window.removeEventListener('storage', atualizar);
+      window.removeEventListener('force-topbar-update', atualizar);
+      window.removeEventListener('watchlist-updated', atualizar);
+      window.removeEventListener('notifications-updated', atualizar);
+    };
+  }, [token]);
 
-      <Link href="/login" passHref legacyBehavior>
-        <ActionButton as="a">Login</ActionButton>
-      </Link>
-      <Link href="/cadastro" passHref legacyBehavior>
-        <PrimaryButton as="a">Registrar</PrimaryButton>
-      </Link>
-    </RightCluster>
+  useEffect(() => {
+    if (!token) return;
+    const t = setInterval(() => carregarNotificacoes(), 30000);
+    return () => clearInterval(t);
+  }, [token]);
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (bancoAberto && bancoRef.current && !bancoRef.current.contains(e.target)) {
+        setBancoAberto(false);
+      }
+
+      if (
+        notifAberto &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target)
+      ) {
+        setNotifAberto(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [bancoAberto, notifAberto]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isMobile = window.innerWidth <= 640;
+    if (notifAberto && isMobile) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [notifAberto]);
+
+  const marcarTodasComoLidas = async () => {
+    if (!token || !API_BASE) return;
+
+    try {
+      await axios.post(
+        `${API_BASE}/notifications/read-all`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await carregarNotificacoes();
+      window.dispatchEvent(new Event('notifications-updated'));
+    } catch {}
+  };
+
+  const marcarUmaComoLida = async (id) => {
+    if (!token || !API_BASE) return;
+
+    try {
+      await axios.post(
+        `${API_BASE}/notifications/${id}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await carregarNotificacoes();
+      window.dispatchEvent(new Event('notifications-updated'));
+    } catch {}
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.dispatchEvent(new Event('storage'));
+    window.location.href = '/';
+  };
+
+  const notificationsPreview = useMemo(
+    () => notificacoes.slice(0, 12),
+    [notificacoes]
   );
 
+  const handleBusca = (e) => {
+    e.preventDefault();
+    const termo = busca.trim();
+    if (!termo) return;
+
+    window.location.href = `/brasileirao-a?search=${encodeURIComponent(termo)}`;
+  };
+
   return (
-    <TopbarShell>
-      <TopbarMain>
-        <LeftSide>
-          <MenuButton type="button" onClick={onOpenSidebar} aria-label="Abrir menu">
-            <FiMenu />
-          </MenuButton>
+    <Barra>
+      <TopRow>
+        <LeftBlock>
+  <Logo>
+    <Link href="/" aria-label="TradeSports">
+      <LogoImagem src="/tradesports-logo.jpeg" alt="TradeSports" />
+    </Link>
+  </Logo>
+</LeftBlock>
 
-          <LogoArea href="/">
-            <LogoImage
-              src="/tradesports-logo.png"
-              alt={title}
-            />
-            {(title || subtitle) && (
-              <LogoTextWrap $hideText>
-                <LogoText>{title}</LogoText>
-                {subtitle ? <LogoSub>{subtitle}</LogoSub> : null}
-              </LogoTextWrap>
-            )}
-          </LogoArea>
-        </LeftSide>
+        <RightBlock>
+          {!usuario ? (
+            <>
+              <DesktopSearchForm onSubmit={handleBusca}>
+                <SearchIcon>⌕</SearchIcon>
+                <SearchInput
+                  type="text"
+                  placeholder="Pesquisar clube ou mercado"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                />
+              </DesktopSearchForm>
 
-        {authButtons}
-      </TopbarMain>
+              <GuestActions>
+                <Link href="/login" passHref>
+                  <BotaoAzul as="span">Login</BotaoAzul>
+                </Link>
+                <Link href="/cadastro" passHref>
+                  <BotaoVerde as="span">Registrar</BotaoVerde>
+                </Link>
+              </GuestActions>
+            </>
+          ) : (
+            <UserRow>
+              <DesktopSearchForm onSubmit={handleBusca}>
+                <SearchIcon>⌕</SearchIcon>
+                <SearchInput
+                  type="text"
+                  placeholder="Pesquisar clube ou mercado"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                />
+              </DesktopSearchForm>
 
-      {showSearch && (
-        <MobileSearchArea>
-          <MobileSearchToggle
-            type="button"
-            onClick={() => setMobileSearchOpen((prev) => !prev)}
-          >
-            {mobileSearchOpen ? <FiX /> : <FiSearch />}
-            {mobileSearchOpen ? 'Fechar busca' : 'Pesquisar clubes'}
-          </MobileSearchToggle>
+              <IconWrap ref={notifRef}>
+                <IconButton
+                  type="button"
+                  onClick={() => setNotifAberto((v) => !v)}
+                  aria-label="Notificações"
+                >
+                  <Bell>🔔</Bell>
+                  {unreadCount > 0 && (
+                    <Badge>{unreadCount > 99 ? '99+' : unreadCount}</Badge>
+                  )}
+                </IconButton>
 
-          {mobileSearchOpen && (
-            <SearchBox $mobile>
-              <FiSearch />
-              <input
-                type="text"
-                placeholder="Pesquisar clubes..."
-                value={searchValue}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-              />
-            </SearchBox>
+                {notifAberto && (
+                  <>
+                    <NotifMobileOverlay onClick={() => setNotifAberto(false)} />
+
+                    <NotifDropdown>
+                      <NotifHeader>
+                        <NotifHeaderText>
+                          <strong>Notificações</strong>
+                          <small>{unreadCount} não lida(s)</small>
+                        </NotifHeaderText>
+
+                        <NotifHeaderActions>
+                          <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
+                            Marcar tudo
+                          </MarkAllBtn>
+                          <CloseNotifBtn
+                            type="button"
+                            onClick={() => setNotifAberto(false)}
+                            aria-label="Fechar notificações"
+                          >
+                            ✕
+                          </CloseNotifBtn>
+                        </NotifHeaderActions>
+                      </NotifHeader>
+
+                      {notificationsPreview.length === 0 ? (
+                        <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
+                      ) : (
+                        <NotifList>
+                          {notificationsPreview.map((n) => (
+                            <NotifItem
+                              key={n.id}
+                              $unread={!n.read}
+                              onClick={() => marcarUmaComoLida(n.id)}
+                            >
+                              <NotifDot $unread={!n.read} />
+                              <NotifBody>
+                                <strong>{n.title}</strong>
+                                <p>{n.body}</p>
+                                <small>
+                                  {new Date(n.createdAt).toLocaleString('pt-BR')}
+                                </small>
+                              </NotifBody>
+                            </NotifItem>
+                          ))}
+                        </NotifList>
+                      )}
+                    </NotifDropdown>
+                  </>
+                )}
+              </IconWrap>
+
+              <BancoWrap ref={bancoRef}>
+                <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
+                  <UserAndSaldo>
+                    <SaldoInline>👤 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
+                  </UserAndSaldo>
+                </BotaoVerde>
+
+                {bancoAberto && (
+                  <Dropdown>
+                    <DropLink href="/carteira">Carteira</DropLink>
+                    <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
+                    <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
+                    <DropLink href="/extrato">Extrato</DropLink>
+                    <DropLink href="/deposito">Depósito</DropLink>
+                    <DropLink href="/saque">Saque</DropLink>
+                  </Dropdown>
+                )}
+              </BancoWrap>
+
+              <Botao onClick={handleLogout}>Sair</Botao>
+            </UserRow>
           )}
-        </MobileSearchArea>
-      )}
-    </TopbarShell>
+        </RightBlock>
+      </TopRow>
+
+      <MobileSearchRow>
+        <SearchForm onSubmit={handleBusca}>
+          <SearchIcon>⌕</SearchIcon>
+          <SearchInput
+            type="text"
+            placeholder="Pesquisar clube ou mercado"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </SearchForm>
+      </MobileSearchRow>
+    </Barra>
   );
 }
 
-const TopbarShell = styled.header`
+const Barra = styled.header`
+  width: 100%;
+  padding: 10px 18px 12px;
+  background:
+    radial-gradient(circle at top center, rgba(37, 99, 235, 0.18), transparent 35%),
+    linear-gradient(180deg, #0f172a, #0b1324);
+  color: white;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  box-sizing: border-box;
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 50;
+
+  @media (max-width: 640px) {
+    padding: 10px 10px 12px;
+  }
+`;
+
+const TopRow = styled.div`
   width: 100%;
-  background: linear-gradient(180deg, rgba(5, 10, 30, 0.98), rgba(7, 14, 35, 0.96));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-`;
-
-const TopbarMain = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 86px;
-  padding: 14px 18px;
-
-  @media (min-width: 1025px) {
-    padding: 14px 24px 14px 18px;
-    align-items: center;
-  }
-
-  @media (max-width: 1024px) {
-    min-height: 76px;
-    padding: 12px 14px;
-  }
-
-  @media (max-width: 640px) {
-    align-items: center;
-    gap: 12px;
-    min-height: auto;
-    padding: 10px 12px;
-  }
-`;
-
-const LeftSide = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 0 0 auto;
-
-  @media (max-width: 640px) {
-    gap: 10px;
-  }
-`;
-
-const MenuButton = styled.button`
-  display: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  cursor: pointer;
-
-  @media (max-width: 1024px) {
-    display: inline-flex;
-  }
-`;
-
-const LogoArea = styled(Link)`
-  display: flex;
-  align-items: center;
+  max-width: none;
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
   gap: 10px;
-  min-width: 0;
-  text-decoration: none;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: center;
+  }
 `;
 
-const LogoImage = styled.img`
+const LeftBlock = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+`;
+
+const RightBlock = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+
+  @media (max-width: 640px) {
+    gap: 8px;
+  }
+`;
+
+const Logo = styled.h1`
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+
+  a {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 38px;
+
+    a {
+      height: 38px;
+    }
+  }
+`;
+
+const LogoImagem = styled.img`
   display: block;
-  height: 64px;
+  height: 52px;
   width: auto;
   object-fit: contain;
 
-  @media (max-width: 1024px) {
-    height: 54px;
+  @media (max-width: 900px) {
+    height: 46px;
   }
 
   @media (max-width: 640px) {
-    height: 42px;
+    height: 34px;
   }
 `;
 
-const LogoTextWrap = styled.div`
-  display: ${({ $hideText }) => ($hideText ? 'none' : 'flex')};
-  flex-direction: column;
-  min-width: 0;
-`;
-
-const LogoText = styled.span`
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-  }
-`;
-
-const LogoSub = styled.span`
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.1;
-  margin-top: 3px;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const RightCluster = styled.div`
+const GuestActions = styled.div`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-
-  @media (max-width: 1024px) {
-    gap: 8px;
-  }
-
-  @media (max-width: 640px) {
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
+  gap: 8px;
+  flex-wrap: nowrap;
 `;
 
-const DesktopSearchWrap = styled.div`
+const UserRow = styled.div`
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   min-width: 0;
-  flex: 1;
+`;
+
+const DesktopSearchForm = styled.form`
+  position: relative;
+  width: min(420px, 32vw);
+  min-width: 220px;
 
   @media (max-width: 900px) {
+    width: min(290px, 28vw);
+    min-width: 180px;
+  }
+
+  @media (max-width: 640px) {
     display: none;
   }
 `;
 
-const SearchBox = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const MobileSearchRow = styled.div`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: block;
+    margin-top: 10px;
+  }
+`;
+
+const SearchForm = styled.form`
+  position: relative;
   width: 100%;
-  max-width: ${({ $mobile }) => ($mobile ? '100%' : '320px')};
-  border-radius: 999px;
-  padding: 0 14px;
+`;
+
+const SearchIcon = styled.span`
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1rem;
+  pointer-events: none;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
   height: 44px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  padding: 0 14px 0 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  outline: none;
 
-  input {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    outline: none;
-    background: transparent;
-    color: #ffffff;
-    font-size: 0.95rem;
+  &::placeholder {
+    color: #94a3b8;
   }
 
-  input::placeholder {
-    color: rgba(255, 255, 255, 0.45);
+  &:focus {
+    border-color: rgba(96, 165, 250, 0.5);
+    background: rgba(255, 255, 255, 0.07);
   }
+`;
+
+const IconWrap = styled.div`
+  position: relative;
+  flex: 0 0 auto;
 `;
 
 const IconButton = styled.button`
   position: relative;
-  width: 46px;
-  height: 46px;
+  height: 42px;
+  width: 42px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  color: white;
+  cursor: pointer;
+  font-size: 1.05rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition: 0.2s ease;
 
   &:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.08);
   }
+
+  @media (max-width: 640px) {
+    height: 38px;
+    width: 38px;
+    border-radius: 12px;
+  }
+`;
+
+const Bell = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Badge = styled.span`
   position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 18px;
-  height: 18px;
+  top: -6px;
+  right: -6px;
+  min-width: 19px;
+  height: 19px;
   padding: 0 5px;
   border-radius: 999px;
-  background: #ef4444;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
   color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 `;
 
-const NotifWrap = styled.div`
-  position: relative;
+const NotifMobileOverlay = styled.div`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.72);
+    z-index: 69;
+  }
 `;
 
 const NotifDropdown = styled.div`
   position: absolute;
-  top: calc(100% + 10px);
   right: 0;
-  width: 340px;
-  max-width: calc(100vw - 24px);
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  top: calc(100% + 10px);
+  width: 390px;
+  max-width: min(390px, calc(100vw - 20px));
+  background: linear-gradient(180deg, #0f172a, #111827);
+  border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  z-index: 50;
+  z-index: 70;
 
   @media (max-width: 640px) {
-    right: -40px;
-    width: min(340px, calc(100vw - 16px));
+    position: fixed;
+    left: 50%;
+    right: auto;
+    top: 76px;
+    transform: translateX(-50%);
+    width: calc(100vw - 16px);
+    max-width: 430px;
+    max-height: calc(100vh - 96px);
+    border-radius: 18px;
   }
 `;
 
 const NotifHeader = styled.div`
-  padding: 14px 14px 10px;
+  padding: 14px 16px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 
   strong {
-    color: #fff;
+    display: block;
+    color: #f8fafc;
     font-size: 0.95rem;
   }
 
-  button {
-    border: none;
-    background: transparent;
-    color: #60a5fa;
-    font-size: 0.8rem;
+  small {
+    color: #94a3b8;
+  }
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
+`;
+
+const NotifHeaderText = styled.div`
+  min-width: 0;
+`;
+
+const NotifHeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+`;
+
+const MarkAllBtn = styled.button`
+  border: 0;
+  background: transparent;
+  color: #60a5fa;
+  font-weight: 700;
+  cursor: pointer;
+`;
+
+const CloseNotifBtn = styled.button`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e7eb;
     cursor: pointer;
+    font-size: 0.95rem;
   }
 `;
 
 const NotifList = styled.div`
-  max-height: 360px;
-  overflow-y: auto;
-`;
+  max-height: 420px;
+  overflow: auto;
 
-const NotifEmpty = styled.div`
-  padding: 16px 14px;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 0.92rem;
-`;
-
-const NotifItem = styled.div`
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: ${({ $unread }) => ($unread ? 'rgba(59, 130, 246, 0.08)' : 'transparent')};
-
-  div strong {
-    display: block;
-    color: #fff;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-  }
-
-  div p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.84rem;
-    line-height: 1.35;
-  }
-
-  span {
-    display: inline-block;
-    margin-top: 6px;
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 0.75rem;
+  @media (max-width: 640px) {
+    max-height: calc(100vh - 190px);
   }
 `;
 
-const BankButton = styled.button`
-  height: 46px;
-  padding: 0 18px;
-  border-radius: 14px;
-  border: none;
-  background: #16a34a;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
+const NotifItem = styled.button`
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  text-align: left;
+  border: 0;
   cursor: pointer;
+  padding: 14px 16px;
+  background: ${({ $unread }) =>
+    $unread ? 'rgba(59,130,246,.08)' : 'transparent'};
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
 
   &:hover {
-    background: #15803d;
-  }
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 0 8px;
-  color: #fff;
-
-  svg {
-    font-size: 1.55rem;
-    flex: 0 0 auto;
-  }
-
-  div {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  span {
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.72);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  strong {
-    font-size: 0.9rem;
-    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.05);
   }
 
   @media (max-width: 640px) {
-    padding: 0 4px;
+    padding: 14px 14px 15px;
+  }
+`;
 
-    div {
-      display: none;
+const NotifDot = styled.span`
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: ${({ $unread }) => ($unread ? '#22c55e' : '#334155')};
+  flex: 0 0 auto;
+`;
+
+const NotifBody = styled.div`
+  strong {
+    color: #f8fafc;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.92rem;
+  }
+
+  p {
+    color: #cbd5e1;
+    margin: 0 0 6px;
+    line-height: 1.35;
+    font-size: 0.9rem;
+  }
+
+  small {
+    color: #64748b;
+  }
+
+  @media (max-width: 640px) {
+    strong {
+      font-size: 0.9rem;
+    }
+
+    p {
+      font-size: 0.88rem;
     }
   }
 `;
 
-const LogoutButton = styled.button`
-  height: 46px;
-  padding: 0 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.92rem;
-  cursor: pointer;
+const NotifEmpty = styled.div`
+  padding: 22px 16px;
+  color: #94a3b8;
+  text-align: center;
+`;
+
+const BancoWrap = styled.div`
+  position: relative;
+  flex: 0 0 auto;
+`;
+
+const Dropdown = styled.div`
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  max-width: min(240px, calc(100vw - 20px));
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+`;
+
+const DropLink = styled(Link)`
+  color: #e5e7eb;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
   }
 `;
 
-const ActionButton = styled.button`
-  height: 46px;
-  padding: 0 18px;
+const BaseButton = styled.button`
+  border: none;
   border-radius: 14px;
-  border: 1px solid rgba(59, 130, 246, 0.45);
-  background: rgba(59, 130, 246, 0.15);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
+  padding: 10px 14px;
+  font-size: 0.92rem;
   cursor: pointer;
+  color: white;
+  font-weight: 800;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+  min-height: 42px;
+  white-space: nowrap;
 
-  &:hover {
-    background: rgba(59, 130, 246, 0.25);
+  @media (max-width: 640px) {
+    min-height: 38px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 0.88rem;
   }
 `;
 
-const PrimaryButton = styled(ActionButton)`
-  border: none;
+const BotaoAzul = styled(BaseButton)`
+  background: #2563eb;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+`;
+
+const BotaoVerde = styled(BaseButton)`
   background: #16a34a;
 
   &:hover {
@@ -588,27 +777,28 @@ const PrimaryButton = styled(ActionButton)`
   }
 `;
 
-const MobileSearchArea = styled.div`
-  display: none;
-  padding: 0 12px 12px;
+const Botao = styled(BaseButton)`
+  background: #334155;
 
-  @media (max-width: 900px) {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  &:hover {
+    background: #475569;
   }
 `;
 
-const MobileSearchToggle = styled.button`
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
+const UserAndSaldo = styled.div`
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 600;
-  cursor: pointer;
+  gap: 10px;
+
+  @media (max-width: 900px) {
+    gap: 6px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 6px;
+  }
+`;
+
+const SaldoInline = styled.span`
+  font-weight: 800;
 `;
