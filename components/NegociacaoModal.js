@@ -1098,14 +1098,3 @@ const BotaoCorrigirTick = styled.button`
   white-space: nowrap;
 `;
 
-const BotaoMelhorarPreco = styled.button`
-  margin-top: 0.75rem;
-  width: 100%;
-  padding: 0.7rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  background: rgba(59, 130, 246, 0.08);
-  color: #e5e7eb;
-  font-weight: 700;
-  cursor: pointer;
-`;
