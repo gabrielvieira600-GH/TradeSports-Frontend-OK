@@ -107,6 +107,12 @@ export default function NegociacaoModal({
   };
 
   useEffect(() => {
+  if (!isOpen || !token || !verificarTokenValido(token)) return;
+
+  atualizarUsuarioCompleto();
+}, [isOpen, token]);
+
+  useEffect(() => {
     const basePreco =
       clube?.precoMercado !== undefined && clube?.precoMercado !== null
         ? Number(clube.precoMercado)
@@ -373,21 +379,38 @@ export default function NegociacaoModal({
       let response;
 
       if (modo === 'venda') {
-        const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
-        const ativo =
-          carteira.find((a) => String(a?.clubeId) === String(clube.id)) ||
-          carteira.find((a) => String(a?.clube?.id) === String(clube.id)) ||
-          carteira.find((a) => String(a?.idClube) === String(clube.id));
+  const usuarioAtualizado = await atualizarUsuarioCompleto();
 
-        const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
+  const carteiraAtualizada = Array.isArray(usuarioAtualizado?.carteira)
+    ? usuarioAtualizado.carteira
+    : Array.isArray(usuario?.carteira)
+      ? usuario.carteira
+      : [];
 
-        if (quantidade > qtdDisp) {
-          setMensagem('❌ Quantidade acima do disponível na carteira.');
-          adicionarToast('❌ Quantidade acima do disponível.', 'erro');
-          setCarregando(false);
-          return;
-        }
-      }
+  const nomeClubeAtual = String(clube?.nome || '').trim().toLowerCase();
+
+  const ativo =
+    carteiraAtualizada.find((a) => String(a?.clubeId) === String(clube.id)) ||
+    carteiraAtualizada.find((a) => String(a?.clubeLegacyId) === String(clube.id)) ||
+    carteiraAtualizada.find((a) => String(a?.idClube) === String(clube.id)) ||
+    carteiraAtualizada.find((a) => String(a?.clube?.id) === String(clube.id)) ||
+    carteiraAtualizada.find((a) => String(a?.clube?.legacyId) === String(clube.id)) ||
+    carteiraAtualizada.find(
+      (a) =>
+        String(a?.nomeClube || a?.clubeNome || a?.nome || a?.clube?.nome || '')
+          .trim()
+          .toLowerCase() === nomeClubeAtual
+    );
+
+  const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
+
+  if (quantidade > qtdDisp) {
+    setMensagem('❌ Quantidade acima do disponível na carteira.');
+    adicionarToast('❌ Quantidade acima do disponível.', 'erro');
+    setCarregando(false);
+    return;
+  }
+}
 
       if (modo === 'compra' && !ipoEncerrado) {
         const { data } = await api.post(
@@ -459,6 +482,33 @@ export default function NegociacaoModal({
     }
   }
 
+  async function atualizarUsuarioCompleto() {
+  try {
+    const resp = await api.get('/usuario', {
+      headers: getAuthHeaders(),
+    });
+
+    const usuarioAtualizado = resp?.data || null;
+
+    if (usuarioAtualizado) {
+      setUsuario(usuarioAtualizado);
+      localStorage.setItem('usuario', JSON.stringify(usuarioAtualizado));
+
+      if (usuarioAtualizado.saldo !== undefined) {
+        localStorage.setItem('saldo', Number(usuarioAtualizado.saldo || 0).toFixed(2));
+        setPoderCompra(Number(usuarioAtualizado.saldo || 0));
+      }
+
+      window.dispatchEvent(new Event('force-topbar-update'));
+    }
+
+    return usuarioAtualizado;
+  } catch (err) {
+    console.error('Erro ao atualizar usuário completo:', err);
+    return null;
+  }
+}
+
   async function cancelarMinhaOrdem(ordemOuId) {
     try {
       if (!token || !verificarTokenValido(token)) {
@@ -506,6 +556,56 @@ export default function NegociacaoModal({
   }
 
   if (!isOpen || !clube) return null;
+
+  const cotasDisponiveisVenda = useMemo(() => {
+  const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
+
+  const possiveisIdsClube = [
+    clube?.id,
+    clube?.legacyId,
+    clube?.clubeId,
+    clube?._id,
+  ]
+    .filter((v) => v !== undefined && v !== null)
+    .map((v) => String(v));
+
+  const ativo = carteira.find((a) => {
+    const possiveisIdsAtivo = [
+      a?.clubeId,
+      a?.clubeLegacyId,
+      a?.idClube,
+      a?.clube?.id,
+      a?.clube?.legacyId,
+      a?.clube?._id,
+    ]
+      .filter((v) => v !== undefined && v !== null)
+      .map((v) => String(v));
+
+    return possiveisIdsAtivo.some((id) => possiveisIdsClube.includes(id));
+  });
+
+  if (ativo) {
+    return Number(ativo.quantidade || ativo.cotas || 0);
+  }
+
+  // fallback por nome, útil quando algum dado antigo veio com ID diferente
+  const nomeClubeAtual = String(clube?.nome || '').trim().toLowerCase();
+
+  const ativoPorNome = carteira.find((a) => {
+    const nomes = [
+      a?.nomeClube,
+      a?.clubeNome,
+      a?.nome,
+      a?.clube?.nome,
+    ]
+      .filter(Boolean)
+      .map((v) => String(v).trim().toLowerCase());
+
+    return nomes.includes(nomeClubeAtual);
+  });
+
+  return Number(ativoPorNome?.quantidade || ativoPorNome?.cotas || 0);
+}, [usuario, clube]);
 
   return (
     <Overlay onClick={onClose}>
@@ -688,17 +788,7 @@ export default function NegociacaoModal({
               <LinhaInfo>
                 <span>Cotas disponíveis</span>
                 <span>
-                  {(() => {
-                    const ativo = Array.isArray(usuario?.carteira)
-                      ? usuario.carteira.find(
-                          (a) =>
-                            String(a?.clubeId) === String(clube.id) ||
-                            String(a?.clube?.id) === String(clube.id) ||
-                            String(a?.idClube) === String(clube.id)
-                        )
-                      : null;
-                    return ativo?.quantidade || ativo?.cotas || 0;
-                  })()}
+                  {cotasDisponiveisVenda}
                 </span>
               </LinhaInfo>
             )}
@@ -721,20 +811,7 @@ export default function NegociacaoModal({
               precoAtual <= 0 ||
               quantidade < 1 ||
               !usuario ||
-              (modo === 'venda' &&
-                (() => {
-                  const carteira = Array.isArray(usuario?.carteira)
-                    ? usuario.carteira
-                    : [];
-
-                  const ativo =
-                    carteira.find((a) => String(a?.clubeId) === String(clube.id)) ||
-                    carteira.find((a) => String(a?.clube?.id) === String(clube.id)) ||
-                    carteira.find((a) => String(a?.idClube) === String(clube.id));
-
-                  const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
-                  return quantidade > qtdDisp;
-                })())
+              (modo === 'venda' && quantidade > cotasDisponiveisVenda)
             }
           >
             {!usuario
