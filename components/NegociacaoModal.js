@@ -769,9 +769,7 @@ export default function NegociacaoModal({
                   <span>R$ {tradeRolePreview.feeValue.toFixed(2)}</span>
                 </LinhaInfo>
 
-                <BotaoMelhorarPreco type="button" onClick={melhorarPreco}>
-                  Melhorar preço em R$ {TICK_SIZE.toFixed(2)}
-                </BotaoMelhorarPreco>
+                
               </>
             )}
 
