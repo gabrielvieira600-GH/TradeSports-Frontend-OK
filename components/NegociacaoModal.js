@@ -311,32 +311,45 @@ export default function NegociacaoModal({
     }
   };
 
-  async function atualizarSaldoDoUsuario() {
-    try {
-      const respSaldo = await api.get('/usuario/saldo', {
+ async function atualizarSaldoDoUsuario() {
+  try {
+    const [respSaldo, respUsuario] = await Promise.all([
+      api.get('/usuario/saldo', {
         headers: getAuthHeaders(),
-      });
+      }),
+      api.get('/usuario', {
+        headers: getAuthHeaders(),
+      }).catch(() => null),
+    ]);
 
-      const novoSaldo = Number(respSaldo?.data?.saldo ?? 0);
+    const novoSaldo = Number(respSaldo?.data?.saldo ?? 0);
+    const usuarioCompleto = respUsuario?.data || null;
 
-      setUsuario((prev) => {
-        if (!prev) {
-          localStorage.setItem('saldo', novoSaldo.toFixed(2));
-          return prev;
-        }
+    setUsuario((prev) => {
+      const base = usuarioCompleto || prev;
 
-        const atualizado = { ...prev, saldo: novoSaldo };
-        localStorage.setItem('usuario', JSON.stringify(atualizado));
+      if (!base) {
         localStorage.setItem('saldo', novoSaldo.toFixed(2));
-        return atualizado;
-      });
+        return prev;
+      }
 
-      setPoderCompra(novoSaldo);
-      window.dispatchEvent(new Event('force-topbar-update'));
-    } catch (e) {
-      console.error('Erro ao atualizar saldo após ordem:', e);
-    }
+      const atualizado = {
+        ...base,
+        saldo: novoSaldo,
+      };
+
+      localStorage.setItem('usuario', JSON.stringify(atualizado));
+      localStorage.setItem('saldo', novoSaldo.toFixed(2));
+
+      return atualizado;
+    });
+
+    setPoderCompra(novoSaldo);
+    window.dispatchEvent(new Event('force-topbar-update'));
+  } catch (e) {
+    console.error('Erro ao atualizar usuário após ordem:', e);
   }
+}
 
   async function enviarOrdem() {
     setCarregando(true);
