@@ -23,7 +23,7 @@ export default function LivroDeOrdens({
   const [compras, setCompras] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     let alive = true;
 
@@ -31,7 +31,7 @@ export default function LivroDeOrdens({
       if (!clubeId) return;
       setLoading(true);
       try {
-        const { data } = await api.get('/mercado/livro', { params: { clubeId } });
+        const { data } = await api.get(`/mercado/livro/${clubeId}`);
         if (!alive) return;
         setCompras(Array.isArray(data?.compras) ? data.compras : []);
         setVendas(Array.isArray(data?.vendas) ? data.vendas : []);

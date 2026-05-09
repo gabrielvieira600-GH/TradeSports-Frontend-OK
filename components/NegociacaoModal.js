@@ -148,9 +148,9 @@ export default function NegociacaoModal({
     try {
       if (!clubeId) return;
 
-      const { data } = await api.get(`/mercado/livro?clubeId=${clubeId}`, {
-        headers: getAuthHeaders(),
-      });
+      const { data } = await api.get(`/mercado/livro/${clubeId}`, {
+  headers: getAuthHeaders(),
+});
 
       setOrdensCompra(data?.compras || []);
       setOrdensVenda(data?.vendas || []);
@@ -468,12 +468,12 @@ export default function NegociacaoModal({
       }
 
       await api.post(
-        '/mercado/ordem/cancelar',
-        { ordemId },
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+  `/mercado/ordem/cancelar/${ordemId}`,
+  {},
+  {
+    headers: getAuthHeaders(),
+  }
+);
 
       adicionarToast('✅ Ordem cancelada com sucesso!', 'sucesso');
 
