@@ -738,24 +738,7 @@ export default function NegociacaoModal({
 
             {ipoEncerrado && (
               <>
-                <LinhaInfo>
-                  <span>Melhor compra</span>
-                  <span>
-                    {resumoBook?.bestBid != null
-                      ? `R$ ${Number(resumoBook.bestBid).toFixed(2)}`
-                      : '-'}
-                  </span>
-                </LinhaInfo>
-
-                <LinhaInfo>
-                  <span>Melhor venda</span>
-                  <span>
-                    {resumoBook?.bestAsk != null
-                      ? `R$ ${Number(resumoBook.bestAsk).toFixed(2)}`
-                      : '-'}
-                  </span>
-                </LinhaInfo>
-
+  
                 <LinhaInfo>
                   <span>Você será</span>
                   <span>
