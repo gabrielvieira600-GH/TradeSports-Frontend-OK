@@ -230,16 +230,7 @@ export default function BrasileiraoA() {
         </LeagueActions>
       </Hero>
 
-      <SearchInline>
-        <SearchInlineIcon>⌕</SearchInlineIcon>
-        <SearchInlineInput
-          type="text"
-          placeholder="Pesquisar clube"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-        />
-      </SearchInline>
-
+      
       {modalAberto && clubeSelecionado && (
         <NegociacaoModal
           isOpen={modalAberto}

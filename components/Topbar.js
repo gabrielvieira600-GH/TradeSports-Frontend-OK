@@ -144,6 +144,43 @@ export default function Topbar() {
       window.dispatchEvent(new Event('notifications-updated'));
     } catch {}
   };
+  const getNotificationTargetUrl = (notificacao) => {
+  const metadata = notificacao?.metadata || notificacao?.meta || {};
+
+  if (metadata?.targetUrl) {
+    return String(metadata.targetUrl);
+  }
+
+  const clubeId =
+    metadata?.clubeId ||
+    metadata?.entityId ||
+    notificacao?.entityId ||
+    notificacao?.clubeId;
+
+  if (clubeId) {
+    return `/clube/${clubeId}`;
+  }
+
+  return null;
+};
+
+const handleNotificationClick = async (notificacao) => {
+  if (!notificacao) return;
+
+  const targetUrl = getNotificationTargetUrl(notificacao);
+
+  // 1º clique: se ainda não foi lida, apenas marca como lida.
+  if (!notificacao.read) {
+    await marcarUmaComoLida(notificacao.id);
+    return;
+  }
+
+  // 2º clique: se já estava lida, redireciona para o clube.
+  if (targetUrl) {
+    setNotifAberto(false);
+    window.location.href = targetUrl;
+  }
+};
 
   const handleLogout = () => {
     localStorage.clear();
@@ -252,9 +289,17 @@ export default function Topbar() {
                         <NotifList>
                           {notificationsPreview.map((n) => (
                             <NotifItem
-                              key={n.id}
-                              $unread={!n.read}
-                              onClick={() => marcarUmaComoLida(n.id)}
+                             key={n.id}
+                             $unread={!n.read}
+                             $clickable={Boolean(getNotificationTargetUrl(n))}
+                             onClick={() => handleNotificationClick(n)}
+                             title={
+                             !n.read
+                             ? 'Clique para marcar como lida'
+                             : getNotificationTargetUrl(n)
+                             ? 'Clique para abrir a página do clube'
+                             : 'Notificação'
+                             }
                             >
                               <NotifDot $unread={!n.read} />
                               <NotifBody>
@@ -645,7 +690,12 @@ const NotifItem = styled.button`
   gap: 12px;
   text-align: left;
   border: 0;
-  cursor: pointer;
+  cursor: cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
+
+&:hover {
+  background: ${({ $clickable }) =>
+    $clickable ? 'rgba(59, 130, 246, 0.08)' : 'transparent'};
+};
   padding: 14px 16px;
   background: ${({ $unread }) =>
     $unread ? 'rgba(59,130,246,.08)' : 'transparent'};
