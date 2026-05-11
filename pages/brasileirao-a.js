@@ -35,7 +35,14 @@ export default function BrasileiraoA() {
     setClubeSelecionado(null);
   };
 
-  const abrirPaginaClube = (clubeId) => router.push(`/clube/${clubeId}`);
+  const abrirPaginaClube = (clubeId) => {
+  if (!clubeId) {
+    console.error('ID do clube ausente ao tentar abrir página.');
+    return;
+  }
+
+  router.push(`/clube/${clubeId}`);
+};
 
   const normalizeName = (txt = '') =>
     String(txt)
@@ -98,31 +105,39 @@ export default function BrasileiraoA() {
   };
 
   const toggleClube = async (clube) => {
-    try {
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
-
-      const { data } = await axios.post(
-        `${API_BASE}/watchlist/toggle`,
-        {
-          entityType: 'clube',
-          entityId: clube.id,
-          nome: clube.nome,
-          ligaId: LIGA_ID,
-          ligaNome: LIGA_NOME,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setWatchlist(data?.watchlist || { clubes: [], ligas: [] });
-      window.dispatchEvent(new Event('watchlist-updated'));
-      window.dispatchEvent(new Event('notifications-updated'));
-    } catch (e) {
-      console.warn('[WATCHLIST] erro ao favoritar clube:', e?.response?.data || e.message);
+  try {
+    if (!token) {
+      window.location.href = '/login';
+      return;
     }
-  };
+
+    const clubeId = clube.id ?? clube.legacyId;
+
+    if (!clubeId) {
+      console.error('Clube sem ID para favoritar:', clube);
+      return;
+    }
+
+    const { data } = await axios.post(
+      `${API_BASE}/watchlist/toggle`,
+      {
+        entityType: 'clube',
+        entityId: clubeId,
+        nome: clube.nome,
+        ligaId: LIGA_ID,
+        ligaNome: LIGA_NOME,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    setWatchlist(data?.watchlist || { clubes: [], ligas: [] });
+
+    window.dispatchEvent(new Event('watchlist-updated'));
+    window.dispatchEvent(new Event('notifications-updated'));
+  } catch (e) {
+    console.warn('[WATCHLIST] erro ao favoritar clube:', e?.response?.data || e.message);
+  }
+};
 
   useEffect(() => {
     const termoInicial =
@@ -154,7 +169,8 @@ export default function BrasileiraoA() {
             if (!clubeLocal) return null;
 
             return {
-              id: clubeLocal.id,
+              id: clubeLocal.id ?? clubeLocal.legacyId,
+              legacyId: clubeLocal.legacyId ?? clubeLocal.id,
               nome: clubeLocal.nome,
               escudo: clubeApi.escudo || '',
               posicao: clubeApi.posicao,

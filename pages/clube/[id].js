@@ -230,112 +230,96 @@ export default function ClubeDetalhe() {
   };
 
   const toggleClubeFavorito = async () => {
-
-    try{
-
-      if(!token){
-
-        router.push("/login");
-        return;
-
-      }
-
-      const {data} = await axios.post(
-
-        `${API_BASE}/watchlist/toggle`,
-
-        {
-          entityType:"clube",
-          entityId:clube.id,
-          nome:clube.nome,
-          ligaId:LIGA_ID,
-          ligaNome:LIGA_NOME
-        },
-
-        {
-          headers:{Authorization:`Bearer ${token}`}
-        }
-
-      );
-
-      setWatchlist(data.watchlist);
-
-      window.dispatchEvent(new Event("watchlist-updated"));
-      window.dispatchEvent(new Event("notifications-updated"));
-
-    }catch(e){
-
-      console.error("Erro favoritar clube",e);
-
+  try {
+    if (!token) {
+      router.push('/login');
+      return;
     }
 
-  };
+    if (!clube?.id && !clube?.legacyId) {
+      console.error('Clube inválido para favoritar:', clube);
+      return;
+    }
+
+    const clubeId = clube.id ?? clube.legacyId;
+
+    const { data } = await axios.post(
+      `${API_BASE}/watchlist/toggle`,
+      {
+        entityType: 'clube',
+        entityId: clubeId,
+        nome: clube.nome,
+        ligaId: LIGA_ID,
+        ligaNome: LIGA_NOME,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    setWatchlist(data?.watchlist || { clubes: [], ligas: [] });
+
+    window.dispatchEvent(new Event('watchlist-updated'));
+    window.dispatchEvent(new Event('notifications-updated'));
+  } catch (e) {
+    console.error('Erro favoritar clube:', e?.response?.data || e.message);
+  }
+};
 
   useEffect(() => {
-    if (!id) return;
+  if (!id || !API_BASE) return;
 
-    const fetchAll = async () => {
-      setCarregando(true);
-      try {
-        const [resClube, resHist] = await Promise.all([
-          axios.get(`http://localhost:4001/clube/${id}`),
-          axios.get(`http://localhost:4001/clube/${id}/historico-precos`, { params: { range } }),
-        ]);
-        setClube(resClube.data);
-        setHist(resHist.data);
-      } catch (e) {
-        console.error('Erro ao carregar clube:', e);
-      } finally {
-        setCarregando(false);
-      }
-    };
+  const fetchAll = async () => {
+    setCarregando(true);
 
-    fetchAll();
-  }, [id, range]);
+    try {
+      const [resClube, resHist] = await Promise.all([
+        axios.get(`${API_BASE}/clube/${id}`),
+        axios.get(`${API_BASE}/clube/${id}/historico-precos`, {
+          params: { range },
+        }).catch(() => ({ data: null })),
+      ]);
 
-  useEffect(()=>{
+      const clubeData = resClube?.data?.data || resClube?.data || null;
 
-    if(!id) return;
-
-    const fetchAll = async()=>{
-
-      setCarregando(true);
-
-      try{
-
-        const [resClube,resHist] = await Promise.all([
-
-          axios.get(`${API_BASE}/clube/${id}`),
-
-          axios.get(`${API_BASE}/clube/${id}/historico-precos`,{
-            params:{range}
-          })
-
-        ]);
-
-        setClube(resClube.data);
-        setHist(resHist.data);
-
-      }catch(e){
-
-        console.error("Erro ao carregar clube:",e);
-
-      }finally{
-
-        setCarregando(false);
-
+      if (!clubeData) {
+        setClube(null);
+        setHist(null);
+        return;
       }
 
-    };
+      setClube({
+        id: clubeData.id ?? clubeData.legacyId ?? id,
+        legacyId: clubeData.legacyId ?? clubeData.id ?? id,
+        nome: clubeData.nome || 'Clube',
+        escudo: clubeData.escudo || '',
+        preco: Number(clubeData.preco || 0),
+        precoAtual:
+          clubeData.precoAtual != null
+            ? Number(clubeData.precoAtual)
+            : Number(clubeData.preco || 0),
+        cotasDisponiveis: Number(clubeData.cotasDisponiveis || 0),
+        cotasEmitidas: Number(clubeData.cotasEmitidas || 0),
+        ipoEncerrado: Boolean(clubeData.ipoEncerrado),
+      });
 
-    fetchAll();
-    carregarWatchlist();
+      setHist(resHist?.data || null);
+    } catch (e) {
+      console.error('Erro ao carregar clube:', e);
+      setClube(null);
+      setHist(null);
+    } finally {
+      setCarregando(false);
+    }
+  };
 
-  },[id,range]);
+  fetchAll();
+  carregarWatchlist();
+}, [id, range]);
 
   const favorito = (watchlist?.clubes || []).some(
-    c=>String(c.id)===String(clube?.id)
-  );
+  (c) => String(c.id) === String(clube?.id ?? clube?.legacyId)
+);
 
 
   const resumo = hist?.resumo;
