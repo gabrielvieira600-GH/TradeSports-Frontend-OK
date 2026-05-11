@@ -421,12 +421,13 @@ export default function ClubeDetalhe() {
       </Cards>
 
       {modalAberto && clube && (
-        <NegociacaoModal
-          aberto={modalAberto}
-          fechar={() => setModalAberto(false)}
-          clube={clube}
-        />
-      )}
+  <NegociacaoModal
+    isOpen={modalAberto}
+    onClose={() => setModalAberto(false)}
+    clube={clube}
+    modoInicial="compra"
+  />
+)}
     </Wrapper>
   );
 }
