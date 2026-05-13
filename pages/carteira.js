@@ -5,6 +5,7 @@ import api from '../lib/api';
 import NegociacaoModal from '../components/NegociacaoModal';
 import withAuth from '../components/withAuth';
 import Image from 'next/image';
+import ClubBadge from '../components/ClubBadge';
 
 const PALETA_CORES = [
   '#3b82f6',
@@ -665,12 +666,7 @@ function CarteiraPage() {
                   <MobileCard key={index}>
                     <MobileTop>
                       <MobileClub onClick={() => abrirPaginaClube(ativo.clubeId)}>
-                        <Image
-                          src={ativo.escudo}
-                          alt={`Escudo do ${ativo.nome}`}
-                          width={28}
-                          height={28}
-                        />
+                        <ClubBadge clube={clube.nome} size={30} />
                         <strong>{ativo.nome}</strong>
                       </MobileClub>
 

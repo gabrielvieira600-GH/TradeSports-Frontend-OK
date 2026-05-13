@@ -377,7 +377,7 @@ export default function BrasileiraoA() {
 
                     <ClubTap onClick={() => abrirPaginaClube(clube.id)}>
                       <EscudoWrapMobile>
-                        <ClubBadge clube={clube.nome} size={30} />
+                        <ClubBadge clube={clube.nome} size={25} />
                       </EscudoWrapMobile>
                       <ClubName>{clube.nome}</ClubName>
                     </ClubTap>

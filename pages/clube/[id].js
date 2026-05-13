@@ -331,36 +331,35 @@ export default function ClubeDetalhe() {
   return (
     <Wrapper>
       <Header>
-        {clube && <ClubBadge clube={clube.nome} size={46} />}
-        <TitleBox>
+  <HeaderMain>
+    {clube && <ClubBadge clube={clube.nome} size={54} />}
 
-          <FavoriteHeader>
+    <TitleBox>
+      <FavoriteHeader>
+        <Title>{clube?.nome || "Clube"}</Title>
 
-            <Title>{clube?.nome || "Clube"}</Title>
+        <FavoriteStar
+          onClick={toggleClubeFavorito}
+          $active={favorito}
+        >
+          {favorito ? "★" : "☆"}
+        </FavoriteStar>
+      </FavoriteHeader>
 
-            <FavoriteStar
-              onClick={toggleClubeFavorito}
-              $active={favorito}
-            >
-              {favorito ? "★" : "☆"}
-            </FavoriteStar>
+      <Sub>
+        <Link href="/brasileirao-a" style={{ color: "#60a5fa" }}>
+          Voltar ao Brasileirão A
+        </Link>
+      </Sub>
+    </TitleBox>
+  </HeaderMain>
 
-          </FavoriteHeader>
-
-          <Sub>
-            <Link href="/brasileirao-a" style={{color:"#60a5fa"}}>
-              Voltar ao Brasileirão A
-            </Link>
-          </Sub>
-
-        </TitleBox>
-
-        <div>
-          <Btn onClick={() => setModalAberto(true)} disabled={!clube}>
-            Negociar
-          </Btn>
-        </div>
-      </Header>
+  <div>
+    <Btn onClick={() => setModalAberto(true)} disabled={!clube}>
+      Negociar
+    </Btn>
+  </div>
+</Header>
 
       <Cards>
         <Card>
