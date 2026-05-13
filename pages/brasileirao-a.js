@@ -172,7 +172,7 @@ export default function BrasileiraoA() {
               id: clubeLocal.id ?? clubeLocal.legacyId,
               legacyId: clubeLocal.legacyId ?? clubeLocal.id,
               nome: clubeLocal.nome,
-              escudo: clubeLocal.escudo || clubeApi.escudo || '',
+              escudo: clubeLocal.escudo,
               posicao: clubeApi.posicao,
               preco: Number(clubeLocal.preco || 0),
               precoAtual:
