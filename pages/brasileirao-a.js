@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import Image from 'next/image';
 import NegociacaoModal from '../components/NegociacaoModal';
+import ClubBadge from '../components/ClubBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
@@ -299,12 +300,7 @@ export default function BrasileiraoA() {
 
                           <ClubNameWrap onClick={() => abrirPaginaClube(clube.id)}>
                             <EscudoWrapDesktop>
-                              <Image
-                                src={clube.escudo}
-                                alt={`Escudo do ${clube.nome}`}
-                                width={26}
-                                height={26}
-                              />
+                              <ClubBadge clube={clube.nome} size={30} />
                             </EscudoWrapDesktop>
 
                             <ClubText>
@@ -381,12 +377,7 @@ export default function BrasileiraoA() {
 
                     <ClubTap onClick={() => abrirPaginaClube(clube.id)}>
                       <EscudoWrapMobile>
-                        <Image
-                          src={clube.escudo}
-                          alt={`Escudo do ${clube.nome}`}
-                          width={24}
-                          height={24}
-                        />
+                        <ClubBadge clube={clube.nome} size={30} />
                       </EscudoWrapMobile>
                       <ClubName>{clube.nome}</ClubName>
                     </ClubTap>
