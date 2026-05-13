@@ -213,31 +213,32 @@ function normalizeClubName(nome = '') {
     .trim();
 
   const aliases = {
-    sao: 'saopaulo',
-    saopaulofc: 'saopaulo',
-    spfc: 'saopaulo',
+  sao: 'saopaulo',
+  saopaulofc: 'saopaulo',
+  spfc: 'saopaulo',
 
-    gremiofbpa: 'gremio',
-    gremiofoot-ballportoalegrense: 'gremio',
+  gremio: 'gremio',
+  gremiofbpa: 'gremio',
+  gremiofootballportoalegrense: 'gremio',
 
-    rbbragantino: 'rbbragantino',
-    bragantino: 'bragantino',
-    redbullbragantino: 'redbullbragantino',
+  rbbragantino: 'rbbragantino',
+  bragantino: 'bragantino',
+  redbullbragantino: 'redbullbragantino',
 
-    athletico: 'athleticoparanaense',
-    athleticopr: 'athleticoparanaense',
-    atleticoathleticoparanaense: 'athleticoparanaense',
-    cap: 'athleticoparanaense',
+  athletico: 'athleticoparanaense',
+  athleticoparanaense: 'athleticoparanaense',
+  athleticopr: 'athleticoparanaense',
+  atleticoparanaense: 'athleticoparanaense',
+  atleticopr: 'athleticoparanaense',
+  cap: 'athleticoparanaense',
 
-    vascodagama: 'vascodagama',
-    vasco: 'vasco',
+  vasco: 'vasco',
+  vascodagama: 'vascodagama',
 
-    atletico: 'atleticomineiro',
-    atleticomg: 'atleticomineiro',
-    atletico-mg: 'atleticomineiro',
-    atleticomineiro: 'atleticomineiro',
-    atleticomineiro: 'atleticomineiro',
-  };
+  atletico: 'atleticomineiro',
+  atleticomg: 'atleticomineiro',
+  atleticomineiro: 'atleticomineiro',
+};
 
   return aliases[base] || base;
 }
