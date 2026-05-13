@@ -3,7 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 const CLUB_STYLES = {
-  Flamengo: {
+  flamengo: {
     outer: '#050505',
     glow: '#ff1f2d',
     pattern: 'horizontal-stripes',
@@ -11,7 +11,7 @@ const CLUB_STYLES = {
     center: null,
   },
 
-  Palmeiras: {
+  palmeiras: {
     outer: '#006b3f',
     glow: '#00c46a',
     pattern: 'rings',
@@ -19,7 +19,7 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  'São Paulo': {
+  saopaulo: {
     outer: '#e01822',
     glow: '#ff3340',
     pattern: 'spfc-bars',
@@ -27,15 +27,15 @@ const CLUB_STYLES = {
     center: null,
   },
 
-  Santos: {
+  santos: {
     outer: '#050505',
     glow: '#ffffff',
-    pattern: 'vertical-stripes',
+    pattern: 'vertical-stripes-clean',
     colors: ['#050505', '#ffffff'],
     center: '#ffffff',
   },
 
-  Vasco: {
+  vasco: {
     outer: '#050505',
     glow: '#ffffff',
     pattern: 'diagonal',
@@ -43,7 +43,15 @@ const CLUB_STYLES = {
     center: '#e01822',
   },
 
-  Botafogo: {
+  vascodagama: {
+    outer: '#050505',
+    glow: '#ffffff',
+    pattern: 'diagonal',
+    colors: ['#050505', '#ffffff'],
+    center: '#e01822',
+  },
+
+  botafogo: {
     outer: '#050505',
     glow: '#ffffff',
     pattern: 'star',
@@ -51,23 +59,23 @@ const CLUB_STYLES = {
     center: null,
   },
 
-  Fluminense: {
+  fluminense: {
     outer: '#00613a',
     glow: '#8b1232',
-    pattern: 'vertical-stripes',
+    pattern: 'flu-stripes',
     colors: ['#00613a', '#8b1232', '#ffffff'],
     center: null,
   },
 
-  Grêmio: {
+  gremio: {
     outer: '#00a3e0',
     glow: '#00bfff',
-    pattern: 'vertical-stripes',
+    pattern: 'gremio-stripes',
     colors: ['#00a3e0', '#050505', '#ffffff'],
     center: null,
   },
 
-  Internacional: {
+  internacional: {
     outer: '#e30613',
     glow: '#ff3340',
     pattern: 'target',
@@ -75,7 +83,7 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Cruzeiro: {
+  cruzeiro: {
     outer: '#003da5',
     glow: '#2f80ff',
     pattern: 'stars',
@@ -83,7 +91,7 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Bahia: {
+  bahia: {
     outer: '#0057b8',
     glow: '#e30613',
     pattern: 'bahia',
@@ -91,7 +99,7 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Coritiba: {
+  coritiba: {
     outer: '#006b3f',
     glow: '#00c46a',
     pattern: 'coritiba',
@@ -99,7 +107,7 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Vitória: {
+  vitoria: {
     outer: '#050505',
     glow: '#e30613',
     pattern: 'half-horizontal',
@@ -107,15 +115,23 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  'Atlético Mineiro': {
+  atleticomineiro: {
     outer: '#050505',
     glow: '#ffffff',
-    pattern: 'vertical-stripes',
+    pattern: 'vertical-stripes-clean',
     colors: ['#050505', '#ffffff'],
     center: null,
   },
 
-  Corinthians: {
+  atletico: {
+    outer: '#050505',
+    glow: '#ffffff',
+    pattern: 'vertical-stripes-clean',
+    colors: ['#050505', '#ffffff'],
+    center: null,
+  },
+
+  corinthians: {
     outer: '#050505',
     glow: '#e30613',
     pattern: 'corinthians',
@@ -123,15 +139,15 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Mirassol: {
+  mirassol: {
     outer: '#006b3f',
     glow: '#ffd400',
-    pattern: 'half-horizontal',
+    pattern: 'mirassol',
     colors: ['#ffd400', '#006b3f'],
     center: '#ffd400',
   },
 
-  Remo: {
+  remo: {
     outer: '#001f4e',
     glow: '#ffffff',
     pattern: 'horizontal-band',
@@ -139,7 +155,7 @@ const CLUB_STYLES = {
     center: '#001f4e',
   },
 
-  Chapecoense: {
+  chapecoense: {
     outer: '#007a3d',
     glow: '#ffffff',
     pattern: 'horizontal-band',
@@ -147,14 +163,84 @@ const CLUB_STYLES = {
     center: '#ffffff',
   },
 
-  Bragantino: {
+  bragantino: {
     outer: '#001f4e',
     glow: '#e30613',
     pattern: 'bragantino',
     colors: ['#001f4e', '#ffffff', '#e30613', '#ffd400'],
     center: '#ffd400',
   },
+
+  rbbragantino: {
+    outer: '#001f4e',
+    glow: '#e30613',
+    pattern: 'bragantino',
+    colors: ['#001f4e', '#ffffff', '#e30613', '#ffd400'],
+    center: '#ffd400',
+  },
+
+  redbullbragantino: {
+    outer: '#001f4e',
+    glow: '#e30613',
+    pattern: 'bragantino',
+    colors: ['#001f4e', '#ffffff', '#e30613', '#ffd400'],
+    center: '#ffd400',
+  },
+
+  athleticoparanaense: {
+    outer: '#e30613',
+    glow: '#ff3340',
+    pattern: 'furacao-diagonal',
+    colors: ['#e30613', '#050505', '#ffffff'],
+    center: null,
+  },
+
+  atleticoparanaense: {
+    outer: '#e30613',
+    glow: '#ff3340',
+    pattern: 'furacao-diagonal',
+    colors: ['#e30613', '#050505', '#ffffff'],
+    center: null,
+  },
 };
+
+function normalizeClubName(nome = '') {
+  const base = String(nome)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase()
+    .trim();
+
+  const aliases = {
+    sao: 'saopaulo',
+    saopaulofc: 'saopaulo',
+    spfc: 'saopaulo',
+
+    gremiofbpa: 'gremio',
+    gremiofoot-ballportoalegrense: 'gremio',
+
+    rbbragantino: 'rbbragantino',
+    bragantino: 'bragantino',
+    redbullbragantino: 'redbullbragantino',
+
+    athletico: 'athleticoparanaense',
+    athleticopr: 'athleticoparanaense',
+    atleticoathleticoparanaense: 'athleticoparanaense',
+    cap: 'athleticoparanaense',
+
+    vascodagama: 'vascodagama',
+    vasco: 'vasco',
+
+    atletico: 'atleticomineiro',
+    atleticomg: 'atleticomineiro',
+    atletico-mg: 'atleticomineiro',
+    atleticomineiro: 'atleticomineiro',
+    atleticomineiro: 'atleticomineiro',
+  };
+
+  return aliases[base] || base;
+}
 
 const Wrap = styled.div`
   width: ${({ $size }) => $size}px;
@@ -167,9 +253,9 @@ const Wrap = styled.div`
   position: relative;
   background: ${({ $outer }) => $outer};
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.12),
-    0 0 10px ${({ $glow }) => `${$glow}55`},
-    inset 0 0 10px rgba(255,255,255,0.16);
+    0 0 0 1px rgba(255,255,255,0.14),
+    0 0 12px ${({ $glow }) => `${$glow}66`},
+    inset 0 0 10px rgba(255,255,255,0.14);
   overflow: hidden;
 `;
 
@@ -196,7 +282,7 @@ const Center = styled.div`
   background: ${({ $color }) => $color};
   box-shadow:
     0 0 0 2px rgba(0,0,0,0.35),
-    inset 0 0 8px rgba(255,255,255,0.2);
+    inset 0 0 8px rgba(255,255,255,0.24);
   z-index: 3;
 `;
 
@@ -214,6 +300,50 @@ const Star = styled.div`
 
   &::before {
     content: '★';
+  }
+`;
+
+const StarsRing = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  span {
+    position: absolute;
+    color: #fff;
+    font-size: ${({ $size }) => Math.max(7, Math.floor($size * 0.16))}px;
+    line-height: 1;
+    text-shadow: 0 0 6px rgba(255,255,255,0.35);
+  }
+
+  span:nth-child(1) {
+    left: 50%;
+    top: 14%;
+    transform: translateX(-50%);
+  }
+
+  span:nth-child(2) {
+    left: 22%;
+    top: 40%;
+    transform: translate(-50%, -50%);
+  }
+
+  span:nth-child(3) {
+    right: 22%;
+    top: 40%;
+    transform: translate(50%, -50%);
+  }
+
+  span:nth-child(4) {
+    left: 34%;
+    bottom: 16%;
+    transform: translateX(-50%);
+  }
+
+  span:nth-child(5) {
+    right: 34%;
+    bottom: 16%;
+    transform: translateX(50%);
   }
 `;
 
@@ -241,15 +371,63 @@ function getBackground(style) {
         ${c || a} 48%
       )`;
 
+    case 'vertical-stripes-clean':
+      return `repeating-linear-gradient(
+        90deg,
+        ${a} 0%,
+        ${a} 15%,
+        ${b} 15%,
+        ${b} 30%
+      )`;
+
+    case 'flu-stripes':
+      return `repeating-linear-gradient(
+        90deg,
+        ${a} 0%,
+        ${a} 18%,
+        ${c} 18%,
+        ${c} 26%,
+        ${b} 26%,
+        ${b} 44%,
+        ${c} 44%,
+        ${c} 52%
+      )`;
+
+    case 'gremio-stripes':
+      return `repeating-linear-gradient(
+        90deg,
+        ${a} 0%,
+        ${a} 16%,
+        ${c} 16%,
+        ${c} 24%,
+        ${b} 24%,
+        ${b} 40%,
+        ${c} 40%,
+        ${c} 48%
+      )`;
+
     case 'diagonal':
       return `linear-gradient(
         135deg,
         ${a} 0%,
-        ${a} 37%,
-        ${b} 37%,
-        ${b} 63%,
-        ${a} 63%,
+        ${a} 36%,
+        ${b} 36%,
+        ${b} 64%,
+        ${a} 64%,
         ${a} 100%
+      )`;
+
+    case 'furacao-diagonal':
+      return `repeating-linear-gradient(
+        135deg,
+        ${a} 0%,
+        ${a} 24%,
+        ${c} 24%,
+        ${c} 29%,
+        ${b} 29%,
+        ${b} 53%,
+        ${c} 53%,
+        ${c} 58%
       )`;
 
     case 'half-horizontal':
@@ -300,7 +478,15 @@ function getBackground(style) {
 
     case 'corinthians':
       return `
-        linear-gradient(90deg, transparent 0%, transparent 100%),
+        linear-gradient(
+          180deg,
+          transparent 0%,
+          transparent 42%,
+          ${c} 42%,
+          ${c} 58%,
+          transparent 58%,
+          transparent 100%
+        ),
         repeating-linear-gradient(
           90deg,
           ${a} 0%,
@@ -314,15 +500,63 @@ function getBackground(style) {
       return `linear-gradient(
         180deg,
         ${b} 0%,
-        ${b} 40%,
-        ${c} 40%,
-        ${c} 60%,
-        ${b} 60%,
+        ${b} 38%,
+        ${c} 38%,
+        ${c} 62%,
+        ${b} 62%,
         ${b} 100%
       )`;
 
+    case 'spfc-bars':
+      return `linear-gradient(
+        180deg,
+        ${a} 0%,
+        ${a} 32%,
+        ${c} 32%,
+        ${c} 38%,
+        ${b} 38%,
+        ${b} 58%,
+        ${a} 58%,
+        ${a} 64%,
+        ${c} 64%,
+        ${c} 84%,
+        ${a} 84%,
+        ${a} 100%
+      )`;
+
+    case 'mirassol':
+      return `linear-gradient(
+        180deg,
+        ${a} 0%,
+        ${a} 38%,
+        ${b} 38%,
+        ${b} 62%,
+        ${a} 62%,
+        ${a} 100%
+      )`;
+
     case 'rings':
+      return `radial-gradient(
+        circle at center,
+        ${b} 0%,
+        ${b} 34%,
+        ${a} 35%,
+        ${a} 48%,
+        ${b} 49%,
+        ${b} 55%,
+        ${a} 56%,
+        ${a} 100%
+      )`;
+
     case 'target':
+      return `radial-gradient(
+        circle at center,
+        ${b} 0%,
+        ${b} 32%,
+        ${a} 33%,
+        ${a} 100%
+      )`;
+
     case 'star':
     case 'stars':
     default:
@@ -331,7 +565,9 @@ function getBackground(style) {
 }
 
 export default function ClubBadge({ clube, size = 34 }) {
-  const style = CLUB_STYLES[clube] || {
+  const key = normalizeClubName(clube);
+
+  const style = CLUB_STYLES[key] || {
     outer: '#1f2937',
     glow: '#3b82f6',
     pattern: 'target',
@@ -347,10 +583,21 @@ export default function ClubBadge({ clube, size = 34 }) {
       $outer={style.outer}
       $glow={style.glow}
       title={clube}
-      aria-label={`Símbolo de ${clube}`}
+      aria-label={`Símbolo de ${clube || 'clube'}`}
     >
       <Inner $bg={bg}>
         {style.pattern === 'star' && <Star $size={size} />}
+
+        {style.pattern === 'stars' && (
+          <StarsRing $size={size}>
+            <span>★</span>
+            <span>★</span>
+            <span>★</span>
+            <span>★</span>
+            <span>★</span>
+          </StarsRing>
+        )}
+
         {style.center && <Center $color={style.center} />}
       </Inner>
     </Wrap>
