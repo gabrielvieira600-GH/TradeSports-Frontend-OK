@@ -5,6 +5,7 @@ import LivroDeOrdens from './LivroDeOrdens';
 import { useToast } from '../components/ToastProvider';
 import api from '../lib/api';
 import PoliticaRiscoModal from './PoliticaRiscoModal';
+import ClubBadge from '../components/ClubBadge';
 
 function verificarTokenValido(token) {
   if (!token) return false;
@@ -614,7 +615,7 @@ export default function NegociacaoModal({
 
         <ModalContentInner>
           <Header>
-            <Image src={clube.escudo} alt={clube.nome} width={40} height={40} />
+            <ClubBadge clube={clube.nome} size={30} />
             <div>
               <h2>{clube.nome}</h2>
               <PrecoAtualTexto>

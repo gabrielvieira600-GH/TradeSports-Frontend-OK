@@ -4,6 +4,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import axios from 'axios';
 import NegociacaoModal from '../../components/NegociacaoModal';
+import ClubBadge from '../components/ClubBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
@@ -330,6 +331,7 @@ export default function ClubeDetalhe() {
   return (
     <Wrapper>
       <Header>
+        <ClubBadge clube={clube.nome} size={30} />
         <TitleBox>
 
           <FavoriteHeader>
