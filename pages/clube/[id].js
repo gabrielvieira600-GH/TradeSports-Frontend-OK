@@ -15,12 +15,27 @@ const Wrapper = styled.div`
   color: #e5e7eb;
 `;
 
+const HeaderMain = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+
+  @media (max-width: 640px) {
+    gap: 12px;
+  }
+`;
+
 const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+  }
 `;
 
 const TitleBox = styled.div`
