@@ -217,12 +217,9 @@ export default function BrasileiraoA() {
       <Hero>
         <LeagueMain>
           <LeagueMark>
-            <Image
-              src="/images/logos/brasileirao-serie-a.png"
-              alt="Logo Brasileirão Série A"
-              width={34}
-              height={34}
-            />
+            <LeagueIconWrap>
+                                <LeagueBadge liga={item.badge} size={34} />
+                              </LeagueIconWrap>
           </LeagueMark>
 
           <LeagueCopy>
