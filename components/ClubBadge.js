@@ -233,19 +233,19 @@ brasileiraoserieb: {
   colors: ['#0b7a3b', '#f7d117', '#1f4ed8', '#ffffff'],
 },
 
-nba: {
-  outer: '#16327a',
-  glow: '#ff9a1f',
-  pattern: 'basketball-premium',
-  colors: ['#f58220', '#1b1b1b', '#ffffff'],
-},
+  nba: {
+    outer: '#1a2d6b',
+    glow: '#ff8a1c',
+    pattern: 'basketball-premium',
+    colors: ['#f58220', '#2b1a0f', '#ffffff'],
+  },
 
-nfl: {
-  outer: '#4b2a18',
-  glow: '#d18a39',
-  pattern: 'american-football-premium',
-  colors: ['#0f172a', '#7a4320', '#ffffff'],
-},
+  nfl: {
+    outer: '#0f172a',
+    glow: '#60a5fa',
+    pattern: 'helmet-football',
+    colors: ['#0f172a', '#f8fafc', '#2563eb', '#94a3b8'],
+  },
 
   inglaterra: {
     outer: '#0f172a',
@@ -637,65 +637,86 @@ const FootballBall = styled.div`
   }
 `;
 
-const BallLine = styled.div`
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
 
-  &::before,
-  &::after {
-    content: '';
+const FootballHelmet = styled.div`
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 22%;
+  bottom: 22%;
+  z-index: 2;
+
+  .shell {
     position: absolute;
-    top: -12%;
-    bottom: -12%;
-    width: 34%;
-    border: 3px solid rgba(17, 24, 39, 0.9);
-    border-top: 0;
-    border-bottom: 0;
+    left: 8%;
+    right: 22%;
+    top: 8%;
+    bottom: 8%;
+    border-radius: 999px 999px 42% 52% / 72% 72% 44% 44%;
+    background: linear-gradient(180deg, #ffffff, #e5e7eb);
+    border: 2px solid rgba(148, 163, 184, 0.9);
+    box-shadow:
+      inset 0 0 8px rgba(255,255,255,0.28),
+      0 0 6px rgba(0,0,0,0.16);
+  }
+
+  .ear {
+    position: absolute;
+    width: 16%;
+    height: 16%;
+    left: 30%;
+    top: 44%;
+    border-radius: 999px;
+    background: #cbd5e1;
+    border: 1px solid rgba(100, 116, 139, 0.6);
+  }
+
+  .stripe {
+    position: absolute;
+    left: 27%;
+    right: 38%;
+    top: 18%;
+    height: 9%;
+    border-radius: 999px;
+    background: #2563eb;
+  }
+
+  .mask-bar-1,
+  .mask-bar-2,
+  .mask-bar-3 {
+    position: absolute;
+    right: 6%;
+    height: 2px;
+    background: #cbd5e1;
     border-radius: 999px;
   }
 
-  &::before {
-    left: 13%;
+  .mask-bar-1 {
+    width: 24%;
+    top: 46%;
+    transform: rotate(-10deg);
   }
 
-  &::after {
-    right: 13%;
-  }
-`;
-
-const FootballShape = styled.div`
-  position: absolute;
-  left: 17%;
-  right: 17%;
-  top: 25%;
-  bottom: 25%;
-  border-radius: 999px / 70%;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  transform: rotate(-22deg);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.28);
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 48%;
-    top: 17%;
-    bottom: 17%;
-    width: 2px;
-    background: rgba(255,255,255,0.95);
+  .mask-bar-2 {
+    width: 19%;
+    top: 54%;
+    transform: rotate(8deg);
   }
 
-  &::after {
-    content: '';
-    position: absolute;
-    left: 34%;
-    right: 34%;
+  .mask-bar-3 {
+    width: 10%;
     top: 50%;
-    height: 2px;
-    background: rgba(255,255,255,0.95);
-    box-shadow:
-      0 -6px 0 rgba(255,255,255,0.95),
-      0 6px 0 rgba(255,255,255,0.95);
+    right: 2%;
+  }
+
+  .chin {
+    position: absolute;
+    right: 20%;
+    bottom: 17%;
+    width: 12%;
+    height: 8%;
+    border-radius: 999px;
+    background: #94a3b8;
   }
 `;
 function getBackground(style) {
@@ -1009,6 +1030,18 @@ function getBackground(style) {
     radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 32%),
     linear-gradient(180deg, ${a}, #0b1220)
   `;
+      case 'basketball-premium':
+      return `
+        radial-gradient(circle at 30% 24%, rgba(255,255,255,0.18), transparent 30%),
+        ${a}
+      `;
+
+    case 'helmet-football':
+      return `
+        radial-gradient(circle at 30% 22%, rgba(255,255,255,0.12), transparent 32%),
+        linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%)
+      `;
+
     default:
       return a;
   }
@@ -1076,16 +1109,8 @@ export function LeagueBadge({ liga, size = 28 }) {
       aria-label={`Símbolo de ${liga || 'liga'}`}
     >
       <Inner $bg={bg}>
-        {style.pattern === 'flag-brazil-premium' && (
-          <>
-            <BrazilDiamond $color={style.colors[1]} />
-            <BrazilBlueCircle $color={style.colors[2]} />
-            <BrazilBand $color={style.colors[3]} />
-          </>
-        )}
-
         {style.pattern === 'basketball-premium' && (
-          <BasketballSeams $color={style.colors[1]}>
+          <BasketballSeams>
             <div className="arc-left" />
             <div className="arc-right" />
             <div className="line-v" />
@@ -1093,11 +1118,16 @@ export function LeagueBadge({ liga, size = 28 }) {
           </BasketballSeams>
         )}
 
-        {style.pattern === 'american-football-premium' && (
-          <FootballBall
-            $color={style.colors[1]}
-            $laceColor={style.colors[2]}
-          />
+        {style.pattern === 'helmet-football' && (
+          <FootballHelmet>
+            <div className="shell" />
+            <div className="stripe" />
+            <div className="ear" />
+            <div className="mask-bar-1" />
+            <div className="mask-bar-2" />
+            <div className="mask-bar-3" />
+            <div className="chin" />
+          </FootballHelmet>
         )}
       </Inner>
     </Wrap>
