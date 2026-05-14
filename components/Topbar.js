@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import ClubBadge from './ClubBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -336,7 +337,7 @@ const handleNotificationClick = async (notificacao) => {
     }
   };
 
-    const SearchBox = ({ mobile = false }) => (
+      const renderSearchBox = (mobile = false) => (
     <SearchBoxWrap ref={mobile ? searchMobileRef : searchDesktopRef}>
       <SearchIcon>⌕</SearchIcon>
 
@@ -371,7 +372,7 @@ const handleNotificationClick = async (notificacao) => {
                 }}
               >
                 <SearchOptionAvatar>
-                  {String(clube.nome || '?').slice(0, 2).toUpperCase()}
+                  <ClubBadge clube={clube.nome} size={28} />
                 </SearchOptionAvatar>
 
                 <SearchOptionText>
@@ -401,7 +402,7 @@ const handleNotificationClick = async (notificacao) => {
           {!usuario ? (
             <>
               <DesktopSearchForm onSubmit={handleBusca}>
-  <SearchBox />
+  {renderSearchBox()}
 </DesktopSearchForm>
 
               <GuestActions>
@@ -416,7 +417,7 @@ const handleNotificationClick = async (notificacao) => {
           ) : (
             <UserRow>
               <DesktopSearchForm onSubmit={handleBusca}>
-  <SearchBox />
+  {renderSearchBox()}
 </DesktopSearchForm>
 
               <IconWrap ref={notifRef}>
@@ -518,7 +519,7 @@ const handleNotificationClick = async (notificacao) => {
 
       <MobileSearchRow>
         <SearchForm onSubmit={handleBusca}>
-  <SearchBox mobile />
+  {renderSearchBox(true)}
 </SearchForm>
       </MobileSearchRow>
     </Barra>
@@ -705,14 +706,6 @@ const SearchOptionAvatar = styled.div`
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), transparent 35%),
-    linear-gradient(180deg, #2563eb, #1e40af);
-  border: 1px solid rgba(255,255,255,0.18);
-  box-shadow: 0 0 14px rgba(37, 99, 235, 0.35);
-  color: #fff;
-  font-size: 0.76rem;
-  font-weight: 900;
   flex: 0 0 auto;
 `;
 
@@ -940,11 +933,6 @@ const NotifItem = styled.button`
   text-align: left;
   border: 0;
   cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
-
-&:hover {
-  background: ${({ $clickable }) =>
-    $clickable ? 'rgba(59, 130, 246, 0.08)' : 'transparent'};
-};
   padding: 14px 16px;
   background: ${({ $unread }) =>
     $unread ? 'rgba(59,130,246,.08)' : 'transparent'};
