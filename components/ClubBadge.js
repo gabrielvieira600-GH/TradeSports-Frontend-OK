@@ -204,6 +204,120 @@ const CLUB_STYLES = {
   },
 };
 
+const LEAGUE_STYLES = {
+  brasil: {
+    outer: '#16a34a',
+    glow: '#22c55e',
+    pattern: 'flag-brazil',
+    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
+  },
+
+  brasileirao: {
+    outer: '#16a34a',
+    glow: '#22c55e',
+    pattern: 'flag-brazil',
+    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
+  },
+
+  brasileiraoseriea: {
+    outer: '#16a34a',
+    glow: '#22c55e',
+    pattern: 'flag-brazil',
+    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
+  },
+
+  brasileiraoserieb: {
+    outer: '#16a34a',
+    glow: '#22c55e',
+    pattern: 'flag-brazil',
+    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
+  },
+
+  inglaterra: {
+    outer: '#0f172a',
+    glow: '#ef4444',
+    pattern: 'flag-england',
+    colors: ['#ffffff', '#ef4444'],
+  },
+
+  premierleague: {
+    outer: '#0f172a',
+    glow: '#ef4444',
+    pattern: 'flag-england',
+    colors: ['#ffffff', '#ef4444'],
+  },
+
+  espanha: {
+    outer: '#dc2626',
+    glow: '#facc15',
+    pattern: 'flag-spain',
+    colors: ['#dc2626', '#facc15'],
+  },
+
+  laliga: {
+    outer: '#dc2626',
+    glow: '#facc15',
+    pattern: 'flag-spain',
+    colors: ['#dc2626', '#facc15'],
+  },
+
+  alemanha: {
+    outer: '#111827',
+    glow: '#facc15',
+    pattern: 'flag-germany',
+    colors: ['#050505', '#dc2626', '#facc15'],
+  },
+
+  bundesliga: {
+    outer: '#111827',
+    glow: '#facc15',
+    pattern: 'flag-germany',
+    colors: ['#050505', '#dc2626', '#facc15'],
+  },
+
+  franca: {
+    outer: '#1d4ed8',
+    glow: '#ef4444',
+    pattern: 'flag-france',
+    colors: ['#1d4ed8', '#ffffff', '#ef4444'],
+  },
+
+  ligue1: {
+    outer: '#1d4ed8',
+    glow: '#ef4444',
+    pattern: 'flag-france',
+    colors: ['#1d4ed8', '#ffffff', '#ef4444'],
+  },
+
+  holanda: {
+    outer: '#1d4ed8',
+    glow: '#f97316',
+    pattern: 'flag-netherlands',
+    colors: ['#ef4444', '#ffffff', '#1d4ed8'],
+  },
+
+  eredivisie: {
+    outer: '#1d4ed8',
+    glow: '#f97316',
+    pattern: 'flag-netherlands',
+    colors: ['#ef4444', '#ffffff', '#1d4ed8'],
+  },
+
+  nba: {
+    outer: '#1d4ed8',
+    glow: '#f97316',
+    pattern: 'basketball',
+    colors: ['#f97316', '#111827', '#ffffff'],
+  },
+
+  nfl: {
+    outer: '#7c2d12',
+    glow: '#fb923c',
+    pattern: 'american-football',
+    colors: ['#92400e', '#ffffff', '#111827'],
+  },
+};
+
 function normalizeClubName(nome = '') {
   const base = String(nome)
     .normalize('NFD')
@@ -239,6 +353,50 @@ function normalizeClubName(nome = '') {
   atleticomg: 'atleticomineiro',
   atleticomineiro: 'atleticomineiro',
 };
+
+  return aliases[base] || base;
+}
+
+function normalizeLeagueName(nome = '') {
+  const base = String(nome)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase()
+    .trim();
+
+  const aliases = {
+    br: 'brasil',
+    brazil: 'brasil',
+    brasileiro: 'brasileirao',
+    brasileiraoa: 'brasileiraoseriea',
+    brasileiraob: 'brasileiraoserieb',
+
+    premier: 'premierleague',
+    england: 'inglaterra',
+    englishpremierleague: 'premierleague',
+
+    espanha: 'espanha',
+    spain: 'espanha',
+    laligasantander: 'laliga',
+
+    germany: 'alemanha',
+    alemanha: 'alemanha',
+
+    france: 'franca',
+    franca: 'franca',
+    ligueone: 'ligue1',
+
+    netherlands: 'holanda',
+    holland: 'holanda',
+    holanda: 'holanda',
+
+    nba: 'nba',
+    nationalbasketballassociation: 'nba',
+
+    nfl: 'nfl',
+    nationalfootballleague: 'nfl',
+  };
 
   return aliases[base] || base;
 }
@@ -347,7 +505,67 @@ const StarsRing = styled.div`
     transform: translateX(50%);
   }
 `;
+const BallLine = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
 
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -12%;
+    bottom: -12%;
+    width: 34%;
+    border: 3px solid rgba(17, 24, 39, 0.9);
+    border-top: 0;
+    border-bottom: 0;
+    border-radius: 999px;
+  }
+
+  &::before {
+    left: 13%;
+  }
+
+  &::after {
+    right: 13%;
+  }
+`;
+
+const FootballShape = styled.div`
+  position: absolute;
+  left: 17%;
+  right: 17%;
+  top: 25%;
+  bottom: 25%;
+  border-radius: 999px / 70%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  transform: rotate(-22deg);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.28);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 48%;
+    top: 17%;
+    bottom: 17%;
+    width: 2px;
+    background: rgba(255,255,255,0.95);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 34%;
+    right: 34%;
+    top: 50%;
+    height: 2px;
+    background: rgba(255,255,255,0.95);
+    box-shadow:
+      0 -6px 0 rgba(255,255,255,0.95),
+      0 6px 0 rgba(255,255,255,0.95);
+  }
+`;
 function getBackground(style) {
   const [a, b, c, d] = style.colors;
 
@@ -560,6 +778,89 @@ function getBackground(style) {
 
     case 'star':
     case 'stars':
+
+        case 'flag-brazil':
+      return `
+        radial-gradient(circle at center, ${c} 0%, ${c} 24%, ${d} 25%, ${d} 31%, transparent 32%),
+        linear-gradient(135deg, transparent 22%, ${b} 22%, ${b} 50%, transparent 50%),
+        linear-gradient(45deg, transparent 22%, ${b} 22%, ${b} 50%, transparent 50%),
+        ${a}
+      `;
+
+    case 'flag-england':
+      return `
+        linear-gradient(90deg, transparent 0%, transparent 42%, ${b} 42%, ${b} 58%, transparent 58%, transparent 100%),
+        linear-gradient(180deg, transparent 0%, transparent 42%, ${b} 42%, ${b} 58%, transparent 58%, transparent 100%),
+        ${a}
+      `;
+
+    case 'flag-spain':
+      return `linear-gradient(
+        180deg,
+        ${a} 0%,
+        ${a} 28%,
+        ${b} 28%,
+        ${b} 72%,
+        ${a} 72%,
+        ${a} 100%
+      )`;
+
+    case 'flag-germany':
+      return `linear-gradient(
+        180deg,
+        ${a} 0%,
+        ${a} 33.33%,
+        ${b} 33.33%,
+        ${b} 66.66%,
+        ${c} 66.66%,
+        ${c} 100%
+      )`;
+
+    case 'flag-france':
+      return `linear-gradient(
+        90deg,
+        ${a} 0%,
+        ${a} 33.33%,
+        ${b} 33.33%,
+        ${b} 66.66%,
+        ${c} 66.66%,
+        ${c} 100%
+      )`;
+
+    case 'flag-netherlands':
+      return `linear-gradient(
+        180deg,
+        ${a} 0%,
+        ${a} 33.33%,
+        ${b} 33.33%,
+        ${b} 66.66%,
+        ${c} 66.66%,
+        ${c} 100%
+      )`;
+
+    case 'basketball':
+      return `
+        radial-gradient(circle at center, transparent 0%, transparent 48%, ${b} 49%, ${b} 54%, transparent 55%),
+        linear-gradient(90deg, transparent 0%, transparent 46%, ${b} 47%, ${b} 53%, transparent 54%),
+        linear-gradient(180deg, transparent 0%, transparent 46%, ${b} 47%, ${b} 53%, transparent 54%),
+        ${a}
+      `;
+
+    case 'american-football':
+      return `
+        linear-gradient(90deg, transparent 0%, transparent 47%, ${b} 47%, ${b} 53%, transparent 53%, transparent 100%),
+        repeating-linear-gradient(
+          180deg,
+          transparent 0%,
+          transparent 12%,
+          ${b} 12%,
+          ${b} 17%,
+          transparent 17%,
+          transparent 29%
+        ),
+        ${a}
+      `;
+
     default:
       return a;
   }
@@ -600,6 +901,40 @@ export default function ClubBadge({ clube, size = 34 }) {
         )}
 
         {style.center && <Center $color={style.center} />}
+      </Inner>
+    </Wrap>
+  );
+
+}
+
+export function LeagueBadge({ liga, size = 28 }) {
+  const key = normalizeLeagueName(liga);
+
+  const style = LEAGUE_STYLES[key] || {
+    outer: '#1f2937',
+    glow: '#3b82f6',
+    pattern: 'target',
+    colors: ['#1f2937', '#ffffff'],
+  };
+
+  const bg = getBackground(style);
+
+  return (
+    <Wrap
+      $size={size}
+      $outer={style.outer}
+      $glow={style.glow}
+      title={liga}
+      aria-label={`Símbolo de ${liga || 'liga'}`}
+    >
+      <Inner $bg={bg}>
+        {style.pattern === 'basketball' && (
+          <BallLine />
+        )}
+
+        {style.pattern === 'american-football' && (
+          <FootballShape />
+        )}
       </Inner>
     </Wrap>
   );

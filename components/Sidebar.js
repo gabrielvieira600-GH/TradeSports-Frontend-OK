@@ -1,15 +1,54 @@
 import Link from 'next/link';
 import styled from 'styled-components';
 import { useMemo, useState } from 'react';
+import { LeagueBadge } from './ClubBadge';
 
 const mercados = [
-  { href: '/brasileirao-a', nome: 'Brasileirão Série A', emoji: '🇧🇷' },
-  { href: '/brasileirao-b', nome: 'Brasileirão Série B', emoji: '🇧🇷' },
-  { href: '/premierleague-a', nome: 'Premier League', emoji: '🏴' },
-  { href: '/laliga-a', nome: 'La Liga', emoji: '🇪🇸' },
-  { href: '/bundesliga', nome: 'Bundesliga', emoji: '🇩🇪' },
-  { href: '/ligue-1', nome: 'Ligue 1', emoji: '🇫🇷' },
-  { href: '/eredivisie', nome: 'Eredivisie', emoji: '🇳🇱' },
+  {
+    href: '/brasileirao-a',
+    nome: 'Brasileirão Série A',
+    badge: 'brasileirao-serie-a',
+  },
+  {
+    href: '/brasileirao-b',
+    nome: 'Brasileirão Série B',
+    badge: 'brasileirao-serie-b',
+  },
+  {
+    href: '/premierleague-a',
+    nome: 'Premier League',
+    badge: 'premier-league',
+  },
+  {
+    href: '/laliga-a',
+    nome: 'La Liga',
+    badge: 'la-liga',
+  },
+  {
+    href: '/bundesliga',
+    nome: 'Bundesliga',
+    badge: 'bundesliga',
+  },
+  {
+    href: '/ligue-1',
+    nome: 'Ligue 1',
+    badge: 'ligue-1',
+  },
+  {
+    href: '/eredivisie',
+    nome: 'Eredivisie',
+    badge: 'eredivisie',
+  },
+  {
+    href: '/nba',
+    nome: 'NBA',
+    badge: 'nba',
+  },
+  {
+    href: '/nfl',
+    nome: 'NFL',
+    badge: 'nfl',
+  },
 ];
 
 export default function Sidebar() {
@@ -21,8 +60,6 @@ export default function Sidebar() {
       <SidebarContainer $minimizado={minimizado}>
         <Header>
           <BrandWrap>
-            
-
             {!minimizado && (
               <BrandText>
                 <Title>⚽ Mercados</Title>
@@ -48,7 +85,9 @@ export default function Sidebar() {
             <NavItem key={item.href}>
               <StyledLink href={item.href} title={item.nome}>
                 <LinkInner $minimizado={minimizado}>
-                  <LeagueBadge>{item.emoji}</LeagueBadge>
+                  <LeagueIconWrap>
+                    <LeagueBadge liga={item.badge} size={28} />
+                  </LeagueIconWrap>
 
                   {!minimizado && (
                     <>
@@ -112,21 +151,6 @@ const BrandWrap = styled.div`
   align-items: center;
   gap: 12px;
   min-width: 0;
-`;
-
-const BrandIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  font-size: 1.1rem;
-  background: linear-gradient(
-    180deg,
-    rgba(59, 130, 246, 0.18),
-    rgba(59, 130, 246, 0.06)
-  );
-  border: 1px solid rgba(59, 130, 246, 0.14);
 `;
 
 const BrandText = styled.div`
@@ -236,21 +260,20 @@ const LinkInner = styled.div`
   }
 `;
 
-const LeagueBadge = styled.div`
+const LeagueIconWrap = styled.div`
   width: 34px;
   height: 34px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.08);
   flex: 0 0 auto;
 
   @media (max-width: 960px) {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 10px;
-    font-size: 0.9rem;
   }
 `;
 
