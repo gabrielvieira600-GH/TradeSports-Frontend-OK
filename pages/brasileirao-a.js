@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import axios from 'axios';
-import Image from 'next/image';
 import NegociacaoModal from '../components/NegociacaoModal';
-import ClubBadge from '../components/ClubBadge';
+import ClubBadge, { LeagueBadge } from '../components/ClubBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
@@ -217,9 +216,7 @@ export default function BrasileiraoA() {
       <Hero>
         <LeagueMain>
           <LeagueMark>
-            <LeagueIconWrap>
-                                <LeagueBadge liga={item.badge} size={34} />
-                              </LeagueIconWrap>
+          <LeagueBadge liga="brasileirao-serie-a" size={38} />
           </LeagueMark>
 
           <LeagueCopy>

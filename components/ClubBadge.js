@@ -206,32 +206,46 @@ const CLUB_STYLES = {
 
 const LEAGUE_STYLES = {
   brasil: {
-    outer: '#16a34a',
-    glow: '#22c55e',
-    pattern: 'flag-brazil',
-    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
-  },
+  outer: '#0b7a3b',
+  glow: '#22c55e',
+  pattern: 'flag-brazil-premium',
+  colors: ['#0b7a3b', '#f7d117', '#1f4ed8', '#ffffff'],
+},
 
-  brasileirao: {
-    outer: '#16a34a',
-    glow: '#22c55e',
-    pattern: 'flag-brazil',
-    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
-  },
+brasileirao: {
+  outer: '#0b7a3b',
+  glow: '#22c55e',
+  pattern: 'flag-brazil-premium',
+  colors: ['#0b7a3b', '#f7d117', '#1f4ed8', '#ffffff'],
+},
 
-  brasileiraoseriea: {
-    outer: '#16a34a',
-    glow: '#22c55e',
-    pattern: 'flag-brazil',
-    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
-  },
+brasileiraoseriea: {
+  outer: '#0b7a3b',
+  glow: '#22c55e',
+  pattern: 'flag-brazil-premium',
+  colors: ['#0b7a3b', '#f7d117', '#1f4ed8', '#ffffff'],
+},
 
-  brasileiraoserieb: {
-    outer: '#16a34a',
-    glow: '#22c55e',
-    pattern: 'flag-brazil',
-    colors: ['#16a34a', '#facc15', '#2563eb', '#ffffff'],
-  },
+brasileiraoserieb: {
+  outer: '#0b7a3b',
+  glow: '#22c55e',
+  pattern: 'flag-brazil-premium',
+  colors: ['#0b7a3b', '#f7d117', '#1f4ed8', '#ffffff'],
+},
+
+nba: {
+  outer: '#16327a',
+  glow: '#ff9a1f',
+  pattern: 'basketball-premium',
+  colors: ['#f58220', '#1b1b1b', '#ffffff'],
+},
+
+nfl: {
+  outer: '#4b2a18',
+  glow: '#d18a39',
+  pattern: 'american-football-premium',
+  colors: ['#0f172a', '#7a4320', '#ffffff'],
+},
 
   inglaterra: {
     outer: '#0f172a',
@@ -303,19 +317,6 @@ const LEAGUE_STYLES = {
     colors: ['#ef4444', '#ffffff', '#1d4ed8'],
   },
 
-  nba: {
-    outer: '#1d4ed8',
-    glow: '#f97316',
-    pattern: 'basketball',
-    colors: ['#f97316', '#111827', '#ffffff'],
-  },
-
-  nfl: {
-    outer: '#7c2d12',
-    glow: '#fb923c',
-    pattern: 'american-football',
-    colors: ['#92400e', '#ffffff', '#111827'],
-  },
 };
 
 function normalizeClubName(nome = '') {
@@ -505,6 +506,137 @@ const StarsRing = styled.div`
     transform: translateX(50%);
   }
 `;
+
+const BrazilDiamond = styled.div`
+  position: absolute;
+  width: 62%;
+  height: 62%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 8px;
+  background: ${({ $color }) => $color};
+  z-index: 1;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.18);
+`;
+
+const BrazilBlueCircle = styled.div`
+  position: absolute;
+  width: 38%;
+  height: 38%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: ${({ $color }) => $color};
+  z-index: 2;
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.18);
+`;
+
+const BrazilBand = styled.div`
+  position: absolute;
+  width: 44%;
+  height: 9%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  border-radius: 999px;
+  background: ${({ $color }) => $color};
+  z-index: 3;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.22);
+`;
+
+const BasketballSeams = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  .line-v,
+  .line-h {
+    position: absolute;
+    background: ${({ $color }) => $color};
+    opacity: 0.88;
+  }
+
+  .line-v {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    transform: translateX(-50%);
+  }
+
+  .line-h {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transform: translateY(-50%);
+  }
+
+  .arc-left,
+  .arc-right {
+    position: absolute;
+    top: -10%;
+    bottom: -10%;
+    width: 40%;
+    border: 3px solid ${({ $color }) => $color};
+    border-top: 0;
+    border-bottom: 0;
+    border-radius: 999px;
+    opacity: 0.88;
+  }
+
+  .arc-left {
+    left: 8%;
+  }
+
+  .arc-right {
+    right: 8%;
+  }
+`;
+
+const FootballBall = styled.div`
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 28%;
+  bottom: 28%;
+  border-radius: 999px / 70%;
+  transform: rotate(-18deg);
+  background: ${({ $color }) => $color};
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  z-index: 2;
+  box-shadow:
+    inset 0 0 10px rgba(0, 0, 0, 0.28),
+    0 0 8px rgba(0, 0, 0, 0.18);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 18%;
+    bottom: 18%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: ${({ $laceColor }) => $laceColor};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 32%;
+    right: 32%;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: ${({ $laceColor }) => $laceColor};
+    box-shadow:
+      0 -6px 0 ${({ $laceColor }) => $laceColor},
+      0 6px 0 ${({ $laceColor }) => $laceColor};
+  }
+`;
+
 const BallLine = styled.div`
   position: absolute;
   inset: 0;
@@ -860,7 +992,23 @@ function getBackground(style) {
         ),
         ${a}
       `;
+    case 'flag-brazil-premium':
+  return `
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.16), transparent 32%),
+    ${a}
+  `;
 
+    case 'basketball-premium':
+  return `
+    radial-gradient(circle at 28% 24%, rgba(255,255,255,0.20), transparent 32%),
+    ${a}
+  `;
+
+    case 'american-football-premium':
+  return `
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 32%),
+    linear-gradient(180deg, ${a}, #0b1220)
+  `;
     default:
       return a;
   }
@@ -928,12 +1076,28 @@ export function LeagueBadge({ liga, size = 28 }) {
       aria-label={`Símbolo de ${liga || 'liga'}`}
     >
       <Inner $bg={bg}>
-        {style.pattern === 'basketball' && (
-          <BallLine />
+        {style.pattern === 'flag-brazil-premium' && (
+          <>
+            <BrazilDiamond $color={style.colors[1]} />
+            <BrazilBlueCircle $color={style.colors[2]} />
+            <BrazilBand $color={style.colors[3]} />
+          </>
         )}
 
-        {style.pattern === 'american-football' && (
-          <FootballShape />
+        {style.pattern === 'basketball-premium' && (
+          <BasketballSeams $color={style.colors[1]}>
+            <div className="arc-left" />
+            <div className="arc-right" />
+            <div className="line-v" />
+            <div className="line-h" />
+          </BasketballSeams>
+        )}
+
+        {style.pattern === 'american-football-premium' && (
+          <FootballBall
+            $color={style.colors[1]}
+            $laceColor={style.colors[2]}
+          />
         )}
       </Inner>
     </Wrap>
