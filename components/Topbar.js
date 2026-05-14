@@ -1,11 +1,13 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Topbar() {
+  const router = useRouter();
   const [saldo, setSaldo] = useState('0.00');
   const [usuario, setUsuario] = useState(null);
   const [bancoAberto, setBancoAberto] = useState(false);
@@ -13,12 +15,54 @@ export default function Topbar() {
   const [notificacoes, setNotificacoes] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [busca, setBusca] = useState('');
+  const [clubes, setClubes] = useState([]);
+  const [searchAberto, setSearchAberto] = useState(false);
+  const [searchIndexAtivo, setSearchIndexAtivo] = useState(-1);
+
+
 
   const bancoRef = useRef(null);
   const notifRef = useRef(null);
-
+  const searchDesktopRef = useRef(null);
+  const searchMobileRef = useRef(null);
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      const normalizeText = (txt = '') =>
+    String(txt)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      .trim();
+
+  const carregarClubes = async () => {
+    try {
+      if (!API_BASE) return;
+
+      const { data } = await axios.get(`${API_BASE}/clube/clubes`);
+
+      const lista = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      setClubes(
+        lista
+          .map((clube) => ({
+            ...clube,
+            id: clube.id ?? clube.legacyId,
+            legacyId: clube.legacyId ?? clube.id,
+            nome: clube.nome || clube.nomeApi || 'Clube',
+          }))
+          .filter((clube) => clube.id || clube.legacyId)
+      );
+    } catch (e) {
+      console.warn('[TOPBAR SEARCH] erro ao carregar clubes:', e?.response?.data || e.message);
+    }
+  };
 
   const hydrateUser = () => {
     try {
@@ -55,9 +99,10 @@ export default function Topbar() {
     } catch {}
   };
 
-  useEffect(() => {
+    useEffect(() => {
     hydrateUser();
     carregarNotificacoes();
+    carregarClubes();
   }, []);
 
   useEffect(() => {
@@ -97,6 +142,17 @@ export default function Topbar() {
         !notifRef.current.contains(e.target)
       ) {
         setNotifAberto(false);
+      }
+
+      const clicouForaDesktop =
+        searchDesktopRef.current && !searchDesktopRef.current.contains(e.target);
+
+      const clicouForaMobile =
+        searchMobileRef.current && !searchMobileRef.current.contains(e.target);
+
+      if (clicouForaDesktop && clicouForaMobile) {
+        setSearchAberto(false);
+        setSearchIndexAtivo(-1);
       }
     };
 
@@ -182,6 +238,46 @@ const handleNotificationClick = async (notificacao) => {
   }
 };
 
+  const clubesFiltrados = useMemo(() => {
+    const termo = normalizeText(busca);
+
+    if (!termo || termo.length < 2) {
+      return [];
+    }
+
+    return clubes
+      .filter((clube) => {
+        const nome = normalizeText(clube.nome);
+        const nomeApi = normalizeText(clube.nomeApi || '');
+        return nome.includes(termo) || nomeApi.includes(termo);
+      })
+      .slice(0, 8);
+  }, [busca, clubes]);
+
+  const irParaClube = (clube) => {
+    const clubeId = clube?.id ?? clube?.legacyId;
+
+    if (!clubeId) return;
+
+    setBusca('');
+    setSearchAberto(false);
+    setSearchIndexAtivo(-1);
+
+    router.push(`/clube/${clubeId}`);
+  };
+
+  const encontrarClubePorBusca = () => {
+    const termo = normalizeText(busca);
+
+    if (!termo) return null;
+
+    const exato = clubes.find((clube) => normalizeText(clube.nome) === termo);
+
+    if (exato) return exato;
+
+    return clubesFiltrados[0] || null;
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     window.dispatchEvent(new Event('storage'));
@@ -193,13 +289,102 @@ const handleNotificationClick = async (notificacao) => {
     [notificacoes]
   );
 
-  const handleBusca = (e) => {
+    const handleBusca = (e) => {
     e.preventDefault();
+
+    const clubeEncontrado = encontrarClubePorBusca();
+
+    if (clubeEncontrado) {
+      irParaClube(clubeEncontrado);
+      return;
+    }
+
     const termo = busca.trim();
+
     if (!termo) return;
 
-    window.location.href = `/brasileirao-a?search=${encodeURIComponent(termo)}`;
+    router.push(`/brasileirao-a?search=${encodeURIComponent(termo)}`);
   };
+
+  const handleSearchKeyDown = (e) => {
+    if (!searchAberto || clubesFiltrados.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSearchIndexAtivo((idx) =>
+        idx >= clubesFiltrados.length - 1 ? 0 : idx + 1
+      );
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSearchIndexAtivo((idx) =>
+        idx <= 0 ? clubesFiltrados.length - 1 : idx - 1
+      );
+      return;
+    }
+
+    if (e.key === 'Enter' && searchIndexAtivo >= 0) {
+      e.preventDefault();
+      irParaClube(clubesFiltrados[searchIndexAtivo]);
+    }
+
+    if (e.key === 'Escape') {
+      setSearchAberto(false);
+      setSearchIndexAtivo(-1);
+    }
+  };
+
+    const SearchBox = ({ mobile = false }) => (
+    <SearchBoxWrap ref={mobile ? searchMobileRef : searchDesktopRef}>
+      <SearchIcon>⌕</SearchIcon>
+
+      <SearchInput
+        type="text"
+        placeholder="Pesquisar clube ou mercado"
+        value={busca}
+        onChange={(e) => {
+          setBusca(e.target.value);
+          setSearchAberto(true);
+          setSearchIndexAtivo(-1);
+        }}
+        onFocus={() => setSearchAberto(true)}
+        onKeyDown={handleSearchKeyDown}
+        autoComplete="off"
+      />
+
+      {searchAberto && busca.trim().length >= 2 && (
+        <SearchDropdown>
+          {clubesFiltrados.length === 0 ? (
+            <SearchEmpty>Nenhum clube encontrado.</SearchEmpty>
+          ) : (
+            clubesFiltrados.map((clube, index) => (
+              <SearchOption
+                key={clube.id ?? clube.legacyId}
+                type="button"
+                $active={index === searchIndexAtivo}
+                onMouseEnter={() => setSearchIndexAtivo(index)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  irParaClube(clube);
+                }}
+              >
+                <SearchOptionAvatar>
+                  {String(clube.nome || '?').slice(0, 2).toUpperCase()}
+                </SearchOptionAvatar>
+
+                <SearchOptionText>
+                  <strong>{clube.nome}</strong>
+                  <span>Abrir página do clube</span>
+                </SearchOptionText>
+              </SearchOption>
+            ))
+          )}
+        </SearchDropdown>
+      )}
+    </SearchBoxWrap>
+  );
 
   return (
     <Barra>
@@ -216,14 +401,8 @@ const handleNotificationClick = async (notificacao) => {
           {!usuario ? (
             <>
               <DesktopSearchForm onSubmit={handleBusca}>
-                <SearchIcon>⌕</SearchIcon>
-                <SearchInput
-                  type="text"
-                  placeholder="Pesquisar clube ou mercado"
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                />
-              </DesktopSearchForm>
+  <SearchBox />
+</DesktopSearchForm>
 
               <GuestActions>
                 <Link href="/login" passHref>
@@ -237,14 +416,8 @@ const handleNotificationClick = async (notificacao) => {
           ) : (
             <UserRow>
               <DesktopSearchForm onSubmit={handleBusca}>
-                <SearchIcon>⌕</SearchIcon>
-                <SearchInput
-                  type="text"
-                  placeholder="Pesquisar clube ou mercado"
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                />
-              </DesktopSearchForm>
+  <SearchBox />
+</DesktopSearchForm>
 
               <IconWrap ref={notifRef}>
                 <IconButton
@@ -345,14 +518,8 @@ const handleNotificationClick = async (notificacao) => {
 
       <MobileSearchRow>
         <SearchForm onSubmit={handleBusca}>
-          <SearchIcon>⌕</SearchIcon>
-          <SearchInput
-            type="text"
-            placeholder="Pesquisar clube ou mercado"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </SearchForm>
+  <SearchBox mobile />
+</SearchForm>
       </MobileSearchRow>
     </Barra>
   );
@@ -492,6 +659,88 @@ const MobileSearchRow = styled.div`
 const SearchForm = styled.form`
   position: relative;
   width: 100%;
+`;
+
+const SearchBoxWrap = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const SearchDropdown = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  background: linear-gradient(180deg, #0f172a, #111827);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+  padding: 6px;
+  z-index: 90;
+  overflow: hidden;
+`;
+
+const SearchOption = styled.button`
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: ${({ $active }) =>
+    $active ? 'rgba(59, 130, 246, 0.16)' : 'transparent'};
+  color: #f8fafc;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.16);
+  }
+`;
+
+const SearchOptionAvatar = styled.div`
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), transparent 35%),
+    linear-gradient(180deg, #2563eb, #1e40af);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.35);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  flex: 0 0 auto;
+`;
+
+const SearchOptionText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    color: #f8fafc;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    color: #94a3b8;
+    font-size: 0.75rem;
+  }
+`;
+
+const SearchEmpty = styled.div`
+  padding: 12px;
+  color: #94a3b8;
+  font-size: 0.86rem;
+  text-align: center;
 `;
 
 const SearchIcon = styled.span`
@@ -690,7 +939,7 @@ const NotifItem = styled.button`
   gap: 12px;
   text-align: left;
   border: 0;
-  cursor: cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
 
 &:hover {
   background: ${({ $clickable }) =>
