@@ -40,13 +40,23 @@ const mercados = [
     badge: 'eredivisie',
   },
   {
-    href: '/nba',
-    nome: 'NBA',
+    href: '/nbaoeste',
+    nome: 'NBA Oeste',
     badge: 'nba',
   },
   {
-    href: '/nfl',
-    nome: 'NFL',
+    href: '/nbaleste',
+    nome: 'NBA Leste',
+    badge: 'nba',
+  },
+  {
+    href: '/nfloeste',
+    nome: 'NFL Oeste',
+    badge: 'nfl',
+  },
+  {
+    href: '/nflleste',
+    nome: 'NFL Leste',
     badge: 'nfl',
   },
 ];

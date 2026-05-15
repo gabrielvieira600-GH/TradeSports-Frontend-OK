@@ -1615,8 +1615,8 @@ const LegendPremium = styled.div`
   min-width: 0;
 
   /*
-    Mostra cerca de 4 ativos.
-    Os demais continuam acessíveis pela rolagem lateral.
+    Desktop: mostra cerca de 4 ativos.
+    Mobile: mostra menos itens, com mais respiro.
   */
   max-height: 330px;
   overflow-y: auto;
@@ -1645,7 +1645,15 @@ const LegendPremium = styled.div`
   }
 
   @media (max-width: 860px) {
-    max-height: 315px;
+    max-height: 250px;
+    gap: 10px;
+    padding-right: 6px;
+  }
+
+  @media (max-width: 520px) {
+    max-height: 230px;
+    gap: 10px;
+    padding-right: 5px;
   }
 `;
 
@@ -1673,6 +1681,11 @@ const LegendPremiumItem = styled.div`
       rgba(255,255,255,0.025)
     );
   }
+
+  @media (max-width: 520px) {
+    min-height: auto;
+    padding: 11px 12px;
+  }
 `;
 
 const LegendTopRow = styled.div`
@@ -1683,9 +1696,10 @@ const LegendTopRow = styled.div`
   margin-bottom: 10px;
 
   @media (max-width: 520px) {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 9px;
   }
 `;
 
@@ -1733,6 +1747,15 @@ const LegendValue = styled.div`
     color: #f8fafc;
     font-size: 0.88rem;
     white-space: nowrap;
+  }
+
+  @media (max-width: 520px) {
+    padding-left: 40px;
+
+    strong {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
   }
 `;
 
