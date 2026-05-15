@@ -454,37 +454,82 @@ function CarteiraPage() {
               )}
 
               {distribuicaoCarteira.length > 0 && (
-                <GraficoSlide>
-                  <GraficoCard>
-                    <h3>Distribuição da Carteira por Clube</h3>
-                    <PizzaWrapper>
-                      <Pizza style={{ backgroundImage: gradDistribuicao }} />
-                      <Legenda>
-                        {distribuicaoCarteira
-                          .slice()
-                          .sort((a, b) => b.totalAtual - a.totalAtual)
-                          .map((item, idx) => {
-                            const perc =
-                              totalValorCarteiraGrafico > 0
-                                ? (item.totalAtual / totalValorCarteiraGrafico) * 100
-                                : 0;
-                            const cor = PALETA_CORES[idx % PALETA_CORES.length];
+  <GraficoSlide>
+    <GraficoCard>
+      <GraficoHeader>
+        <div>
+          <GraficoKicker>Alocação</GraficoKicker>
+          <h3>Distribuição da Carteira por Clube</h3>
+          <GraficoSubtitulo>
+            Veja como o capital está distribuído entre os ativos da sua carteira.
+          </GraficoSubtitulo>
+        </div>
+      </GraficoHeader>
 
-                            return (
-                              <LegendaItem key={item.clubeId}>
-                                <CorDot style={{ backgroundColor: cor }} />
-                                <span>{item.nome}</span>
-                                <span>
-                                  R$ {item.totalAtual.toFixed(2)} ({perc.toFixed(1)}%)
-                                </span>
-                              </LegendaItem>
-                            );
-                          })}
-                      </Legenda>
-                    </PizzaWrapper>
-                  </GraficoCard>
-                </GraficoSlide>
-              )}
+      <DonutSection>
+        <DonutVisual>
+          <DonutOuter style={{ backgroundImage: gradDistribuicao }}>
+            <DonutGlow />
+            <DonutInner>
+              <DonutCenterLabel>Total alocado</DonutCenterLabel>
+              <DonutCenterValue>
+                R$ {totalValorCarteiraGrafico.toFixed(2)}
+              </DonutCenterValue>
+              <DonutCenterMeta>
+                {distribuicaoCarteira.length} clube
+                {distribuicaoCarteira.length > 1 ? 's' : ''}
+              </DonutCenterMeta>
+            </DonutInner>
+          </DonutOuter>
+        </DonutVisual>
+
+        <LegendPremium>
+          {distribuicaoCarteira
+            .slice()
+            .sort((a, b) => b.totalAtual - a.totalAtual)
+            .map((item, idx) => {
+              const perc =
+                totalValorCarteiraGrafico > 0
+                  ? (item.totalAtual / totalValorCarteiraGrafico) * 100
+                  : 0;
+
+              const cor = PALETA_CORES[idx % PALETA_CORES.length];
+
+              return (
+                <LegendPremiumItem key={item.clubeId}>
+                  <LegendTopRow>
+                    <LegendClub>
+                      <MiniBadgeWrap>
+                        <ClubBadge clube={item.nome} size={22} />
+                      </MiniBadgeWrap>
+                      <LegendClubInfo>
+                        <strong>{item.nome}</strong>
+                        <small>{perc.toFixed(1)}% da carteira</small>
+                      </LegendClubInfo>
+                    </LegendClub>
+
+                    <LegendValue>
+                      <strong>R$ {item.totalAtual.toFixed(2)}</strong>
+                    </LegendValue>
+                  </LegendTopRow>
+
+                  <LegendBarTrack>
+                    <LegendBarFill
+                      style={{
+                        width: `${Math.max(perc, 2)}%`,
+                        background: `linear-gradient(90deg, ${cor}, ${cor}cc)`,
+                      }}
+                    />
+                  </LegendBarTrack>
+                </LegendPremiumItem>
+              );
+            })}
+        </LegendPremium>
+      </DonutSection>
+    </GraficoCard>
+  </GraficoSlide>
+)}
+              
             </GraficosCarousel>
 
             {(serieCarteira.length > 0 && distribuicaoCarteira.length > 0) && (
@@ -1447,4 +1492,207 @@ const CarteiraBadgeWrap = styled.div`
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(148, 163, 184, 0.08);
   flex: 0 0 auto;
+`;
+
+const GraficoHeader = styled.div`
+  margin-bottom: 14px;
+
+  h3 {
+    margin: 3px 0 6px;
+    color: #f8fafc;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+`;
+
+const GraficoKicker = styled.div`
+  color: #60a5fa;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+const GraficoSubtitulo = styled.p`
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.45;
+`;
+
+const DonutSection = styled.div`
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+`;
+
+const DonutVisual = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const DonutOuter = styled.div`
+  position: relative;
+  width: 190px;
+  height: 190px;
+  border-radius: 999px;
+  background-color: #111827;
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.10),
+    inset 0 0 0 1px rgba(255,255,255,0.03),
+    0 20px 45px rgba(0, 0, 0, 0.28);
+  display: grid;
+  place-items: center;
+
+  @media (max-width: 520px) {
+    width: 170px;
+    height: 170px;
+  }
+`;
+
+const DonutGlow = styled.div`
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 65%);
+  filter: blur(12px);
+  pointer-events: none;
+`;
+
+const DonutInner = styled.div`
+  position: relative;
+  z-index: 2;
+  width: 108px;
+  height: 108px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(11,19,36,0.98));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.02),
+    0 8px 18px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+`;
+
+const DonutCenterLabel = styled.div`
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+`;
+
+const DonutCenterValue = styled.div`
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+`;
+
+const DonutCenterMeta = styled.div`
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.72rem;
+`;
+
+const LegendPremium = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+`;
+
+const LegendPremiumItem = styled.div`
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+  border: 1px solid rgba(148,163,184,0.10);
+`;
+
+const LegendTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+
+  @media (max-width: 520px) {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 8px;
+  }
+`;
+
+const LegendClub = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+`;
+
+const MiniBadgeWrap = styled.div`
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(148,163,184,0.08);
+  flex: 0 0 auto;
+`;
+
+const LegendClubInfo = styled.div`
+  min-width: 0;
+
+  strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 0.9rem;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  small {
+    display: block;
+    margin-top: 3px;
+    color: #94a3b8;
+    font-size: 0.76rem;
+  }
+`;
+
+const LegendValue = styled.div`
+  strong {
+    color: #f8fafc;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+`;
+
+const LegendBarTrack = styled.div`
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+`;
+
+const LegendBarFill = styled.div`
+  height: 100%;
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.10);
 `;
