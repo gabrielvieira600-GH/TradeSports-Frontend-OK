@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import api from '../lib/api';
 import NegociacaoModal from '../components/NegociacaoModal';
 import withAuth from '../components/withAuth';
-import Image from 'next/image';
 import ClubBadge from '../components/ClubBadge';
 
 const PALETA_CORES = [
@@ -621,13 +620,9 @@ function CarteiraPage() {
                             alignItems: 'center',
                           }}
                         >
-                          <Image
-                            src={ativo.escudo}
-                            alt={`Escudo do ${ativo.nome}`}
-                            width={24}
-                            height={24}
-                            style={{ marginRight: '8px', verticalAlign: 'middle' }}
-                          />
+                          <CarteiraBadgeWrap>
+                          <ClubBadge clube={ativo.nome} size={26} />
+                          </CarteiraBadgeWrap>
                           {ativo.nome}
                         </td>
                         <td>{ativo.quantidade}</td>
@@ -666,8 +661,10 @@ function CarteiraPage() {
                   <MobileCard key={index}>
                     <MobileTop>
                       <MobileClub onClick={() => abrirPaginaClube(ativo.clubeId)}>
-                        <ClubBadge clube={clube.nome} size={30} />
-                        <strong>{ativo.nome}</strong>
+                       <CarteiraBadgeWrap>
+                       <ClubBadge clube={ativo.nome} size={28} />
+                       </CarteiraBadgeWrap>
+                       <strong>{ativo.nome}</strong>
                       </MobileClub>
 
                       <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
@@ -1438,4 +1435,16 @@ const BotaoVender = styled.button`
 const Erro = styled.p`
   color: #f87171;
   margin-top: 1rem;
+`;
+
+const CarteiraBadgeWrap = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  margin-right: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  flex: 0 0 auto;
 `;
