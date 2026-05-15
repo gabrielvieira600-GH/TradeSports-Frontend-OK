@@ -1613,13 +1613,66 @@ const LegendPremium = styled.div`
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+
+  /*
+    Mostra cerca de 4 ativos.
+    Os demais continuam acessíveis pela rolagem lateral.
+  */
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 8px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.55) rgba(255, 255, 255, 0.04);
+
+  &::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.8);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #93c5fd, #3b82f6);
+  }
+
+  @media (max-width: 860px) {
+    max-height: 315px;
+  }
 `;
 
 const LegendPremiumItem = styled.div`
+  min-height: 68px;
   border-radius: 16px;
   padding: 12px 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.035),
+    rgba(255,255,255,0.02)
+  );
   border: 1px solid rgba(148,163,184,0.10);
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(96, 165, 250, 0.22);
+    background: linear-gradient(
+      180deg,
+      rgba(59,130,246,0.08),
+      rgba(255,255,255,0.025)
+    );
+  }
 `;
 
 const LegendTopRow = styled.div`

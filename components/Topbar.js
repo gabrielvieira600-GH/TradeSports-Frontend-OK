@@ -604,7 +604,7 @@ const Logo = styled.h1`
 
 const LogoImagem = styled.img`
   display: block;
-  height: 120px;
+  height: 150px;
   width: auto;
   object-fit: contain;
 
