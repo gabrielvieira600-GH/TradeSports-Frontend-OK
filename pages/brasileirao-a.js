@@ -318,7 +318,7 @@ export default function BrasileiraoA() {
 
                       <td>
                         <StatusText $ipo={!clube.ipoEncerrado}>
-                          {!clube.ipoEncerrado ? 'IPO aberto' : 'Mercado aberto'}
+                          {!clube.ipoEncerrado ? 'Unidades Iniciais' : 'Negociação aberta'}
                         </StatusText>
                       </td>
 

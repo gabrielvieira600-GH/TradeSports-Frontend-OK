@@ -130,9 +130,9 @@ function CarteiraPage() {
         setCarteira(respCarteira.data || []);
         setSaldo(Number(respSaldo?.data?.saldo ?? 0));
       } catch (err) {
-        console.error('Erro ao carregar dados da carteira:', err);
+        console.error('Erro ao carregar dados do painel:', err);
         if (!cancelado) {
-          setErro('Erro ao carregar dados da carteira.');
+          setErro('Erro ao carregar dados do painel.');
           setCarteira([]);
         }
       }
@@ -286,7 +286,7 @@ function CarteiraPage() {
 
       setSerieCarteira(pontosOrdenados);
     } catch (e) {
-      console.error('Erro ao montar série histórica da carteira:', e);
+      console.error('Erro ao montar série histórica da posição:', e);
       setSerieCarteira([]);
     }
   }, [historico, clubes, carteira, saldo]);
@@ -421,7 +421,7 @@ function CarteiraPage() {
               {serieCarteira.length > 0 && (
                 <GraficoSlide>
                   <GraficoCard>
-                    <h3>Evolução do Valor da Carteira</h3>
+                    <h3>Evolução do Valor da Posição</h3>
                     <RangeSelector>
                       <RangeButton
                         ativo={intervaloGrafico === '1D'}
@@ -459,7 +459,7 @@ function CarteiraPage() {
       <GraficoHeader>
         <div>
           <GraficoKicker>Alocação</GraficoKicker>
-          <h3>Distribuição da Carteira por Clube</h3>
+          <h3>Distribuição das posições por Clube</h3>
           <GraficoSubtitulo>
             Veja como o capital está distribuído entre os ativos da sua carteira.
           </GraficoSubtitulo>
@@ -504,7 +504,7 @@ function CarteiraPage() {
                       </MiniBadgeWrap>
                       <LegendClubInfo>
                         <strong>{item.nome}</strong>
-                        <small>{perc.toFixed(1)}% da carteira</small>
+                        <small>{perc.toFixed(1)}% da posição</small>
                       </LegendClubInfo>
                     </LegendClub>
 
@@ -538,52 +538,52 @@ function CarteiraPage() {
           </GraficosSection>
         )}
 
-        <Titulo>Minha Carteira</Titulo>
+        <Titulo>Minha Posição</Titulo>
 
         {erro && <Erro>{erro}</Erro>}
 
         {resumo && (
           <ResumoGrid>
             <ResumoCard>
-              <LabelResumo>Valor total da carteira</LabelResumo>
+              <LabelResumo>Valor total da posição</LabelResumo>
               <ValorPrincipal>R$ {resumo.valorTotalCarteira.toFixed(2)}</ValorPrincipal>
             </ResumoCard>
 
             <ResumoCard>
-              <LabelResumo>Total investido</LabelResumo>
+              <LabelResumo>Total alocado</LabelResumo>
               <ValorSecundario>R$ {resumo.totalInvestido.toFixed(2)}</ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
-              <LabelResumo>P/L total</LabelResumo>
+              <LabelResumo>Resultado da posição</LabelResumo>
               <ValorSecundario $positivo={resumo.plTotal >= 0}>
                 R$ {resumo.plTotal.toFixed(2)}
               </ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
-              <LabelResumo>Dividendos recebidos</LabelResumo>
+              <LabelResumo>Créditos recebidos</LabelResumo>
               <ValorSecundario $positivo>
                 R$ {Number(resumo.totalDividendos || 0).toFixed(2)}
               </ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
-              <LabelResumo>Variação da carteira</LabelResumo>
+              <LabelResumo>Variação da posição</LabelResumo>
               <ValorSecundario $positivo={resumo.variacaoCarteira >= 0}>
                 {resumo.variacaoCarteira.toFixed(2)}%
               </ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
-              <LabelResumo>Total de cotas</LabelResumo>
+              <LabelResumo>Total de unidades</LabelResumo>
               <ValorSecundario>{resumo.totalCotas}</ValorSecundario>
             </ResumoCard>
           </ResumoGrid>
         )}
 
         {carteira.length === 0 ? (
-          <VazioText>Você ainda não possui cotas.</VazioText>
+          <VazioText>Você ainda não possui unidades.</VazioText>
         ) : (
           <>
             <Toolbar>
@@ -632,12 +632,12 @@ function CarteiraPage() {
                 <thead>
                   <tr>
                     <th>Clube</th>
-                    <th>Cotas</th>
+                    <th>Unidades</th>
                     <th>Preço Médio</th>
                     <th>Preço Atual</th>
-                    <th>Total Investido</th>
+                    <th>Total Alocado</th>
                     <th>Valorização (%)</th>
-                    <th>Lucro/Prejuízo</th>
+                    <th>Resultado</th>
                     <th>Valor Atual</th>
                     <th>Ações</th>
                   </tr>
@@ -719,7 +719,7 @@ function CarteiraPage() {
 
                     <MobileMetrics>
                       <MetricBox>
-                        <span>Cotas</span>
+                        <span>Unidades</span>
                         <strong>{ativo.quantidade}</strong>
                       </MetricBox>
 
@@ -734,7 +734,7 @@ function CarteiraPage() {
                       </MetricBox>
 
                       <MetricBox>
-                        <span>Total Investido</span>
+                        <span>Total Alocado</span>
                         <strong>R$ {totalInvestidoAtivo.toFixed(2)}</strong>
                       </MetricBox>
 
@@ -746,7 +746,7 @@ function CarteiraPage() {
                       </MetricBox>
 
                       <MetricBox>
-                        <span>Lucro/Prejuízo</span>
+                        <span>Resultado</span>
                         <strong style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
                           R$ {lucro.toFixed(2)}
                         </strong>
@@ -854,7 +854,7 @@ function GraficoLinhaCarteira({ pontos }) {
             })}
           </span>
           <Dot />
-          <span>{positivo ? 'P&L positivo' : 'P&L negativo'}</span>
+          <span>{positivo ? 'Posução positiva' : 'Posição negativa'}</span>
         </MetricMeta>
       </HeroMetric>
 
