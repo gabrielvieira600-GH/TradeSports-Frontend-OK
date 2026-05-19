@@ -259,7 +259,7 @@ export default function BrasileiraoA() {
                 <tr>
                   <th>#</th>
                   <th>Clube</th>
-                  <th>Liquidação</th>
+                  <th>R$ p/ Posição</th>
                   <th>Mercado</th>
                   <th>Status</th>
                   <th></th>
