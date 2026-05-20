@@ -64,6 +64,7 @@ export default function BrasileiraoA() {
     americamg: 'americamineiro',
     americamineiro: 'americamineiro',
     atleticomg: 'atleticomg',
+    chapeconse: 'chapecoense-sc',
   };
 
   const canon = (nome = '') => {
