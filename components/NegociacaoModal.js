@@ -768,7 +768,7 @@ export default function NegociacaoModal({
               </LinhaInfo>
             ) : (
               <LinhaInfo>
-                <span>Cotas disponíveis</span>
+                <span>Unidades disponíveis</span>
                 <span>
                   {cotasDisponiveisVenda}
                 </span>
@@ -777,7 +777,7 @@ export default function NegociacaoModal({
 
             {!ipoEncerrado && (
               <LinhaInfo>
-                <span>Cotas no IPO</span>
+                <span>Unidades iniciais</span>
                 <span>{cotasIPO}</span>
               </LinhaInfo>
             )}
