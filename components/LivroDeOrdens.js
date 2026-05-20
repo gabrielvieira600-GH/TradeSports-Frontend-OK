@@ -146,7 +146,7 @@ export default function LivroDeOrdens({
                 style={{ width: `${(n.qtd / maxQtdBuy) * 100}%`, background: '#1E6F43' }}
               />
               <span className="preco">R$ {n.preco.toFixed(2)}</span>
-              <span className="qtd">{n.qtd} cotas</span>
+              <span className="qtd">{n.qtd} und.</span>
             </Row>
           ))}
 
@@ -159,7 +159,7 @@ export default function LivroDeOrdens({
 
                 return (
                   <Linha key={`myb-${o.id}`} $minha={minha}>
-                    <span>{o.quantidade} cotas</span>
+                    <span>{o.quantidade} und.</span>
                     <strong>R$ {Number(o.preco).toFixed(2)}</strong>
                     <BotaoCancelar onClick={() => onCancelar?.(o.id)}>Cancelar</BotaoCancelar>
                   </Linha>
@@ -180,7 +180,7 @@ export default function LivroDeOrdens({
                 style={{ width: `${(n.qtd / maxQtdSell) * 100}%`, background: '#7A1D2A' }}
               />
               <span className="preco">R$ {n.preco.toFixed(2)}</span>
-              <span className="qtd">{n.qtd} cotas</span>
+              <span className="qtd">{n.qtd} und.</span>
             </Row>
           ))}
 
@@ -193,7 +193,7 @@ export default function LivroDeOrdens({
 
                 return (
                   <Linha key={`mya-${o.id}`} $minha={minha}>
-                    <span>{o.quantidade} cotas</span>
+                    <span>{o.quantidade} und.</span>
                     <strong>R$ {Number(o.preco).toFixed(2)}</strong>
                     <BotaoCancelar onClick={() => onCancelar?.(o.id)}>Cancelar</BotaoCancelar>
                   </Linha>

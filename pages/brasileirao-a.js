@@ -294,7 +294,7 @@ export default function BrasileiraoA() {
 
                           <ClubNameWrap onClick={() => abrirPaginaClube(clube.id)}>
                             <EscudoWrapDesktop>
-                              <ClubBadge clube={clube.nome} size={30} />
+                              <ClubBadge clube={clube.nome} size={28} />
                             </EscudoWrapDesktop>
 
                             <ClubText>
