@@ -502,6 +502,7 @@ const handleNotificationClick = async (notificacao) => {
                 {bancoAberto && (
                   <Dropdown>
                     <DropLink href="/carteira">Carteira</DropLink>
+                    <DropLink href="/ranking">Ranking</DropLink>
                     <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
                     <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
                     <DropLink href="/extrato">Extrato</DropLink>
