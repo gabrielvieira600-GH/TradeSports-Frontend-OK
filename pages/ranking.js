@@ -27,7 +27,15 @@ function formatarPercentual(valor) {
 function RankingPage() {
   const [ranking, setRanking] = useState([]);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [categoria, setCategoria] = useState('geral');
 
+  const [planoUsuario, setPlanoUsuario] = useState('lite');
+
+  const [totaisPorCategoria, setTotaisPorCategoria] = useState({
+  geral: 0,
+  lite: 0,
+  premium: 0,
+  });
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
@@ -35,60 +43,98 @@ function RankingPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
-  const carregarRanking = async (paginaSolicitada = 1) => {
-    try {
-      setCarregando(true);
-      setErro('');
+  const carregarRanking = async (
+  paginaSolicitada = 1,
+  categoriaSolicitada = categoria
+) => {
+  try {
+    setCarregando(true);
+    setErro('');
 
-      const { data } = await api.get('/usuario/ranking', {
-        params: {
-          page: paginaSolicitada,
-          limit: ITENS_POR_PAGINA,
-        },
-      });
+    const { data } = await api.get('/usuario/ranking', {
+      params: {
+        page: paginaSolicitada,
+        limit: ITENS_POR_PAGINA,
+        categoria: categoriaSolicitada,
+      },
+    });
 
-      setRanking(
-        Array.isArray(data?.ranking)
-          ? data.ranking
-          : []
-      );
+    setRanking(
+      Array.isArray(data?.ranking)
+        ? data.ranking
+        : []
+    );
 
-      setUsuarioAtual(
-        data?.usuarioAtual || null
-      );
+    const usuarioRecebido =
+      data?.usuarioAtual || null;
 
-      setPagina(
-        Number(data?.page || paginaSolicitada)
-      );
+    setUsuarioAtual(usuarioRecebido);
 
-      setTotalPaginas(
-        Math.max(1, Number(data?.totalPages || 1))
-      );
+    setPlanoUsuario(
+      usuarioRecebido?.plano === 'premium'
+        ? 'premium'
+        : 'lite'
+    );
 
-      setTotalUsuarios(
-        Number(data?.totalUsuarios || 0)
-      );
-    } catch (err) {
-      console.error(
-        'Erro ao carregar ranking:',
-        err
-      );
+    setTotaisPorCategoria({
+      geral: Number(
+        data?.totaisPorCategoria?.geral || 0
+      ),
 
-      setErro(
-        err?.response?.data?.erro ||
-          'Não foi possível carregar o ranking.'
-      );
+      lite: Number(
+        data?.totaisPorCategoria?.lite || 0
+      ),
 
-      setRanking([]);
-      setUsuarioAtual(null);
-    } finally {
-      setCarregando(false);
-    }
-  };
+      premium: Number(
+        data?.totaisPorCategoria?.premium || 0
+      ),
+    });
+
+    setPagina(
+      Number(
+        data?.page ||
+          paginaSolicitada
+      )
+    );
+
+    setTotalPaginas(
+      Math.max(
+        1,
+        Number(
+          data?.totalPages || 1
+        )
+      )
+    );
+
+    setTotalUsuarios(
+      Number(
+        data?.totalUsuarios || 0
+      )
+    );
+  } catch (err) {
+    console.error(
+      'Erro ao carregar ranking:',
+      err
+    );
+
+    setErro(
+      err?.response?.data?.erro ||
+        'Não foi possível carregar o ranking.'
+    );
+
+    setRanking([]);
+    setUsuarioAtual(null);
+  } finally {
+    setCarregando(false);
+  }
+};
 
   useEffect(() => {
-    carregarRanking(pagina);
-  }, [pagina]);
+  carregarRanking(
+    pagina,
+    categoria
+  );
+}, [pagina, categoria]);
 
   const topTres = useMemo(() => {
     if (pagina !== 1) return [];
@@ -105,6 +151,60 @@ function RankingPage() {
           Number(b.posicao)
       );
   }, [ranking, pagina]);
+  
+  const categoriaMeuPlano =
+  planoUsuario === 'premium'
+    ? 'premium'
+    : 'lite';
+
+const nomeMeuPlano =
+  planoUsuario === 'premium'
+    ? 'Premium'
+    : 'Lite';
+
+const tituloCategoria =
+  categoria === 'geral'
+    ? 'Ranking geral'
+    : categoria === 'premium'
+    ? 'Ranking Premium'
+    : 'Ranking Lite';
+
+const totalCategoriaAtual =
+  categoria === 'geral'
+    ? totaisPorCategoria.geral
+    : categoria === 'premium'
+    ? totaisPorCategoria.premium
+    : totaisPorCategoria.lite;
+
+  const mudarCategoria = (
+  novaCategoria
+) => {
+  if (
+    ![
+      'geral',
+      'lite',
+      'premium',
+    ].includes(novaCategoria)
+  ) {
+    return;
+  }
+
+  setCategoria(
+    novaCategoria
+  );
+
+  setPagina(1);
+
+  if (
+    typeof window !==
+    'undefined'
+  ) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
+};
 
   const mudarPagina = (novaPagina) => {
     const paginaValida = Math.min(
@@ -142,35 +242,107 @@ function RankingPage() {
 
         <ResumoGeral>
           <ResumoLabel>
-            Participantes
+          {tituloCategoria}
           </ResumoLabel>
 
           <ResumoValor>
-            {totalUsuarios.toLocaleString(
-              'pt-BR'
-            )}
+          {totalCategoriaAtual.toLocaleString(
+          'pt-BR'
+           )}
           </ResumoValor>
         </ResumoGeral>
       </Cabecalho>
+       <AbasRanking>
+  <AbaRanking
+    type="button"
+    $ativa={
+      categoria === 'geral'
+    }
+    onClick={() =>
+      mudarCategoria('geral')
+    }
+  >
+    Geral
 
+    <ContadorAba>
+      {totaisPorCategoria.geral}
+    </ContadorAba>
+  </AbaRanking>
+
+  <AbaRanking
+    type="button"
+    $ativa={
+      categoria ===
+      categoriaMeuPlano
+    }
+    onClick={() =>
+      mudarCategoria(
+        categoriaMeuPlano
+      )
+    }
+  >
+    Ranking {nomeMeuPlano}
+
+    <ContadorAba>
+      {
+        totaisPorCategoria[
+          categoriaMeuPlano
+        ]
+      }
+    </ContadorAba>
+  </AbaRanking>
+</AbasRanking>
       {usuarioAtual && (
         <MeuRanking>
           <MeuRankingTopo>
             <div>
-              <MeuRankingLabel>
-                Sua posição atual
-              </MeuRankingLabel>
+  <MeuRankingLabel>
+    Sua classificação
+  </MeuRankingLabel>
 
-              <MeuRankingPosicao>
-                {usuarioAtual.posicao}º lugar
-              </MeuRankingPosicao>
-            </div>
+  <MeuRankingPosicao>
+    {Number(
+      usuarioAtual.posicaoGeral ||
+        usuarioAtual.posicao ||
+        0
+    ) > 0
+      ? `${Number(
+          usuarioAtual.posicaoGeral ||
+            usuarioAtual.posicao
+        )}º geral`
+      : 'Sem posição geral'}
+  </MeuRankingPosicao>
 
-            <MeuRankingBadge>
-              {usuarioAtual.nomeUsuario
-                ? `@${usuarioAtual.nomeUsuario}`
-                : usuarioAtual.nome || 'Você'}
-            </MeuRankingBadge>
+  <MeuRankingPlano>
+    {Number(
+      usuarioAtual.posicaoNoPlano ||
+        usuarioAtual.posicaoPlano ||
+        0
+    ) > 0
+      ? `${Number(
+          usuarioAtual.posicaoNoPlano ||
+            usuarioAtual.posicaoPlano
+        )}º no ranking ${nomeMeuPlano}`
+      : `Sem posição no ranking ${nomeMeuPlano}`}
+  </MeuRankingPlano>
+</div>
+
+            <MeuRankingIdentificacao>
+  <BadgePlano
+    $premium={
+      planoUsuario === 'premium'
+    }
+  >
+    {nomeMeuPlano}
+  </BadgePlano>
+
+  <MeuRankingBadge>
+    {usuarioAtual.nomeUsuario
+      ? `@${usuarioAtual.nomeUsuario}`
+      : usuarioAtual.nome ||
+        'Você'}
+  </MeuRankingBadge>
+</MeuRankingIdentificacao>
           </MeuRankingTopo>
 
           <MeuRankingGrid>
@@ -286,9 +458,9 @@ function RankingPage() {
 
           {ranking.length === 0 ? (
             <VazioCard>
-              Nenhum usuário disponível no
-              ranking.
-            </VazioCard>
+  Nenhum usuário disponível no{' '}
+  {tituloCategoria.toLowerCase()}.
+</VazioCard>
           ) : (
             <>
               <DesktopOnly>
@@ -343,10 +515,15 @@ function RankingPage() {
 
                                 <UsuarioInfo>
                                   <strong>
-                                    {usuario.nomeUsuario
-                                      ? `@${usuario.nomeUsuario}`
-                                      : usuario.nome ||
-                                        'Usuário'}
+                                    <PlanoUsuarioLinha
+  $premium={
+    usuario.plano === 'premium'
+  }
+>
+  {usuario.plano === 'premium'
+    ? 'Premium'
+    : 'Lite'}
+</PlanoUsuarioLinha>
                                   </strong>
 
                                   {souEu && (
@@ -651,6 +828,95 @@ const ResumoValor = styled.strong`
   font-size: 1.45rem;
 `;
 
+const AbasRanking = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 5px;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid
+    rgba(148, 163, 184, 0.13);
+  border-radius: 14px;
+  background: rgba(
+    15,
+    23,
+    42,
+    0.58
+  );
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+`;
+
+const AbaRanking = styled.button`
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid
+    ${({ $ativa }) =>
+      $ativa
+        ? 'rgba(59, 130, 246, 0.4)'
+        : 'transparent'};
+  border-radius: 10px;
+
+  background: ${({ $ativa }) =>
+    $ativa
+      ? 'rgba(37, 99, 235, 0.22)'
+      : 'transparent'};
+
+  color: ${({ $ativa }) =>
+    $ativa
+      ? '#eff6ff'
+      : '#94a3b8'};
+
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    color: #f8fafc;
+    background: rgba(
+      59,
+      130,
+      246,
+      0.12
+    );
+  }
+
+  @media (max-width: 640px) {
+    flex: 1;
+  }
+`;
+
+const ContadorAba = styled.span`
+  min-width: 23px;
+  height: 23px;
+  padding: 0 6px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(
+    148,
+    163,
+    184,
+    0.13
+  );
+
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 900;
+`;
+
 const MeuRanking = styled.section`
   margin-bottom: 22px;
   padding: 18px;
@@ -688,6 +954,47 @@ const MeuRankingPosicao = styled.strong`
   margin-top: 4px;
   color: #f8fafc;
   font-size: 1.55rem;
+`;
+
+const MeuRankingPlano = styled.div`
+  margin-top: 4px;
+  color: #93c5fd;
+  font-size: 0.82rem;
+  font-weight: 700;
+`;
+
+const MeuRankingIdentificacao = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+`;
+
+const BadgePlano = styled.span`
+  padding: 7px 10px;
+  border-radius: 999px;
+
+  background: ${({ $premium }) =>
+    $premium
+      ? 'rgba(250, 204, 21, 0.13)'
+      : 'rgba(34, 197, 94, 0.12)'};
+
+  color: ${({ $premium }) =>
+    $premium
+      ? '#fde68a'
+      : '#86efac'};
+
+  border: 1px solid
+    ${({ $premium }) =>
+      $premium
+        ? 'rgba(250, 204, 21, 0.22)'
+        : 'rgba(34, 197, 94, 0.2)'};
+
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 `;
 
 const MeuRankingBadge = styled.span`
@@ -903,6 +1210,27 @@ const UsuarioInfo = styled.div`
   small {
     color: #60a5fa;
   }
+`;
+
+const PlanoUsuarioLinha = styled.span`
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 999px;
+
+  background: ${({ $premium }) =>
+    $premium
+      ? 'rgba(250, 204, 21, 0.11)'
+      : 'rgba(34, 197, 94, 0.09)'};
+
+  color: ${({ $premium }) =>
+    $premium
+      ? '#fde68a'
+      : '#86efac'};
+
+  font-size: 0.61rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 `;
 
 const ValorDestaque = styled.strong`
