@@ -797,7 +797,9 @@ if (response?.franquiaOrdens) {
   
 
   const cotasDisponiveisVenda = useMemo(() => {
-  const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
+  const carteira = Array.isArray(usuario?.carteira)
+    ? usuario.carteira
+    : [];
 
   const possiveisIdsClube = [
     clube?.id,
@@ -820,15 +822,24 @@ if (response?.franquiaOrdens) {
       .filter((v) => v !== undefined && v !== null)
       .map((v) => String(v));
 
-    return possiveisIdsAtivo.some((id) => possiveisIdsClube.includes(id));
+    return possiveisIdsAtivo.some((id) =>
+      possiveisIdsClube.includes(id)
+    );
   });
 
   if (ativo) {
-    return Number(ativo.quantidade || ativo.cotas || 0);
+    return Number(
+      ativo.quantidade ||
+        ativo.cotas ||
+        0
+    );
   }
 
-  // fallback por nome, útil quando algum dado antigo veio com ID diferente
-  const nomeClubeAtual = String(clube?.nome || '').trim().toLowerCase();
+  const nomeClubeAtual = String(
+    clube?.nome || ''
+  )
+    .trim()
+    .toLowerCase();
 
   const ativoPorNome = carteira.find((a) => {
     const nomes = [
@@ -838,14 +849,25 @@ if (response?.franquiaOrdens) {
       a?.clube?.nome,
     ]
       .filter(Boolean)
-      .map((v) => String(v).trim().toLowerCase());
+      .map((v) =>
+        String(v)
+          .trim()
+          .toLowerCase()
+      );
 
     return nomes.includes(nomeClubeAtual);
   });
-  
-  const mercadoSecundarioBloqueado =
+
+  return Number(
+    ativoPorNome?.quantidade ||
+      ativoPorNome?.cotas ||
+      0
+  );
+}, [usuario, clube]);
+
+const mercadoSecundarioBloqueado =
   ipoEncerrado &&
-  usuario &&
+  Boolean(usuario) &&
   (
     limiteOrdens.carregando ||
     !limiteOrdens.temporadaAtiva ||
@@ -856,13 +878,10 @@ if (response?.franquiaOrdens) {
     )
   );
 
-  return Number(ativoPorNome?.quantidade || ativoPorNome?.cotas || 0);
-}, [usuario, clube]);
-  
-  if (!isOpen || !clube) return null;
+if (!isOpen || !clube) return null;
 
-  return (
-    <Overlay onClick={onClose}>
+return (
+  <Overlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <FecharX onClick={onClose}>×</FecharX>
 
