@@ -45,6 +45,21 @@ export default function NegociacaoModal({
     spreadPct: null,
   });
 
+  const [limiteOrdens, setLimiteOrdens] = useState({
+  carregando: false,
+  erro: '',
+  temporadaAtiva: false,
+  rodadaAberta: false,
+  temporada: null,
+  rodada: null,
+  plano: null,
+  ordensIlimitadas: false,
+  limite: null,
+  utilizadas: null,
+  restantes: null,
+  limiteAtingido: false,
+});
+
   const { adicionarToast } = useToast();
 
   const TICK_SIZE = 0.05;
@@ -111,6 +126,7 @@ export default function NegociacaoModal({
   if (!isOpen || !token || !verificarTokenValido(token)) return;
 
   atualizarUsuarioCompleto();
+  carregarLimiteOrdens();
 }, [isOpen, token]);
 
   useEffect(() => {
@@ -317,6 +333,76 @@ export default function NegociacaoModal({
       }
     }
   };
+ 
+  async function carregarLimiteOrdens() {
+  if (!token || !verificarTokenValido(token)) {
+    setLimiteOrdens((prev) => ({
+      ...prev,
+      carregando: false,
+      erro: '',
+    }));
+
+    return null;
+  }
+
+  setLimiteOrdens((prev) => ({
+    ...prev,
+    carregando: true,
+    erro: '',
+  }));
+
+  try {
+    const { data } = await api.get('/mercado/limite-ordens', {
+      headers: getAuthHeaders(),
+    });
+
+    const atualizado = {
+      carregando: false,
+      erro: '',
+      temporadaAtiva: Boolean(data?.temporadaAtiva),
+      rodadaAberta: Boolean(data?.rodadaAberta),
+      temporada: data?.temporada || null,
+      rodada: data?.rodada || null,
+      plano: data?.plano || 'lite',
+      ordensIlimitadas: Boolean(data?.ordensIlimitadas),
+
+      limite:
+        data?.limite !== undefined && data?.limite !== null
+          ? Number(data.limite)
+          : null,
+
+      utilizadas:
+        data?.utilizadas !== undefined && data?.utilizadas !== null
+          ? Number(data.utilizadas)
+          : null,
+
+      restantes:
+        data?.restantes !== undefined && data?.restantes !== null
+          ? Number(data.restantes)
+          : null,
+
+      limiteAtingido: Boolean(data?.limiteAtingido),
+    };
+
+    setLimiteOrdens(atualizado);
+
+    return atualizado;
+  } catch (err) {
+    console.error('Erro ao consultar limite de ordens:', err);
+
+    const mensagemErro =
+      err?.response?.data?.erro ||
+      'Não foi possível consultar a franquia de ordens.';
+
+    setLimiteOrdens((prev) => ({
+      ...prev,
+      carregando: false,
+      erro: mensagemErro,
+    }));
+
+    return null;
+  }
+}
 
  async function atualizarSaldoDoUsuario() {
   try {
@@ -375,6 +461,62 @@ export default function NegociacaoModal({
       setCarregando(false);
       return;
     }
+    
+    if (ipoEncerrado) {
+  if (limiteOrdens.carregando) {
+    setMensagem(
+      'Aguarde a verificação da franquia de ordens.'
+    );
+
+    setCarregando(false);
+    return;
+  }
+
+  if (!limiteOrdens.temporadaAtiva) {
+    setMensagem(
+      '❌ Não existe uma temporada ativa no momento.'
+    );
+
+    adicionarToast(
+      '❌ Não existe uma temporada ativa no momento.',
+      'erro'
+    );
+
+    setCarregando(false);
+    return;
+  }
+
+  if (!limiteOrdens.rodadaAberta) {
+    setMensagem(
+      '❌ Não existe uma rodada aberta no momento.'
+    );
+
+    adicionarToast(
+      '❌ Não existe uma rodada aberta no momento.',
+      'erro'
+    );
+
+    setCarregando(false);
+    return;
+  }
+
+  if (
+    limiteOrdens.plano === 'lite' &&
+    limiteOrdens.limiteAtingido
+  ) {
+    setMensagem(
+      '❌ Você atingiu o limite de ordens desta rodada.'
+    );
+
+    adicionarToast(
+      '❌ Limite de ordens da rodada atingido.',
+      'erro'
+    );
+
+    setCarregando(false);
+    return;
+  }
+}
 
     try {
       let response;
@@ -446,10 +588,43 @@ export default function NegociacaoModal({
         };
 
         const { data } = await api.post('/mercado/ordem', payload, {
-          headers: getAuthHeaders(),
-        });
+  headers: getAuthHeaders(),
+});
 
-        response = data;
+response = data;
+
+if (response?.franquiaOrdens) {
+  setLimiteOrdens((prev) => ({
+    ...prev,
+
+    plano:
+      response?.plano?.tipo ||
+      prev.plano,
+
+    ordensIlimitadas: Boolean(
+      response?.plano?.ordensIlimitadas
+    ),
+
+    limite:
+      response.franquiaOrdens.limite !== undefined
+        ? response.franquiaOrdens.limite
+        : prev.limite,
+
+    utilizadas:
+      response.franquiaOrdens.utilizadas !== undefined
+        ? response.franquiaOrdens.utilizadas
+        : prev.utilizadas,
+
+    restantes:
+      response.franquiaOrdens.restantes !== undefined
+        ? response.franquiaOrdens.restantes
+        : prev.restantes,
+
+    limiteAtingido: Boolean(
+      response.franquiaOrdens.limiteAtingido
+    ),
+  }));
+}
       }
 
       setMensagem('✅ Ordem enviada com sucesso!');
@@ -461,10 +636,73 @@ export default function NegociacaoModal({
       await carregarOrdens();
       await verificarIPO();
       await atualizarSaldoDoUsuario();
+      if (ipoEncerrado) {
+  await carregarLimiteOrdens();
+}
     } catch (error) {
-      let erroMsg = 'Erro desconhecido';
+  let erroMsg = 'Erro desconhecido';
 
-      if (error.response) {
+  const codigoErro =
+    error?.response?.data?.codigo;
+
+  if (
+    codigoErro ===
+    'LIMITE_ORDENS_ATINGIDO'
+  ) {
+    const dados =
+      error.response.data || {};
+
+    setLimiteOrdens((prev) => ({
+      ...prev,
+      carregando: false,
+      plano: 'lite',
+      ordensIlimitadas: false,
+
+      limite: Number(
+        dados.limite ||
+          prev.limite ||
+          15
+      ),
+
+      utilizadas: Number(
+        dados.utilizadas ||
+          dados.limite ||
+          prev.utilizadas ||
+          15
+      ),
+
+      restantes: 0,
+      limiteAtingido: true,
+    }));
+  }
+
+  if (
+    codigoErro ===
+    'TEMPORADA_NAO_ATIVA'
+  ) {
+    setLimiteOrdens((prev) => ({
+      ...prev,
+      carregando: false,
+      temporadaAtiva: false,
+      rodadaAberta: false,
+      temporada: null,
+      rodada: null,
+    }));
+  }
+
+  if (
+    codigoErro ===
+    'RODADA_NAO_ABERTA'
+  ) {
+    setLimiteOrdens((prev) => ({
+      ...prev,
+      carregando: false,
+      rodadaAberta: false,
+      rodada: null,
+    }));
+  }
+
+  if (error.response) {
         erroMsg =
           error.response.data?.erro ||
           error.response.data?.message ||
@@ -556,7 +794,7 @@ export default function NegociacaoModal({
     }
   }
 
-  if (!isOpen || !clube) return null;
+  
 
   const cotasDisponiveisVenda = useMemo(() => {
   const carteira = Array.isArray(usuario?.carteira) ? usuario.carteira : [];
@@ -604,9 +842,24 @@ export default function NegociacaoModal({
 
     return nomes.includes(nomeClubeAtual);
   });
+  
+  const mercadoSecundarioBloqueado =
+  ipoEncerrado &&
+  usuario &&
+  (
+    limiteOrdens.carregando ||
+    !limiteOrdens.temporadaAtiva ||
+    !limiteOrdens.rodadaAberta ||
+    (
+      limiteOrdens.plano === 'lite' &&
+      limiteOrdens.limiteAtingido
+    )
+  );
 
   return Number(ativoPorNome?.quantidade || ativoPorNome?.cotas || 0);
 }, [usuario, clube]);
+  
+  if (!isOpen || !clube) return null;
 
   return (
     <Overlay onClick={onClose}>
@@ -651,6 +904,111 @@ export default function NegociacaoModal({
               Venda
             </Aba>
           </Acoes>
+           {ipoEncerrado && usuario && (
+  <FranquiaCard
+    $alerta={
+      limiteOrdens.plano === 'lite' &&
+      Number(limiteOrdens.restantes) <= 3
+    }
+    $bloqueado={
+      limiteOrdens.plano === 'lite' &&
+      limiteOrdens.limiteAtingido
+    }
+  >
+    <FranquiaTopo>
+      <span>
+        Plano{' '}
+        {limiteOrdens.plano === 'premium'
+          ? 'Premium'
+          : 'Lite'}
+      </span>
+
+      {limiteOrdens.rodada?.numero && (
+        <small>
+          Rodada {limiteOrdens.rodada.numero}
+        </small>
+      )}
+    </FranquiaTopo>
+
+    {limiteOrdens.carregando ? (
+      <FranquiaTexto>
+        Consultando franquia de ordens...
+      </FranquiaTexto>
+    ) : limiteOrdens.erro ? (
+      <FranquiaTexto>
+        {limiteOrdens.erro}
+      </FranquiaTexto>
+    ) : !limiteOrdens.temporadaAtiva ? (
+      <FranquiaTexto>
+        Nenhuma temporada ativa no momento.
+      </FranquiaTexto>
+    ) : !limiteOrdens.rodadaAberta ? (
+      <FranquiaTexto>
+        Nenhuma rodada aberta no momento.
+      </FranquiaTexto>
+    ) : limiteOrdens.ordensIlimitadas ? (
+      <FranquiaTexto>
+        Ordens ilimitadas nesta rodada.
+      </FranquiaTexto>
+    ) : (
+      <>
+        <FranquiaTexto>
+          <strong>
+            {Number(
+              limiteOrdens.restantes || 0
+            )}
+          </strong>{' '}
+          de{' '}
+          {Number(
+            limiteOrdens.limite || 15
+          )}{' '}
+          ordens restantes
+        </FranquiaTexto>
+
+        <BarraFranquia>
+          <BarraFranquiaPreenchimento
+            $percentual={Math.min(
+              100,
+              Math.max(
+                0,
+                (
+                  Number(
+                    limiteOrdens.utilizadas || 0
+                  ) /
+                  Math.max(
+                    1,
+                    Number(
+                      limiteOrdens.limite || 15
+                    )
+                  )
+                ) * 100
+              )
+            )}
+          />
+        </BarraFranquia>
+
+        {Number(
+          limiteOrdens.restantes || 0
+        ) <= 3 &&
+          Number(
+            limiteOrdens.restantes || 0
+          ) > 0 && (
+            <FranquiaAviso>
+              Você está perto do limite desta
+              rodada.
+            </FranquiaAviso>
+          )}
+
+        {limiteOrdens.limiteAtingido && (
+          <FranquiaAviso>
+            Limite atingido. A franquia será
+            renovada na próxima rodada.
+          </FranquiaAviso>
+        )}
+      </>
+    )}
+  </FranquiaCard>
+)}
 
           <Bloco>
             <label>Preço (R$)</label>
@@ -788,21 +1146,38 @@ export default function NegociacaoModal({
           <BotaoComprar
             onClick={enviarOrdem}
             disabled={
-              (ipoEncerrado && !tickValidation.valid) ||
-              carregando ||
-              precoAtual <= 0 ||
-              quantidade < 1 ||
-              !usuario ||
-              (modo === 'venda' && quantidade > cotasDisponiveisVenda)
-            }
+  (ipoEncerrado && !tickValidation.valid) ||
+  mercadoSecundarioBloqueado ||
+  carregando ||
+  precoAtual <= 0 ||
+  quantidade < 1 ||
+  !usuario ||
+  (
+    modo === 'venda' &&
+    quantidade > cotasDisponiveisVenda
+  )
+}
           >
             {!usuario
-              ? 'Faça login para negociar'
-              : carregando
-              ? 'Enviando...'
-              : modo === 'compra'
-              ? 'Comprar'
-              : 'Vender'}
+  ? 'Faça login para negociar'
+  : carregando
+  ? 'Enviando...'
+  : ipoEncerrado &&
+    limiteOrdens.carregando
+  ? 'Verificando franquia...'
+  : ipoEncerrado &&
+    !limiteOrdens.temporadaAtiva
+  ? 'Temporada indisponível'
+  : ipoEncerrado &&
+    !limiteOrdens.rodadaAberta
+  ? 'Rodada fechada'
+  : ipoEncerrado &&
+    limiteOrdens.plano === 'lite' &&
+    limiteOrdens.limiteAtingido
+  ? 'Limite de ordens atingido'
+  : modo === 'compra'
+  ? 'Comprar'
+  : 'Vender'}
           </BotaoComprar>
 
           <LivroDeOrdens
@@ -958,6 +1333,86 @@ const LinhaInfo = styled.div`
   padding: 0.42rem 0;
   color: #cbd5e1;
   font-size: 0.93rem;
+`;
+
+const FranquiaCard = styled.div`
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+
+  background: ${({ $bloqueado, $alerta }) =>
+    $bloqueado
+      ? 'rgba(239, 68, 68, 0.12)'
+      : $alerta
+      ? 'rgba(245, 158, 11, 0.12)'
+      : 'rgba(37, 99, 235, 0.1)'};
+
+  border: 1px solid
+    ${({ $bloqueado, $alerta }) =>
+      $bloqueado
+        ? 'rgba(239, 68, 68, 0.3)'
+        : $alerta
+        ? 'rgba(245, 158, 11, 0.3)'
+        : 'rgba(59, 130, 246, 0.25)'};
+`;
+
+const FranquiaTopo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 800;
+
+  small {
+    color: #94a3b8;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+`;
+
+const FranquiaTexto = styled.div`
+  margin-top: 0.45rem;
+  color: #cbd5e1;
+  font-size: 0.84rem;
+  line-height: 1.4;
+
+  strong {
+    color: #ffffff;
+    font-size: 1rem;
+  }
+`;
+
+const BarraFranquia = styled.div`
+  width: 100%;
+  height: 6px;
+  margin-top: 0.65rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.18);
+`;
+
+const BarraFranquiaPreenchimento = styled.div`
+  width: ${({ $percentual }) =>
+    `${$percentual}%`};
+
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #2563eb,
+    #60a5fa
+  );
+  transition: width 0.2s ease;
+`;
+
+const FranquiaAviso = styled.div`
+  margin-top: 0.55rem;
+  color: #fbbf24;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
 `;
 
 const Mensagem = styled.p`
