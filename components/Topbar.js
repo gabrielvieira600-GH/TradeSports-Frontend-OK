@@ -501,14 +501,15 @@ const handleNotificationClick = async (notificacao) => {
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropLink href="/carteira">Carteira</DropLink>
-                    <DropLink href="/ranking">Ranking</DropLink>
-                    <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
-                    <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
-                    <DropLink href="/extrato">Extrato</DropLink>
-                    <DropLink href="/deposito">Depósito</DropLink>
-                    <DropLink href="/saque">Saque</DropLink>
-                  </Dropdown>
+  <DropLink href="/carteira">Carteira</DropLink>
+  <DropLink href="/ranking">Ranking</DropLink>
+  <DropLink href="/social">Comunidade</DropLink>
+  <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
+  <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
+  <DropLink href="/extrato">Extrato</DropLink>
+  <DropLink href="/deposito">Depósito</DropLink>
+  <DropLink href="/saque">Saque</DropLink>
+</Dropdown>
                 )}
               </BancoWrap>
 
