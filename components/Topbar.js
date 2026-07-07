@@ -226,16 +226,13 @@ const handleNotificationClick = async (notificacao) => {
 
   const targetUrl = getNotificationTargetUrl(notificacao);
 
-  // 1º clique: se ainda não foi lida, apenas marca como lida.
   if (!notificacao.read) {
     await marcarUmaComoLida(notificacao.id);
-    return;
   }
 
-  // 2º clique: se já estava lida, redireciona para o clube.
   if (targetUrl) {
     setNotifAberto(false);
-    window.location.href = targetUrl;
+    router.push(targetUrl);
   }
 };
 
@@ -504,6 +501,7 @@ const handleNotificationClick = async (notificacao) => {
   <DropLink href="/carteira">Carteira</DropLink>
   <DropLink href="/ranking">Ranking</DropLink>
   <DropLink href="/social">Comunidade</DropLink>
+  <DropLink href="/convites">Convites</DropLink>
   <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
   <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
   <DropLink href="/extrato">Extrato</DropLink>
