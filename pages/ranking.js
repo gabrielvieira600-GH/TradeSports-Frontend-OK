@@ -36,7 +36,45 @@ function RankingPage() {
   lite: 0,
   premium: 0,
   });
-  const [pagina, setPagina] = useState(1);
+  const [abaPrivadosAtiva, setAbaPrivadosAtiva] = useState(false);
+
+const [rankingsPrivados, setRankingsPrivados] = useState({
+  criados: [],
+  participando: [],
+});
+
+const [carregandoPrivados, setCarregandoPrivados] = useState(false);
+
+const [erroPrivados, setErroPrivados] = useState('');
+const [modalCriarPrivadoAberto, setModalCriarPrivadoAberto] = useState(false);
+
+const [criandoPrivado, setCriandoPrivado] = useState(false);
+
+const [erroCriarPrivado, setErroCriarPrivado] = useState('');
+
+const [formPrivado, setFormPrivado] = useState({
+  nome: '',
+  descricao: '',
+  maxParticipantes: 50,
+  aprovacaoManual: false,
+});
+
+const [rankingPrivadoSelecionado, setRankingPrivadoSelecionado] = useState(null);
+
+const [classificacaoPrivada, setClassificacaoPrivada] = useState([]);
+
+const [usuarioAtualPrivado, setUsuarioAtualPrivado] = useState(null);
+
+const [carregandoClassificacaoPrivada, setCarregandoClassificacaoPrivada] = useState(false);
+
+const [erroClassificacaoPrivada, setErroClassificacaoPrivada] = useState('');
+
+const [paginaPrivada, setPaginaPrivada] = useState(1);
+
+const [totalPaginasPrivada, setTotalPaginasPrivada] = useState(1);
+
+const [totalUsuariosPrivado, setTotalUsuariosPrivado] = useState(0);  
+const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
 
@@ -130,11 +168,24 @@ function RankingPage() {
 };
 
   useEffect(() => {
+  if (abaPrivadosAtiva) {
+    return;
+  }
+
   carregarRanking(
     pagina,
     categoria
   );
-}, [pagina, categoria]);
+}, [pagina, categoria, abaPrivadosAtiva]);
+
+  useEffect(() => {
+  if (
+    abaPrivadosAtiva &&
+    planoUsuario === 'premium'
+  ) {
+    carregarRankingsPrivados();
+  }
+}, [abaPrivadosAtiva, planoUsuario]);
 
   const topTres = useMemo(() => {
     if (pagina !== 1) return [];
@@ -163,14 +214,24 @@ const nomeMeuPlano =
     : 'Lite';
 
 const tituloCategoria =
-  categoria === 'geral'
+  abaPrivadosAtiva
+    ? 'Rankings privados'
+    : categoria === 'geral'
     ? 'Ranking geral'
     : categoria === 'premium'
     ? 'Ranking Premium'
     : 'Ranking Lite';
 
+const totalPrivados =
+  Number(
+    rankingsPrivados.criados.length +
+      rankingsPrivados.participando.length
+  );
+
 const totalCategoriaAtual =
-  categoria === 'geral'
+  abaPrivadosAtiva
+    ? totalPrivados
+    : categoria === 'geral'
     ? totaisPorCategoria.geral
     : categoria === 'premium'
     ? totaisPorCategoria.premium
@@ -189,11 +250,31 @@ const totalCategoriaAtual =
     return;
   }
 
+  setAbaPrivadosAtiva(false);
+
   setCategoria(
     novaCategoria
   );
 
   setPagina(1);
+
+  if (
+    typeof window !==
+    'undefined'
+  ) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
+};
+  
+  const abrirAbaPrivados = () => {
+  if (planoUsuario !== 'premium') {
+    return;
+  }
+
+  setAbaPrivadosAtiva(true);
 
   if (
     typeof window !==
@@ -222,532 +303,1318 @@ const totalCategoriaAtual =
     }
   };
 
-  return (
-    <Container>
-      <Cabecalho>
-        <CabecalhoTexto>
-          <Eyebrow>Mercado simulado</Eyebrow>
-
-          <Titulo>
-            Ranking TradeSports
-          </Titulo>
-
-          <Subtitulo>
-            Todos começam com T$ 1.000,00.
-            Analise os clubes, negocie suas
-            unidades e aumente seu patrimônio
-            para subir no ranking.
-          </Subtitulo>
-        </CabecalhoTexto>
-
-        <ResumoGeral>
-          <ResumoLabel>
-          {tituloCategoria}
-          </ResumoLabel>
-
-          <ResumoValor>
-          {totalCategoriaAtual.toLocaleString(
-          'pt-BR'
-           )}
-          </ResumoValor>
-        </ResumoGeral>
-      </Cabecalho>
-       <AbasRanking>
-  <AbaRanking
-    type="button"
-    $ativa={
-      categoria === 'geral'
-    }
-    onClick={() =>
-      mudarCategoria('geral')
-    }
-  >
-    Geral
-
-    <ContadorAba>
-      {totaisPorCategoria.geral}
-    </ContadorAba>
-  </AbaRanking>
-
-  <AbaRanking
-    type="button"
-    $ativa={
-      categoria ===
-      categoriaMeuPlano
-    }
-    onClick={() =>
-      mudarCategoria(
-        categoriaMeuPlano
-      )
-    }
-  >
-    Ranking {nomeMeuPlano}
-
-    <ContadorAba>
-      {
-        totaisPorCategoria[
-          categoriaMeuPlano
-        ]
-      }
-    </ContadorAba>
-  </AbaRanking>
-</AbasRanking>
-      {usuarioAtual && (
-        <MeuRanking>
-          <MeuRankingTopo>
-            <div>
-  <MeuRankingLabel>
-    Sua classificação
-  </MeuRankingLabel>
-
-  <MeuRankingPosicao>
-    {Number(
-      usuarioAtual.posicaoGeral ||
-        usuarioAtual.posicao ||
-        0
-    ) > 0
-      ? `${Number(
-          usuarioAtual.posicaoGeral ||
-            usuarioAtual.posicao
-        )}º geral`
-      : 'Sem posição geral'}
-  </MeuRankingPosicao>
-
-  <MeuRankingPlano>
-    {Number(
-      usuarioAtual.posicaoNoPlano ||
-        usuarioAtual.posicaoPlano ||
-        0
-    ) > 0
-      ? `${Number(
-          usuarioAtual.posicaoNoPlano ||
-            usuarioAtual.posicaoPlano
-        )}º no ranking ${nomeMeuPlano}`
-      : `Sem posição no ranking ${nomeMeuPlano}`}
-  </MeuRankingPlano>
-</div>
-
-            <MeuRankingIdentificacao>
-  <BadgePlano
-    $premium={
-      planoUsuario === 'premium'
-    }
-  >
-    {nomeMeuPlano}
-  </BadgePlano>
-
-  <MeuRankingBadge>
-    {usuarioAtual.nomeUsuario
-      ? `@${usuarioAtual.nomeUsuario}`
-      : usuarioAtual.nome ||
-        'Você'}
-  </MeuRankingBadge>
-</MeuRankingIdentificacao>
-          </MeuRankingTopo>
-
-          <MeuRankingGrid>
-            <MeuRankingMetrica>
-              <span>Patrimônio</span>
-              <strong>
-                {formatarTS(
-                  usuarioAtual.patrimonio
-                )}
-              </strong>
-            </MeuRankingMetrica>
-
-            <MeuRankingMetrica>
-              <span>Rentabilidade</span>
-
-              <Variacao
-                $positivo={
-                  Number(
-                    usuarioAtual.rentabilidade
-                  ) >= 0
-                }
-              >
-                {formatarPercentual(
-                  usuarioAtual.rentabilidade
-                )}
-              </Variacao>
-            </MeuRankingMetrica>
-
-            <MeuRankingMetrica>
-              <span>Saldo disponível</span>
-              <strong>
-                {formatarTS(
-                  usuarioAtual.saldo
-                )}
-              </strong>
-            </MeuRankingMetrica>
-
-            <MeuRankingMetrica>
-              <span>Valor das posições</span>
-              <strong>
-                {formatarTS(
-                  usuarioAtual.valorPosicoes
-                )}
-              </strong>
-            </MeuRankingMetrica>
-          </MeuRankingGrid>
-        </MeuRanking>
-      )}
-
-      {erro && (
-        <MensagemErro>
-          {erro}
-        </MensagemErro>
-      )}
-
-      {carregando ? (
-        <CarregandoCard>
-          Carregando ranking...
-        </CarregandoCard>
-      ) : (
-        <>
-          {topTres.length > 0 && (
-            <Podio>
-              {topTres.map((usuario) => (
-                <PodioCard
-                  key={usuario.usuarioId}
-                  $posicao={usuario.posicao}
-                >
-                  <PodioPosicao
-                    $posicao={usuario.posicao}
-                  >
-                    {usuario.posicao}º
-                  </PodioPosicao>
-
-                  <Avatar>
-                    {String(
-                      usuario.nomeUsuario ||
-                        usuario.nome ||
-                        'U'
-                    )
-                      .charAt(0)
-                      .toUpperCase()}
-                  </Avatar>
-
-                  <PodioUsuario>
-                    {usuario.nomeUsuario
-                      ? `@${usuario.nomeUsuario}`
-                      : usuario.nome ||
-                        'Usuário'}
-                  </PodioUsuario>
-
-                  <PodioPatrimonio>
-                    {formatarTS(
-                      usuario.patrimonio
-                    )}
-                  </PodioPatrimonio>
-
-                  <Variacao
-                    $positivo={
-                      Number(
-                        usuario.rentabilidade
-                      ) >= 0
-                    }
-                  >
-                    {formatarPercentual(
-                      usuario.rentabilidade
-                    )}
-                  </Variacao>
-                </PodioCard>
-              ))}
-            </Podio>
-          )}
-
-          {ranking.length === 0 ? (
-            <VazioCard>
-  Nenhum usuário disponível no{' '}
-  {tituloCategoria.toLowerCase()}.
-</VazioCard>
-          ) : (
-            <>
-              <DesktopOnly>
-                <TabelaContainer>
-                  <Tabela>
-                    <thead>
-                      <tr>
-                        <th>Posição</th>
-                        <th>Usuário</th>
-                        <th>Patrimônio</th>
-                        <th>Rentabilidade</th>
-                        <th>Saldo</th>
-                        <th>Posições</th>
-                        <th>Unidades</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {ranking.map((usuario) => {
-                        const souEu =
-                          String(
-                            usuario.usuarioId
-                          ) ===
-                          String(
-                            usuarioAtual?.usuarioId
-                          );
-
-                        return (
-                          <LinhaRanking
-                            key={
-                              usuario.usuarioId
-                            }
-                            $destaque={souEu}
-                          >
-                            <td>
-                              <PosicaoCelula>
-                                {usuario.posicao}º
-                              </PosicaoCelula>
-                            </td>
-
-                            <td>
-                              <UsuarioCelula>
-                                <AvatarPequeno>
-                                  {String(
-                                    usuario.nomeUsuario ||
-                                      usuario.nome ||
-                                      'U'
-                                  )
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </AvatarPequeno>
-
-                                <UsuarioInfo>
-                                  <strong>
-                                    <PlanoUsuarioLinha
-  $premium={
-    usuario.plano === 'premium'
+  const mudarPaginaPrivada = (novaPagina) => {
+  if (!rankingPrivadoSelecionado?.id) {
+    return;
   }
->
-  {usuario.plano === 'premium'
-    ? 'Premium'
-    : 'Lite'}
-</PlanoUsuarioLinha>
-                                  </strong>
 
-                                  {souEu && (
-                                    <small>
-                                      Você
-                                    </small>
-                                  )}
-                                </UsuarioInfo>
-                              </UsuarioCelula>
-                            </td>
+  const paginaValida = Math.min(
+    totalPaginasPrivada,
+    Math.max(1, novaPagina)
+  );
 
-                            <td>
-                              <ValorDestaque>
-                                {formatarTS(
-                                  usuario.patrimonio
+  setPaginaPrivada(paginaValida);
+
+  carregarClassificacaoPrivada(
+    rankingPrivadoSelecionado.id,
+    paginaValida
+  );
+
+  if (typeof window !== 'undefined') {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
+};
+
+const carregarRankingsPrivados = async () => {
+  try {
+    setCarregandoPrivados(true);
+    setErroPrivados('');
+
+    const { data } = await api.get('/rankings-privados');
+
+    setRankingsPrivados({
+      criados: Array.isArray(data?.criados)
+        ? data.criados
+        : [],
+
+      participando: Array.isArray(data?.participando)
+        ? data.participando
+        : [],
+    });
+  } catch (err) {
+    console.error(
+      'Erro ao carregar rankings privados:',
+      err
+    );
+
+    setErroPrivados(
+      err?.response?.data?.erro ||
+        'Não foi possível carregar seus rankings privados.'
+    );
+
+    setRankingsPrivados({
+      criados: [],
+      participando: [],
+    });
+  } finally {
+    setCarregandoPrivados(false);
+  }
+};
+
+const criarRankingPrivado = async (e) => {
+  e.preventDefault();
+
+  try {
+    setCriandoPrivado(true);
+    setErroCriarPrivado('');
+
+    const nome = String(formPrivado.nome || '').trim();
+
+    if (!nome) {
+      setErroCriarPrivado('Informe o nome do ranking privado.');
+      return;
+    }
+
+    const payload = {
+      nome,
+      descricao: String(formPrivado.descricao || '').trim(),
+      maxParticipantes: Number(formPrivado.maxParticipantes || 50),
+      aprovacaoManual: Boolean(formPrivado.aprovacaoManual),
+    };
+
+    await api.post('/rankings-privados', payload);
+
+    setFormPrivado({
+      nome: '',
+      descricao: '',
+      maxParticipantes: 50,
+      aprovacaoManual: false,
+    });
+
+    setModalCriarPrivadoAberto(false);
+
+    await carregarRankingsPrivados();
+  } catch (err) {
+    console.error(
+      'Erro ao criar ranking privado:',
+      err
+    );
+
+    setErroCriarPrivado(
+      err?.response?.data?.erro ||
+        'Não foi possível criar o ranking privado.'
+    );
+  } finally {
+    setCriandoPrivado(false);
+  }
+};
+
+const carregarClassificacaoPrivada = async (
+  rankingPrivadoId,
+  paginaSolicitada = 1
+) => {
+  try {
+    setCarregandoClassificacaoPrivada(true);
+    setErroClassificacaoPrivada('');
+
+    const { data } = await api.get(
+      `/rankings-privados/${rankingPrivadoId}/classificacao`,
+      {
+        params: {
+          page: paginaSolicitada,
+          limit: ITENS_POR_PAGINA,
+        },
+      }
+    );
+
+    setRankingPrivadoSelecionado(
+      data?.ranking || null
+    );
+
+    setClassificacaoPrivada(
+      Array.isArray(data?.classificacao)
+        ? data.classificacao
+        : []
+    );
+
+    setUsuarioAtualPrivado(
+      data?.usuarioAtual || null
+    );
+
+    setPaginaPrivada(
+      Number(data?.page || paginaSolicitada)
+    );
+
+    setTotalPaginasPrivada(
+      Math.max(
+        1,
+        Number(data?.totalPages || 1)
+      )
+    );
+
+    setTotalUsuariosPrivado(
+      Number(data?.totalUsuarios || 0)
+    );
+  } catch (err) {
+    console.error(
+      'Erro ao carregar classificação privada:',
+      err
+    );
+
+    setErroClassificacaoPrivada(
+      err?.response?.data?.erro ||
+        'Não foi possível carregar a classificação deste ranking privado.'
+    );
+
+    setRankingPrivadoSelecionado(null);
+    setClassificacaoPrivada([]);
+    setUsuarioAtualPrivado(null);
+  } finally {
+    setCarregandoClassificacaoPrivada(false);
+  }
+};
+const voltarParaListaPrivados = () => {
+  setRankingPrivadoSelecionado(null);
+  setClassificacaoPrivada([]);
+  setUsuarioAtualPrivado(null);
+  setErroClassificacaoPrivada('');
+  setPaginaPrivada(1);
+  setTotalPaginasPrivada(1);
+  setTotalUsuariosPrivado(0);
+};
+  return (
+  <Container>
+    <Cabecalho>
+      <CabecalhoTexto>
+        <Eyebrow>Mercado simulado</Eyebrow>
+
+        <Titulo>
+          Ranking TradeSports
+        </Titulo>
+
+        <Subtitulo>
+          Todos começam com T$ 1.000,00.
+          Analise os clubes, negocie suas unidades
+          e aumente seu patrimônio para subir no ranking.
+        </Subtitulo>
+      </CabecalhoTexto>
+
+      <ResumoGeral>
+        <ResumoLabel>
+          {tituloCategoria}
+        </ResumoLabel>
+
+        <ResumoValor>
+          {totalCategoriaAtual.toLocaleString('pt-BR')}
+        </ResumoValor>
+      </ResumoGeral>
+    </Cabecalho>
+
+    <AbasRanking>
+      <AbaRanking
+        type="button"
+        $ativa={
+          !abaPrivadosAtiva &&
+          categoria === 'geral'
+        }
+        onClick={() => mudarCategoria('geral')}
+      >
+        Geral
+
+        <ContadorAba>
+          {totaisPorCategoria.geral}
+        </ContadorAba>
+      </AbaRanking>
+
+      <AbaRanking
+        type="button"
+        $ativa={
+          !abaPrivadosAtiva &&
+          categoria === categoriaMeuPlano
+        }
+        onClick={() =>
+          mudarCategoria(categoriaMeuPlano)
+        }
+      >
+        Ranking {nomeMeuPlano}
+
+        <ContadorAba>
+          {totaisPorCategoria[categoriaMeuPlano]}
+        </ContadorAba>
+      </AbaRanking>
+
+      {planoUsuario === 'premium' && (
+        <AbaRanking
+          type="button"
+          $ativa={abaPrivadosAtiva}
+          onClick={abrirAbaPrivados}
+        >
+          Privados
+
+          <ContadorAba>
+            {totalPrivados}
+          </ContadorAba>
+        </AbaRanking>
+      )}
+    </AbasRanking>
+
+    {usuarioAtual && (
+      <MeuRanking>
+        <MeuRankingTopo>
+          <div>
+            <MeuRankingLabel>
+              Sua classificação
+            </MeuRankingLabel>
+
+            <MeuRankingPosicao>
+              {Number(
+                usuarioAtual.posicaoGeral ||
+                  usuarioAtual.posicao ||
+                  0
+              ) > 0
+                ? `${Number(
+                    usuarioAtual.posicaoGeral ||
+                      usuarioAtual.posicao
+                  )}º geral`
+                : 'Sem posição geral'}
+            </MeuRankingPosicao>
+
+            <MeuRankingPlano>
+              {Number(
+                usuarioAtual.posicaoNoPlano ||
+                  usuarioAtual.posicaoPlano ||
+                  0
+              ) > 0
+                ? `${Number(
+                    usuarioAtual.posicaoNoPlano ||
+                      usuarioAtual.posicaoPlano
+                  )}º no ranking ${nomeMeuPlano}`
+                : `Sem posição no ranking ${nomeMeuPlano}`}
+            </MeuRankingPlano>
+          </div>
+
+          <MeuRankingIdentificacao>
+            <BadgePlano
+              $premium={planoUsuario === 'premium'}
+            >
+              {nomeMeuPlano}
+            </BadgePlano>
+
+            <MeuRankingBadge>
+              {usuarioAtual.nomeUsuario
+                ? `@${usuarioAtual.nomeUsuario}`
+                : usuarioAtual.nome || 'Você'}
+            </MeuRankingBadge>
+          </MeuRankingIdentificacao>
+        </MeuRankingTopo>
+
+        <MeuRankingGrid>
+          <MeuRankingMetrica>
+            <span>Patrimônio</span>
+            <strong>
+              {formatarTS(usuarioAtual.patrimonio)}
+            </strong>
+          </MeuRankingMetrica>
+
+          <MeuRankingMetrica>
+            <span>Rentabilidade</span>
+
+            <Variacao
+              $positivo={
+                Number(usuarioAtual.rentabilidade) >= 0
+              }
+            >
+              {formatarPercentual(
+                usuarioAtual.rentabilidade
+              )}
+            </Variacao>
+          </MeuRankingMetrica>
+
+          <MeuRankingMetrica>
+            <span>Saldo disponível</span>
+            <strong>
+              {formatarTS(usuarioAtual.saldo)}
+            </strong>
+          </MeuRankingMetrica>
+
+          <MeuRankingMetrica>
+            <span>Valor das posições</span>
+            <strong>
+              {formatarTS(usuarioAtual.valorPosicoes)}
+            </strong>
+          </MeuRankingMetrica>
+        </MeuRankingGrid>
+      </MeuRanking>
+    )}
+
+    {abaPrivadosAtiva ? (
+  <PrivadosSection>
+    {rankingPrivadoSelecionado ? (
+      <>
+        <PrivadosHeader>
+          <div>
+            <PrivadosTitulo>
+              {rankingPrivadoSelecionado.nome}
+            </PrivadosTitulo>
+
+            <PrivadosTexto>
+              {rankingPrivadoSelecionado.descricao ||
+                'Classificação privada da temporada atual.'}
+            </PrivadosTexto>
+          </div>
+
+          <BotaoCriarPrivado
+            type="button"
+            onClick={voltarParaListaPrivados}
+          >
+            Voltar
+          </BotaoCriarPrivado>
+        </PrivadosHeader>
+
+        {usuarioAtualPrivado && (
+          <MeuRanking>
+            <MeuRankingTopo>
+              <div>
+                <MeuRankingLabel>
+                  Sua posição neste ranking
+                </MeuRankingLabel>
+
+                <MeuRankingPosicao>
+                  {usuarioAtualPrivado.posicao}º lugar
+                </MeuRankingPosicao>
+
+                <MeuRankingPlano>
+                  {totalUsuariosPrivado.toLocaleString('pt-BR')}{' '}
+                  participante
+                  {totalUsuariosPrivado === 1 ? '' : 's'}
+                </MeuRankingPlano>
+              </div>
+
+              <MeuRankingBadge>
+                {usuarioAtualPrivado.nomeUsuario
+                  ? `@${usuarioAtualPrivado.nomeUsuario}`
+                  : usuarioAtualPrivado.nome || 'Você'}
+              </MeuRankingBadge>
+            </MeuRankingTopo>
+
+            <MeuRankingGrid>
+              <MeuRankingMetrica>
+                <span>Patrimônio</span>
+                <strong>
+                  {formatarTS(usuarioAtualPrivado.patrimonio)}
+                </strong>
+              </MeuRankingMetrica>
+
+              <MeuRankingMetrica>
+                <span>Rentabilidade</span>
+
+                <Variacao
+                  $positivo={
+                    Number(usuarioAtualPrivado.rentabilidade) >= 0
+                  }
+                >
+                  {formatarPercentual(usuarioAtualPrivado.rentabilidade)}
+                </Variacao>
+              </MeuRankingMetrica>
+
+              <MeuRankingMetrica>
+                <span>Saldo disponível</span>
+                <strong>
+                  {formatarTS(usuarioAtualPrivado.saldo)}
+                </strong>
+              </MeuRankingMetrica>
+
+              <MeuRankingMetrica>
+                <span>Valor das posições</span>
+                <strong>
+                  {formatarTS(usuarioAtualPrivado.valorPosicoes)}
+                </strong>
+              </MeuRankingMetrica>
+            </MeuRankingGrid>
+          </MeuRanking>
+        )}
+
+        {erroClassificacaoPrivada && (
+          <MensagemErro>
+            {erroClassificacaoPrivada}
+          </MensagemErro>
+        )}
+
+        {carregandoClassificacaoPrivada ? (
+          <CarregandoCard>
+            Carregando classificação privada...
+          </CarregandoCard>
+        ) : classificacaoPrivada.length === 0 ? (
+          <VazioCard>
+            Nenhum participante aprovado neste ranking privado.
+          </VazioCard>
+        ) : (
+          <>
+            <DesktopOnly>
+              <TabelaContainer>
+                <Tabela>
+                  <thead>
+                    <tr>
+                      <th>Posição</th>
+                      <th>Usuário</th>
+                      <th>Patrimônio</th>
+                      <th>Rentabilidade</th>
+                      <th>Saldo</th>
+                      <th>Posições</th>
+                      <th>Unidades</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {classificacaoPrivada.map((usuario) => {
+                      const souEu =
+                        String(usuario.usuarioId) ===
+                        String(usuarioAtualPrivado?.usuarioId);
+
+                      return (
+                        <LinhaRanking
+                          key={usuario.usuarioId}
+                          $destaque={souEu}
+                        >
+                          <td>
+                            <PosicaoCelula>
+                              {usuario.posicao}º
+                            </PosicaoCelula>
+                          </td>
+
+                          <td>
+                            <UsuarioCelula>
+                              <AvatarPequeno>
+                                {String(
+                                  usuario.nomeUsuario ||
+                                    usuario.nome ||
+                                    'U'
+                                )
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </AvatarPequeno>
+
+                              <UsuarioInfo>
+                                <strong>
+                                  {usuario.nomeUsuario
+                                    ? `@${usuario.nomeUsuario}`
+                                    : usuario.nome || 'Usuário'}
+                                </strong>
+
+                                <PlanoUsuarioLinha
+                                  $premium={usuario.plano === 'premium'}
+                                >
+                                  {usuario.plano === 'premium'
+                                    ? 'Premium'
+                                    : 'Lite'}
+                                </PlanoUsuarioLinha>
+
+                                {souEu && (
+                                  <small>
+                                    Você
+                                  </small>
                                 )}
-                              </ValorDestaque>
-                            </td>
+                              </UsuarioInfo>
+                            </UsuarioCelula>
+                          </td>
 
-                            <td>
-                              <Variacao
-                                $positivo={
-                                  Number(
-                                    usuario.rentabilidade
-                                  ) >= 0
-                                }
-                              >
-                                {formatarPercentual(
-                                  usuario.rentabilidade
-                                )}
-                              </Variacao>
-                            </td>
+                          <td>
+                            <ValorDestaque>
+                              {formatarTS(usuario.patrimonio)}
+                            </ValorDestaque>
+                          </td>
 
-                            <td>
-                              {formatarTS(
-                                usuario.saldo
-                              )}
-                            </td>
+                          <td>
+                            <Variacao
+                              $positivo={Number(usuario.rentabilidade) >= 0}
+                            >
+                              {formatarPercentual(usuario.rentabilidade)}
+                            </Variacao>
+                          </td>
 
-                            <td>
-                              {
-                                usuario.quantidadePosicoes
-                              }
-                            </td>
+                          <td>
+                            {formatarTS(usuario.saldo)}
+                          </td>
 
-                            <td>
-                              {Number(
-                                usuario.quantidadeUnidades ||
-                                  0
-                              ).toLocaleString(
-                                'pt-BR',
-                                {
-                                  maximumFractionDigits: 4,
-                                }
-                              )}
-                            </td>
-                          </LinhaRanking>
-                        );
-                      })}
-                    </tbody>
-                  </Tabela>
-                </TabelaContainer>
-              </DesktopOnly>
+                          <td>
+                            {usuario.quantidadePosicoes}
+                          </td>
 
-              <MobileOnly>
-                <ListaMobile>
-                  {ranking.map((usuario) => {
-                    const souEu =
-                      String(
-                        usuario.usuarioId
-                      ) ===
-                      String(
-                        usuarioAtual?.usuarioId
+                          <td>
+                            {Number(
+                              usuario.quantidadeUnidades || 0
+                            ).toLocaleString('pt-BR', {
+                              maximumFractionDigits: 4,
+                            })}
+                          </td>
+                        </LinhaRanking>
                       );
+                    })}
+                  </tbody>
+                </Tabela>
+              </TabelaContainer>
+            </DesktopOnly>
 
-                    return (
-                      <CardMobile
-                        key={usuario.usuarioId}
-                        $destaque={souEu}
-                      >
-                        <CardMobileTopo>
-                          <PosicaoMobile>
-                            {usuario.posicao}º
-                          </PosicaoMobile>
+            <MobileOnly>
+              <ListaMobile>
+                {classificacaoPrivada.map((usuario) => {
+                  const souEu =
+                    String(usuario.usuarioId) ===
+                    String(usuarioAtualPrivado?.usuarioId);
 
-                          <UsuarioMobile>
-                            <AvatarPequeno>
-                              {String(
-                                usuario.nomeUsuario ||
-                                  usuario.nome ||
-                                  'U'
-                              )
-                                .charAt(0)
-                                .toUpperCase()}
-                            </AvatarPequeno>
+                  return (
+                    <CardMobile
+                      key={usuario.usuarioId}
+                      $destaque={souEu}
+                    >
+                      <CardMobileTopo>
+                        <PosicaoMobile>
+                          {usuario.posicao}º
+                        </PosicaoMobile>
 
-                            <div>
-                              <strong>
-                                {usuario.nomeUsuario
-                                  ? `@${usuario.nomeUsuario}`
-                                  : usuario.nome ||
-                                    'Usuário'}
-                              </strong>
+                        <UsuarioMobile>
+                          <AvatarPequeno>
+                            {String(
+                              usuario.nomeUsuario ||
+                                usuario.nome ||
+                                'U'
+                            )
+                              .charAt(0)
+                              .toUpperCase()}
+                          </AvatarPequeno>
 
-                              {souEu && (
-                                <small>
-                                  Você
-                                </small>
-                              )}
-                            </div>
-                          </UsuarioMobile>
-                        </CardMobileTopo>
+                          <div>
+                            <strong>
+                              {usuario.nomeUsuario
+                                ? `@${usuario.nomeUsuario}`
+                                : usuario.nome || 'Usuário'}
+                            </strong>
 
-                        <PatrimonioMobile>
-                          <span>Patrimônio</span>
+                            <PlanoUsuarioLinha
+                              $premium={usuario.plano === 'premium'}
+                            >
+                              {usuario.plano === 'premium'
+                                ? 'Premium'
+                                : 'Lite'}
+                            </PlanoUsuarioLinha>
+
+                            {souEu && (
+                              <small>
+                                Você
+                              </small>
+                            )}
+                          </div>
+                        </UsuarioMobile>
+                      </CardMobileTopo>
+
+                      <PatrimonioMobile>
+                        <span>Patrimônio</span>
+
+                        <strong>
+                          {formatarTS(usuario.patrimonio)}
+                        </strong>
+                      </PatrimonioMobile>
+
+                      <MetricasMobile>
+                        <MetricaMobile>
+                          <span>Rentabilidade</span>
+
+                          <Variacao
+                            $positivo={Number(usuario.rentabilidade) >= 0}
+                          >
+                            {formatarPercentual(usuario.rentabilidade)}
+                          </Variacao>
+                        </MetricaMobile>
+
+                        <MetricaMobile>
+                          <span>Saldo</span>
 
                           <strong>
-                            {formatarTS(
-                              usuario.patrimonio
-                            )}
+                            {formatarTS(usuario.saldo)}
                           </strong>
-                        </PatrimonioMobile>
+                        </MetricaMobile>
 
-                        <MetricasMobile>
-                          <MetricaMobile>
-                            <span>
-                              Rentabilidade
-                            </span>
+                        <MetricaMobile>
+                          <span>Posições</span>
 
-                            <Variacao
-                              $positivo={
-                                Number(
-                                  usuario.rentabilidade
-                                ) >= 0
-                              }
+                          <strong>
+                            {usuario.quantidadePosicoes}
+                          </strong>
+                        </MetricaMobile>
+
+                        <MetricaMobile>
+                          <span>Unidades</span>
+
+                          <strong>
+                            {Number(
+                              usuario.quantidadeUnidades || 0
+                            ).toLocaleString('pt-BR', {
+                              maximumFractionDigits: 4,
+                            })}
+                          </strong>
+                        </MetricaMobile>
+                      </MetricasMobile>
+                    </CardMobile>
+                  );
+                })}
+              </ListaMobile>
+            </MobileOnly>
+
+            <Paginacao>
+              <BotaoPagina
+                type="button"
+                disabled={paginaPrivada <= 1}
+                onClick={() => mudarPaginaPrivada(paginaPrivada - 1)}
+              >
+                Anterior
+              </BotaoPagina>
+
+              <InformacaoPagina>
+                Página {paginaPrivada} de {totalPaginasPrivada}
+              </InformacaoPagina>
+
+              <BotaoPagina
+                type="button"
+                disabled={paginaPrivada >= totalPaginasPrivada}
+                onClick={() => mudarPaginaPrivada(paginaPrivada + 1)}
+              >
+                Próxima
+              </BotaoPagina>
+            </Paginacao>
+          </>
+        )}
+      </>
+    ) : (
+      <>
+        {erroPrivados && (
+          <MensagemErro>
+            {erroPrivados}
+          </MensagemErro>
+        )}
+
+        {carregandoPrivados ? (
+          <CarregandoCard>
+            Carregando rankings privados...
+          </CarregandoCard>
+        ) : (
+          <>
+            <PrivadosHeader>
+              <div>
+                <PrivadosTitulo>
+                  Seus rankings privados
+                </PrivadosTitulo>
+
+                <PrivadosTexto>
+                  Crie competições fechadas com outros usuários Premium usando
+                  a mesma carteira e a mesma rentabilidade da temporada.
+                </PrivadosTexto>
+              </div>
+
+              <BotaoCriarPrivado
+                type="button"
+                onClick={() => {
+                  setErroCriarPrivado('');
+                  setModalCriarPrivadoAberto(true);
+                }}
+              >
+                Criar ranking privado
+              </BotaoCriarPrivado>
+            </PrivadosHeader>
+
+            {rankingsPrivados.criados.length === 0 &&
+            rankingsPrivados.participando.length === 0 ? (
+              <VazioCard>
+                Você ainda não possui rankings privados.
+              </VazioCard>
+            ) : (
+              <PrivadosGrid>
+                {rankingsPrivados.criados.length > 0 && (
+                  <PrivadosGrupo>
+                    <PrivadosGrupoTitulo>
+                      Criados por você
+                    </PrivadosGrupoTitulo>
+
+                    <PrivadosLista>
+                      {rankingsPrivados.criados.map((rankingPrivado) => (
+                        <RankingPrivadoCard key={rankingPrivado._id}>
+                          <RankingPrivadoTopo>
+                            <div>
+                              <RankingPrivadoNome>
+                                {rankingPrivado.nome}
+                              </RankingPrivadoNome>
+
+                              <RankingPrivadoDescricao>
+                                {rankingPrivado.descricao ||
+                                  'Ranking privado sem descrição.'}
+                              </RankingPrivadoDescricao>
+                            </div>
+
+                            <RankingPrivadoStatus>
+                              Criador
+                            </RankingPrivadoStatus>
+                          </RankingPrivadoTopo>
+
+                          <RankingPrivadoMeta>
+                            <span>Participantes</span>
+
+                            <strong>
+                              {Number(rankingPrivado.totalParticipantes || 0)}/
+                              {Number(rankingPrivado.maxParticipantes || 0)}
+                            </strong>
+                          </RankingPrivadoMeta>
+
+                          <RankingPrivadoMeta>
+                            <span>Código de convite</span>
+
+                            <CodigoConvite>
+                              {rankingPrivado.codigoConvite}
+                            </CodigoConvite>
+                          </RankingPrivadoMeta>
+
+                          <RankingPrivadoAcoes>
+                            <BotaoSecundario
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard?.writeText(
+                                  rankingPrivado.codigoConvite
+                                );
+                              }}
                             >
-                              {formatarPercentual(
-                                usuario.rentabilidade
-                              )}
+                              Copiar código
+                            </BotaoSecundario>
+
+                            <BotaoSecundario
+                              type="button"
+                              onClick={() => {
+                                carregarClassificacaoPrivada(
+                                  rankingPrivado._id || rankingPrivado.id
+                                );
+                              }}
+                            >
+                              Ver ranking
+                            </BotaoSecundario>
+                          </RankingPrivadoAcoes>
+                        </RankingPrivadoCard>
+                      ))}
+                    </PrivadosLista>
+                  </PrivadosGrupo>
+                )}
+
+                {rankingsPrivados.participando.length > 0 && (
+                  <PrivadosGrupo>
+                    <PrivadosGrupoTitulo>
+                      Participando
+                    </PrivadosGrupoTitulo>
+
+                    <PrivadosLista>
+                      {rankingsPrivados.participando.map((rankingPrivado) => (
+                        <RankingPrivadoCard key={rankingPrivado._id}>
+                          <RankingPrivadoTopo>
+                            <div>
+                              <RankingPrivadoNome>
+                                {rankingPrivado.nome}
+                              </RankingPrivadoNome>
+
+                              <RankingPrivadoDescricao>
+                                {rankingPrivado.descricao ||
+                                  'Ranking privado sem descrição.'}
+                              </RankingPrivadoDescricao>
+                            </div>
+
+                            <RankingPrivadoStatus>
+                              {rankingPrivado?.membro?.status === 'pendente'
+                                ? 'Pendente'
+                                : 'Participante'}
+                            </RankingPrivadoStatus>
+                          </RankingPrivadoTopo>
+
+                          <RankingPrivadoMeta>
+                            <span>Participantes</span>
+
+                            <strong>
+                              {Number(rankingPrivado.totalParticipantes || 0)}/
+                              {Number(rankingPrivado.maxParticipantes || 0)}
+                            </strong>
+                          </RankingPrivadoMeta>
+
+                          <RankingPrivadoMeta>
+                            <span>Código de convite</span>
+
+                            <CodigoConvite>
+                              {rankingPrivado.codigoConvite}
+                            </CodigoConvite>
+                          </RankingPrivadoMeta>
+
+                          <RankingPrivadoAcoes>
+                            <BotaoSecundario
+                              type="button"
+                              onClick={() => {
+                                carregarClassificacaoPrivada(
+                                  rankingPrivado._id || rankingPrivado.id
+                                );
+                              }}
+                            >
+                              Ver ranking
+                            </BotaoSecundario>
+                          </RankingPrivadoAcoes>
+                        </RankingPrivadoCard>
+                      ))}
+                    </PrivadosLista>
+                  </PrivadosGrupo>
+                )}
+              </PrivadosGrid>
+            )}
+          </>
+        )}
+      </>
+    )}
+  </PrivadosSection>
+) : (
+  <>
+    {erro && (
+      <MensagemErro>
+        {erro}
+      </MensagemErro>
+    )}
+
+    {carregando ? (
+      <CarregandoCard>
+        Carregando ranking...
+      </CarregandoCard>
+    ) : (
+      <>
+        {topTres.length > 0 && (
+          <Podio>
+            {topTres.map((usuario) => (
+              <PodioCard
+                key={usuario.usuarioId}
+                $posicao={usuario.posicao}
+              >
+                <PodioPosicao
+                  $posicao={usuario.posicao}
+                >
+                  {usuario.posicao}º
+                </PodioPosicao>
+
+                <Avatar>
+                  {String(
+                    usuario.nomeUsuario ||
+                      usuario.nome ||
+                      'U'
+                  )
+                    .charAt(0)
+                    .toUpperCase()}
+                </Avatar>
+
+                <PodioUsuario>
+                  {usuario.nomeUsuario
+                    ? `@${usuario.nomeUsuario}`
+                    : usuario.nome || 'Usuário'}
+                </PodioUsuario>
+
+                <PodioPatrimonio>
+                  {formatarTS(usuario.patrimonio)}
+                </PodioPatrimonio>
+
+                <Variacao
+                  $positivo={Number(usuario.rentabilidade) >= 0}
+                >
+                  {formatarPercentual(usuario.rentabilidade)}
+                </Variacao>
+              </PodioCard>
+            ))}
+          </Podio>
+        )}
+
+        {ranking.length === 0 ? (
+          <VazioCard>
+            Nenhum usuário disponível no{' '}
+            {tituloCategoria.toLowerCase()}.
+          </VazioCard>
+        ) : (
+          <>
+            <DesktopOnly>
+              <TabelaContainer>
+                <Tabela>
+                  <thead>
+                    <tr>
+                      <th>Posição</th>
+                      <th>Usuário</th>
+                      <th>Patrimônio</th>
+                      <th>Rentabilidade</th>
+                      <th>Saldo</th>
+                      <th>Posições</th>
+                      <th>Unidades</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {ranking.map((usuario) => {
+                      const souEu =
+                        String(usuario.usuarioId) ===
+                        String(usuarioAtual?.usuarioId);
+
+                      return (
+                        <LinhaRanking
+                          key={usuario.usuarioId}
+                          $destaque={souEu}
+                        >
+                          <td>
+                            <PosicaoCelula>
+                              {usuario.posicao}º
+                            </PosicaoCelula>
+                          </td>
+
+                          <td>
+                            <UsuarioCelula>
+                              <AvatarPequeno>
+                                {String(
+                                  usuario.nomeUsuario ||
+                                    usuario.nome ||
+                                    'U'
+                                )
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </AvatarPequeno>
+
+                              <UsuarioInfo>
+                                <strong>
+                                  {usuario.nomeUsuario
+                                    ? `@${usuario.nomeUsuario}`
+                                    : usuario.nome || 'Usuário'}
+                                </strong>
+
+                                <PlanoUsuarioLinha
+                                  $premium={usuario.plano === 'premium'}
+                                >
+                                  {usuario.plano === 'premium'
+                                    ? 'Premium'
+                                    : 'Lite'}
+                                </PlanoUsuarioLinha>
+
+                                {souEu && (
+                                  <small>
+                                    Você
+                                  </small>
+                                )}
+                              </UsuarioInfo>
+                            </UsuarioCelula>
+                          </td>
+
+                          <td>
+                            <ValorDestaque>
+                              {formatarTS(usuario.patrimonio)}
+                            </ValorDestaque>
+                          </td>
+
+                          <td>
+                            <Variacao
+                              $positivo={Number(usuario.rentabilidade) >= 0}
+                            >
+                              {formatarPercentual(usuario.rentabilidade)}
                             </Variacao>
-                          </MetricaMobile>
+                          </td>
 
-                          <MetricaMobile>
-                            <span>
-                              Saldo
-                            </span>
+                          <td>
+                            {formatarTS(usuario.saldo)}
+                          </td>
 
+                          <td>
+                            {usuario.quantidadePosicoes}
+                          </td>
+
+                          <td>
+                            {Number(
+                              usuario.quantidadeUnidades || 0
+                            ).toLocaleString('pt-BR', {
+                              maximumFractionDigits: 4,
+                            })}
+                          </td>
+                        </LinhaRanking>
+                      );
+                    })}
+                  </tbody>
+                </Tabela>
+              </TabelaContainer>
+            </DesktopOnly>
+
+            <MobileOnly>
+              <ListaMobile>
+                {ranking.map((usuario) => {
+                  const souEu =
+                    String(usuario.usuarioId) ===
+                    String(usuarioAtual?.usuarioId);
+
+                  return (
+                    <CardMobile
+                      key={usuario.usuarioId}
+                      $destaque={souEu}
+                    >
+                      <CardMobileTopo>
+                        <PosicaoMobile>
+                          {usuario.posicao}º
+                        </PosicaoMobile>
+
+                        <UsuarioMobile>
+                          <AvatarPequeno>
+                            {String(
+                              usuario.nomeUsuario ||
+                                usuario.nome ||
+                                'U'
+                            )
+                              .charAt(0)
+                              .toUpperCase()}
+                          </AvatarPequeno>
+
+                          <div>
                             <strong>
-                              {formatarTS(
-                                usuario.saldo
-                              )}
+                              {usuario.nomeUsuario
+                                ? `@${usuario.nomeUsuario}`
+                                : usuario.nome || 'Usuário'}
                             </strong>
-                          </MetricaMobile>
 
-                          <MetricaMobile>
-                            <span>
-                              Posições
-                            </span>
+                            <PlanoUsuarioLinha
+                              $premium={usuario.plano === 'premium'}
+                            >
+                              {usuario.plano === 'premium'
+                                ? 'Premium'
+                                : 'Lite'}
+                            </PlanoUsuarioLinha>
 
-                            <strong>
-                              {
-                                usuario.quantidadePosicoes
-                              }
-                            </strong>
-                          </MetricaMobile>
+                            {souEu && (
+                              <small>
+                                Você
+                              </small>
+                            )}
+                          </div>
+                        </UsuarioMobile>
+                      </CardMobileTopo>
 
-                          <MetricaMobile>
-                            <span>
-                              Unidades
-                            </span>
+                      <PatrimonioMobile>
+                        <span>Patrimônio</span>
 
-                            <strong>
-                              {Number(
-                                usuario.quantidadeUnidades ||
-                                  0
-                              ).toLocaleString(
-                                'pt-BR',
-                                {
-                                  maximumFractionDigits: 4,
-                                }
-                              )}
-                            </strong>
-                          </MetricaMobile>
-                        </MetricasMobile>
-                      </CardMobile>
-                    );
-                  })}
-                </ListaMobile>
-              </MobileOnly>
+                        <strong>
+                          {formatarTS(usuario.patrimonio)}
+                        </strong>
+                      </PatrimonioMobile>
 
-              <Paginacao>
-                <BotaoPagina
-                  type="button"
-                  disabled={pagina <= 1}
-                  onClick={() =>
-                    mudarPagina(pagina - 1)
-                  }
-                >
-                  Anterior
-                </BotaoPagina>
+                      <MetricasMobile>
+                        <MetricaMobile>
+                          <span>Rentabilidade</span>
 
-                <InformacaoPagina>
-                  Página {pagina} de{' '}
-                  {totalPaginas}
-                </InformacaoPagina>
+                          <Variacao
+                            $positivo={Number(usuario.rentabilidade) >= 0}
+                          >
+                            {formatarPercentual(usuario.rentabilidade)}
+                          </Variacao>
+                        </MetricaMobile>
 
-                <BotaoPagina
-                  type="button"
-                  disabled={
-                    pagina >= totalPaginas
-                  }
-                  onClick={() =>
-                    mudarPagina(pagina + 1)
-                  }
-                >
-                  Próxima
-                </BotaoPagina>
-              </Paginacao>
-            </>
-          )}
-        </>
-      )}
-    </Container>
-  );
+                        <MetricaMobile>
+                          <span>Saldo</span>
+
+                          <strong>
+                            {formatarTS(usuario.saldo)}
+                          </strong>
+                        </MetricaMobile>
+
+                        <MetricaMobile>
+                          <span>Posições</span>
+
+                          <strong>
+                            {usuario.quantidadePosicoes}
+                          </strong>
+                        </MetricaMobile>
+
+                        <MetricaMobile>
+                          <span>Unidades</span>
+
+                          <strong>
+                            {Number(
+                              usuario.quantidadeUnidades || 0
+                            ).toLocaleString('pt-BR', {
+                              maximumFractionDigits: 4,
+                            })}
+                          </strong>
+                        </MetricaMobile>
+                      </MetricasMobile>
+                    </CardMobile>
+                  );
+                })}
+              </ListaMobile>
+            </MobileOnly>
+
+            <Paginacao>
+              <BotaoPagina
+                type="button"
+                disabled={pagina <= 1}
+                onClick={() => mudarPagina(pagina - 1)}
+              >
+                Anterior
+              </BotaoPagina>
+
+              <InformacaoPagina>
+                Página {pagina} de {totalPaginas}
+              </InformacaoPagina>
+
+              <BotaoPagina
+                type="button"
+                disabled={pagina >= totalPaginas}
+                onClick={() => mudarPagina(pagina + 1)}
+              >
+                Próxima
+              </BotaoPagina>
+            </Paginacao>
+          </>
+        )}
+      </>
+    )}
+  </>
+)}
+
+{modalCriarPrivadoAberto && (
+  <ModalOverlay
+    onClick={() => {
+      if (!criandoPrivado) {
+        setModalCriarPrivadoAberto(false);
+      }
+    }}
+  >
+    <ModalCard
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ModalTopo>
+        <div>
+          <ModalTitulo>
+            Criar ranking privado
+          </ModalTitulo>
+
+          <ModalTexto>
+            Crie uma competição fechada para usuários Premium.
+            A classificação usará a mesma carteira, patrimônio e
+            rentabilidade da temporada atual.
+          </ModalTexto>
+        </div>
+
+        <BotaoFecharModal
+          type="button"
+          disabled={criandoPrivado}
+          onClick={() => {
+            setModalCriarPrivadoAberto(false);
+          }}
+        >
+          ×
+        </BotaoFecharModal>
+      </ModalTopo>
+
+      <FormularioPrivado onSubmit={criarRankingPrivado}>
+        <CampoGrupo>
+          <CampoLabel>
+            Nome do ranking
+          </CampoLabel>
+
+          <CampoInput
+            type="text"
+            value={formPrivado.nome}
+            maxLength={80}
+            placeholder="Ex: Liga dos Amigos"
+            onChange={(e) =>
+              setFormPrivado((atual) => ({
+                ...atual,
+                nome: e.target.value,
+              }))
+            }
+          />
+        </CampoGrupo>
+
+        <CampoGrupo>
+          <CampoLabel>
+            Descrição
+          </CampoLabel>
+
+          <CampoTextarea
+            value={formPrivado.descricao}
+            maxLength={500}
+            placeholder="Ex: Ranking privado entre amigos para a temporada atual."
+            onChange={(e) =>
+              setFormPrivado((atual) => ({
+                ...atual,
+                descricao: e.target.value,
+              }))
+            }
+          />
+        </CampoGrupo>
+
+        <CampoGrupo>
+          <CampoLabel>
+            Limite de participantes
+          </CampoLabel>
+
+          <CampoInput
+            type="number"
+            min="2"
+            max="500"
+            value={formPrivado.maxParticipantes}
+            onChange={(e) =>
+              setFormPrivado((atual) => ({
+                ...atual,
+                maxParticipantes: e.target.value,
+              }))
+            }
+          />
+        </CampoGrupo>
+
+        <CheckboxLinha>
+          <input
+            type="checkbox"
+            checked={formPrivado.aprovacaoManual}
+            onChange={(e) =>
+              setFormPrivado((atual) => ({
+                ...atual,
+                aprovacaoManual: e.target.checked,
+              }))
+            }
+          />
+
+          <span>
+            Exigir aprovação manual para novos participantes
+          </span>
+        </CheckboxLinha>
+
+        {erroCriarPrivado && (
+          <MensagemErro>
+            {erroCriarPrivado}
+          </MensagemErro>
+        )}
+
+        <ModalAcoes>
+          <BotaoCancelarModal
+            type="button"
+            disabled={criandoPrivado}
+            onClick={() => {
+              setModalCriarPrivadoAberto(false);
+            }}
+          >
+            Cancelar
+          </BotaoCancelarModal>
+
+          <BotaoSalvarModal
+            type="submit"
+            disabled={criandoPrivado}
+          >
+            {criandoPrivado
+              ? 'Criando...'
+              : 'Criar ranking'}
+          </BotaoSalvarModal>
+        </ModalAcoes>
+      </FormularioPrivado>
+    </ModalCard>
+  </ModalOverlay>
+)}
+</Container>
+);
 }
 
 export default withAuth(RankingPage);
@@ -1354,6 +2221,224 @@ const MetricaMobile = styled.div`
   }
 `;
 
+const PrivadosSection = styled.section`
+  margin-top: 4px;
+`;
+
+const PrivadosHeader = styled.div`
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid
+    rgba(148, 163, 184, 0.13);
+  border-radius: 18px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(250, 204, 21, 0.12),
+      transparent 38%
+    ),
+    rgba(15, 23, 42, 0.7);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const PrivadosTitulo = styled.h2`
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.15rem;
+`;
+
+const PrivadosTexto = styled.p`
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 0.86rem;
+  line-height: 1.5;
+`;
+
+const BotaoCriarPrivado = styled.button`
+  border: 1px solid
+    rgba(250, 204, 21, 0.28);
+  border-radius: 12px;
+  padding: 10px 14px;
+
+  background: rgba(
+    250,
+    204,
+    21,
+    0.12
+  );
+
+  color: #fde68a;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(
+      250,
+      204,
+      21,
+      0.18
+    );
+  }
+`;
+
+const PrivadosGrid = styled.div`
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const PrivadosGrupo = styled.section``;
+
+const PrivadosGrupoTitulo = styled.h3`
+  margin: 0 0 10px;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+`;
+
+const PrivadosLista = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const RankingPrivadoCard = styled.article`
+  padding: 15px;
+  border: 1px solid
+    rgba(148, 163, 184, 0.13);
+  border-radius: 16px;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.025
+  );
+`;
+
+const RankingPrivadoTopo = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const RankingPrivadoNome = styled.strong`
+  display: block;
+  color: #f8fafc;
+  font-size: 0.96rem;
+`;
+
+const RankingPrivadoDescricao = styled.p`
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.45;
+`;
+
+const RankingPrivadoStatus = styled.span`
+  padding: 5px 8px;
+  border-radius: 999px;
+
+  background: rgba(
+    59,
+    130,
+    246,
+    0.13
+  );
+
+  color: #bfdbfe;
+  font-size: 0.68rem;
+  font-weight: 900;
+  white-space: nowrap;
+`;
+
+const RankingPrivadoMeta = styled.div`
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  span {
+    color: #64748b;
+    font-size: 0.74rem;
+  }
+
+  strong {
+    color: #cbd5e1;
+    font-size: 0.82rem;
+  }
+`;
+
+const CodigoConvite = styled.code`
+  padding: 4px 7px;
+  border-radius: 8px;
+
+  background: rgba(
+    15,
+    23,
+    42,
+    0.9
+  );
+
+  color: #fde68a;
+  font-size: 0.78rem;
+  font-weight: 900;
+`;
+
+const RankingPrivadoAcoes = styled.div`
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const BotaoSecundario = styled.button`
+  border: 1px solid
+    rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  padding: 8px 11px;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.04
+  );
+
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(
+      59,
+      130,
+      246,
+      0.12
+    );
+  }
+`;
+
+
+
 const Paginacao = styled.div`
   margin-top: 22px;
 
@@ -1386,6 +2471,215 @@ const BotaoPagina = styled.button`
 const InformacaoPagina = styled.span`
   color: #94a3b8;
   font-size: 0.82rem;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 20px;
+
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalCard = styled.div`
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
+
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(250, 204, 21, 0.11),
+      transparent 36%
+    ),
+    #0f172a;
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+`;
+
+const ModalTopo = styled.div`
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+`;
+
+const ModalTitulo = styled.h2`
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.18rem;
+`;
+
+const ModalTexto = styled.p`
+  margin: 7px 0 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.5;
+`;
+
+const BotaoFecharModal = styled.button`
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+  }
+`;
+
+const FormularioPrivado = styled.form`
+  padding: 18px 20px 20px;
+`;
+
+const CampoGrupo = styled.label`
+  display: block;
+  margin-bottom: 14px;
+`;
+
+const CampoLabel = styled.span`
+  display: block;
+  margin-bottom: 6px;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 800;
+`;
+
+const CampoInput = styled.input`
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 11px 12px;
+
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  font-size: 0.9rem;
+
+  outline: none;
+
+  &:focus {
+    border-color: rgba(59, 130, 246, 0.55);
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+`;
+
+const CampoTextarea = styled.textarea`
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 11px 12px;
+
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  font-size: 0.9rem;
+  line-height: 1.45;
+
+  outline: none;
+
+  &:focus {
+    border-color: rgba(59, 130, 246, 0.55);
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+`;
+
+const CheckboxLinha = styled.label`
+  margin: 6px 0 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+  }
+`;
+
+const ModalAcoes = styled.div`
+  margin-top: 18px;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  @media (max-width: 520px) {
+    flex-direction: column-reverse;
+  }
+`;
+
+const BotaoCancelarModal = styled.button`
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 10px 14px;
+
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const BotaoSalvarModal = styled.button`
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  border-radius: 12px;
+  padding: 10px 15px;
+
+  background: rgba(250, 204, 21, 0.15);
+  color: #fde68a;
+  font-weight: 900;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: rgba(250, 204, 21, 0.22);
+  }
 `;
 
 const MensagemErro = styled.div`
