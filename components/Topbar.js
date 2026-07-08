@@ -118,14 +118,18 @@ export default function Topbar() {
 
       setUsuariosBusca(Array.isArray(data?.usuarios) ? data.usuarios : []);
     } catch (err) {
-      console.warn(
-        '[TOPBAR SEARCH] erro ao buscar usuários:',
-        err?.response?.data || err.message
-      );
-      setUsuariosBusca([]);
-    } finally {
-      setCarregandoUsuariosBusca(false);
-    }
+  console.error('[TOPBAR SEARCH] erro ao buscar usuários:', {
+    status: err?.response?.status,
+    data: err?.response?.data,
+    message: err?.message,
+    url: `${API_BASE}/social/usuarios`,
+    termo,
+  });
+
+  setUsuariosBusca([]);
+} finally {
+  setCarregandoUsuariosBusca(false);
+}
   };
 
   const carregarNotificacoes = async () => {
