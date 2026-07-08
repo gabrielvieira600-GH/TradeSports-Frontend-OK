@@ -9,27 +9,34 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Topbar() {
   const router = useRouter();
+
   const [saldo, setSaldo] = useState('0.00');
   const [usuario, setUsuario] = useState(null);
+
   const [bancoAberto, setBancoAberto] = useState(false);
   const [notifAberto, setNotifAberto] = useState(false);
+
   const [notificacoes, setNotificacoes] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
   const [busca, setBusca] = useState('');
   const [clubes, setClubes] = useState([]);
+  const [usuariosBusca, setUsuariosBusca] = useState([]);
+  const [carregandoUsuariosBusca, setCarregandoUsuariosBusca] =
+    useState(false);
+
   const [searchAberto, setSearchAberto] = useState(false);
   const [searchIndexAtivo, setSearchIndexAtivo] = useState(-1);
-
-
 
   const bancoRef = useRef(null);
   const notifRef = useRef(null);
   const searchDesktopRef = useRef(null);
   const searchMobileRef = useRef(null);
+
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-      const normalizeText = (txt = '') =>
+  const normalizeText = (txt = '') =>
     String(txt)
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -37,33 +44,6 @@ export default function Topbar() {
       .replace(/\s+/g, ' ')
       .toLowerCase()
       .trim();
-
-  const carregarClubes = async () => {
-    try {
-      if (!API_BASE) return;
-
-      const { data } = await axios.get(`${API_BASE}/clube/clubes`);
-
-      const lista = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
-          ? data.data
-          : [];
-
-      setClubes(
-        lista
-          .map((clube) => ({
-            ...clube,
-            id: clube.id ?? clube.legacyId,
-            legacyId: clube.legacyId ?? clube.id,
-            nome: clube.nome || clube.nomeApi || 'Clube',
-          }))
-          .filter((clube) => clube.id || clube.legacyId)
-      );
-    } catch (e) {
-      console.warn('[TOPBAR SEARCH] erro ao carregar clubes:', e?.response?.data || e.message);
-    }
-  };
 
   const hydrateUser = () => {
     try {
@@ -87,20 +67,86 @@ export default function Topbar() {
     }
   };
 
+  const carregarClubes = async () => {
+    try {
+      if (!API_BASE) return;
+
+      const { data } = await axios.get(`${API_BASE}/clube/clubes`);
+
+      const lista = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+
+      setClubes(
+        lista
+          .map((clube) => ({
+            ...clube,
+            id: clube.id ?? clube.legacyId,
+            legacyId: clube.legacyId ?? clube.id,
+            nome: clube.nome || clube.nomeApi || 'Clube',
+          }))
+          .filter((clube) => clube.id || clube.legacyId)
+      );
+    } catch (err) {
+      console.warn(
+        '[TOPBAR SEARCH] erro ao carregar clubes:',
+        err?.response?.data || err.message
+      );
+    }
+  };
+
+  const carregarUsuariosBusca = async (termo) => {
+    try {
+      if (!API_BASE || !token || !termo || termo.length < 2) {
+        setUsuariosBusca([]);
+        return;
+      }
+
+      setCarregandoUsuariosBusca(true);
+
+      const { data } = await axios.get(`${API_BASE}/social/usuarios`, {
+        params: {
+          busca: termo,
+          limit: 6,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUsuariosBusca(Array.isArray(data?.usuarios) ? data.usuarios : []);
+    } catch (err) {
+      console.warn(
+        '[TOPBAR SEARCH] erro ao buscar usuários:',
+        err?.response?.data || err.message
+      );
+      setUsuariosBusca([]);
+    } finally {
+      setCarregandoUsuariosBusca(false);
+    }
+  };
+
   const carregarNotificacoes = async () => {
     try {
       if (!token || !API_BASE) return;
 
       const { data } = await axios.get(`${API_BASE}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      setNotificacoes(Array.isArray(data?.notifications) ? data.notifications : []);
+      setNotificacoes(
+        Array.isArray(data?.notifications) ? data.notifications : []
+      );
+
       setUnreadCount(Number(data?.unreadCount || 0));
     } catch {}
   };
 
-    useEffect(() => {
+  useEffect(() => {
     hydrateUser();
     carregarNotificacoes();
     carregarClubes();
@@ -127,13 +173,37 @@ export default function Topbar() {
 
   useEffect(() => {
     if (!token) return;
-    const t = setInterval(() => carregarNotificacoes(), 30000);
-    return () => clearInterval(t);
+
+    const interval = setInterval(() => {
+      carregarNotificacoes();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [token]);
 
   useEffect(() => {
+    const termo = busca.trim();
+
+    if (!token || termo.length < 2) {
+      setUsuariosBusca([]);
+      setCarregandoUsuariosBusca(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      carregarUsuariosBusca(termo);
+    }, 280);
+
+    return () => clearTimeout(timeout);
+  }, [busca, token]);
+
+  useEffect(() => {
     const onClick = (e) => {
-      if (bancoAberto && bancoRef.current && !bancoRef.current.contains(e.target)) {
+      if (
+        bancoAberto &&
+        bancoRef.current &&
+        !bancoRef.current.contains(e.target)
+      ) {
         setBancoAberto(false);
       }
 
@@ -146,10 +216,12 @@ export default function Topbar() {
       }
 
       const clicouForaDesktop =
-        searchDesktopRef.current && !searchDesktopRef.current.contains(e.target);
+        searchDesktopRef.current &&
+        !searchDesktopRef.current.contains(e.target);
 
       const clicouForaMobile =
-        searchMobileRef.current && !searchMobileRef.current.contains(e.target);
+        searchMobileRef.current &&
+        !searchMobileRef.current.contains(e.target);
 
       if (clicouForaDesktop && clicouForaMobile) {
         setSearchAberto(false);
@@ -158,6 +230,7 @@ export default function Topbar() {
     };
 
     document.addEventListener('mousedown', onClick);
+
     return () => document.removeEventListener('mousedown', onClick);
   }, [bancoAberto, notifAberto]);
 
@@ -165,6 +238,7 @@ export default function Topbar() {
     if (typeof window === 'undefined') return;
 
     const isMobile = window.innerWidth <= 640;
+
     if (notifAberto && isMobile) {
       document.body.style.overflow = 'hidden';
     }
@@ -181,9 +255,15 @@ export default function Topbar() {
       await axios.post(
         `${API_BASE}/notifications/read-all`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
       await carregarNotificacoes();
+
       window.dispatchEvent(new Event('notifications-updated'));
     } catch {}
   };
@@ -195,46 +275,53 @@ export default function Topbar() {
       await axios.post(
         `${API_BASE}/notifications/${id}/read`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
       await carregarNotificacoes();
+
       window.dispatchEvent(new Event('notifications-updated'));
     } catch {}
   };
+
   const getNotificationTargetUrl = (notificacao) => {
-  const metadata = notificacao?.metadata || notificacao?.meta || {};
+    const metadata = notificacao?.metadata || notificacao?.meta || {};
 
-  if (metadata?.targetUrl) {
-    return String(metadata.targetUrl);
-  }
+    if (metadata?.targetUrl) {
+      return String(metadata.targetUrl);
+    }
 
-  const clubeId =
-    metadata?.clubeId ||
-    metadata?.entityId ||
-    notificacao?.entityId ||
-    notificacao?.clubeId;
+    const clubeId =
+      metadata?.clubeId ||
+      metadata?.entityId ||
+      notificacao?.entityId ||
+      notificacao?.clubeId;
 
-  if (clubeId) {
-    return `/clube/${clubeId}`;
-  }
+    if (clubeId) {
+      return `/clube/${clubeId}`;
+    }
 
-  return null;
-};
+    return null;
+  };
 
-const handleNotificationClick = async (notificacao) => {
-  if (!notificacao) return;
+  const handleNotificationClick = async (notificacao) => {
+    if (!notificacao) return;
 
-  const targetUrl = getNotificationTargetUrl(notificacao);
+    const targetUrl = getNotificationTargetUrl(notificacao);
 
-  if (!notificacao.read) {
-    await marcarUmaComoLida(notificacao.id);
-  }
+    if (!notificacao.read) {
+      await marcarUmaComoLida(notificacao.id);
+    }
 
-  if (targetUrl) {
-    setNotifAberto(false);
-    router.push(targetUrl);
-  }
-};
+    if (targetUrl) {
+      setNotifAberto(false);
+      router.push(targetUrl);
+    }
+  };
 
   const clubesFiltrados = useMemo(() => {
     const termo = normalizeText(busca);
@@ -247,10 +334,45 @@ const handleNotificationClick = async (notificacao) => {
       .filter((clube) => {
         const nome = normalizeText(clube.nome);
         const nomeApi = normalizeText(clube.nomeApi || '');
+
         return nome.includes(termo) || nomeApi.includes(termo);
       })
-      .slice(0, 8);
+      .slice(0, 6);
   }, [busca, clubes]);
+
+  const usuariosFiltrados = useMemo(() => {
+    const termo = normalizeText(busca);
+
+    if (!termo || termo.length < 2) {
+      return [];
+    }
+
+    return usuariosBusca.slice(0, 6);
+  }, [busca, usuariosBusca]);
+
+  const resultadosBusca = useMemo(() => {
+    const resultadosClubes = clubesFiltrados.map((clube) => ({
+      tipo: 'clube',
+      id: String(clube.id ?? clube.legacyId),
+      label: clube.nome,
+      subtitle: 'Abrir página do clube',
+      data: clube,
+    }));
+
+    const resultadosUsuarios = usuariosFiltrados.map((usuarioPerfil) => ({
+      tipo: 'usuario',
+      id: String(usuarioPerfil.id),
+      label: usuarioPerfil.nomeUsuario
+        ? `@${usuarioPerfil.nomeUsuario}`
+        : usuarioPerfil.nomePublico || usuarioPerfil.nome || 'Usuário',
+      subtitle: `${usuarioPerfil.estatisticas?.seguidores || 0} seguidores · ${
+        usuarioPerfil.quantidadePosicoes || 0
+      } posições`,
+      data: usuarioPerfil,
+    }));
+
+    return [...resultadosClubes, ...resultadosUsuarios];
+  }, [clubesFiltrados, usuariosFiltrados]);
 
   const irParaClube = (clube) => {
     const clubeId = clube?.id ?? clube?.legacyId;
@@ -264,16 +386,118 @@ const handleNotificationClick = async (notificacao) => {
     router.push(`/clube/${clubeId}`);
   };
 
-  const encontrarClubePorBusca = () => {
+  const irParaPerfil = (usuarioPerfil) => {
+    const usuarioId = usuarioPerfil?.id ?? usuarioPerfil?._id;
+
+    if (!usuarioId) return;
+
+    setBusca('');
+    setSearchAberto(false);
+    setSearchIndexAtivo(-1);
+
+    router.push(`/perfil/${usuarioId}`);
+  };
+
+  const irParaResultadoBusca = (resultado) => {
+    if (!resultado) return;
+
+    if (resultado.tipo === 'clube') {
+      irParaClube(resultado.data);
+      return;
+    }
+
+    if (resultado.tipo === 'usuario') {
+      irParaPerfil(resultado.data);
+    }
+  };
+
+  const encontrarResultadoPorBusca = () => {
     const termo = normalizeText(busca);
 
     if (!termo) return null;
 
-    const exato = clubes.find((clube) => normalizeText(clube.nome) === termo);
+    const clubeExato = clubes.find(
+      (clube) => normalizeText(clube.nome) === termo
+    );
 
-    if (exato) return exato;
+    if (clubeExato) {
+      return {
+        tipo: 'clube',
+        id: String(clubeExato.id ?? clubeExato.legacyId),
+        data: clubeExato,
+      };
+    }
 
-    return clubesFiltrados[0] || null;
+    const usuarioExato = usuariosFiltrados.find((usuarioPerfil) => {
+      const nomeUsuario = normalizeText(usuarioPerfil.nomeUsuario || '');
+      const nomePublico = normalizeText(
+        usuarioPerfil.nomePublico || usuarioPerfil.nome || ''
+      );
+
+      return nomeUsuario === termo || nomePublico === termo;
+    });
+
+    if (usuarioExato) {
+      return {
+        tipo: 'usuario',
+        id: String(usuarioExato.id),
+        data: usuarioExato,
+      };
+    }
+
+    return resultadosBusca[0] || null;
+  };
+
+  const handleBusca = (e) => {
+    e.preventDefault();
+
+    const resultadoEncontrado = encontrarResultadoPorBusca();
+
+    if (resultadoEncontrado) {
+      irParaResultadoBusca(resultadoEncontrado);
+      return;
+    }
+
+    const termo = busca.trim();
+
+    if (!termo) return;
+
+    router.push(`/brasileirao-a?search=${encodeURIComponent(termo)}`);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (!searchAberto || resultadosBusca.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+
+      setSearchIndexAtivo((idx) =>
+        idx >= resultadosBusca.length - 1 ? 0 : idx + 1
+      );
+
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+
+      setSearchIndexAtivo((idx) =>
+        idx <= 0 ? resultadosBusca.length - 1 : idx - 1
+      );
+
+      return;
+    }
+
+    if (e.key === 'Enter' && searchIndexAtivo >= 0) {
+      e.preventDefault();
+
+      irParaResultadoBusca(resultadosBusca[searchIndexAtivo]);
+    }
+
+    if (e.key === 'Escape') {
+      setSearchAberto(false);
+      setSearchIndexAtivo(-1);
+    }
   };
 
   const handleLogout = () => {
@@ -287,60 +511,13 @@ const handleNotificationClick = async (notificacao) => {
     [notificacoes]
   );
 
-    const handleBusca = (e) => {
-    e.preventDefault();
-
-    const clubeEncontrado = encontrarClubePorBusca();
-
-    if (clubeEncontrado) {
-      irParaClube(clubeEncontrado);
-      return;
-    }
-
-    const termo = busca.trim();
-
-    if (!termo) return;
-
-    router.push(`/brasileirao-a?search=${encodeURIComponent(termo)}`);
-  };
-
-  const handleSearchKeyDown = (e) => {
-    if (!searchAberto || clubesFiltrados.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSearchIndexAtivo((idx) =>
-        idx >= clubesFiltrados.length - 1 ? 0 : idx + 1
-      );
-      return;
-    }
-
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSearchIndexAtivo((idx) =>
-        idx <= 0 ? clubesFiltrados.length - 1 : idx - 1
-      );
-      return;
-    }
-
-    if (e.key === 'Enter' && searchIndexAtivo >= 0) {
-      e.preventDefault();
-      irParaClube(clubesFiltrados[searchIndexAtivo]);
-    }
-
-    if (e.key === 'Escape') {
-      setSearchAberto(false);
-      setSearchIndexAtivo(-1);
-    }
-  };
-
-      const renderSearchBox = (mobile = false) => (
+  const renderSearchBox = (mobile = false) => (
     <SearchBoxWrap ref={mobile ? searchMobileRef : searchDesktopRef}>
       <SearchIcon>⌕</SearchIcon>
 
       <SearchInput
         type="text"
-        placeholder="Pesquisar clube ou mercado"
+        placeholder="Pesquisar clube, mercado ou perfil"
         value={busca}
         onChange={(e) => {
           setBusca(e.target.value);
@@ -354,30 +531,89 @@ const handleNotificationClick = async (notificacao) => {
 
       {searchAberto && busca.trim().length >= 2 && (
         <SearchDropdown>
-          {clubesFiltrados.length === 0 ? (
-            <SearchEmpty>Nenhum clube encontrado.</SearchEmpty>
+          {resultadosBusca.length === 0 ? (
+            <SearchEmpty>
+              {carregandoUsuariosBusca
+                ? 'Buscando perfis...'
+                : 'Nenhum resultado encontrado.'}
+            </SearchEmpty>
           ) : (
-            clubesFiltrados.map((clube, index) => (
-              <SearchOption
-                key={clube.id ?? clube.legacyId}
-                type="button"
-                $active={index === searchIndexAtivo}
-                onMouseEnter={() => setSearchIndexAtivo(index)}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  irParaClube(clube);
-                }}
-              >
-                <SearchOptionAvatar>
-                  <ClubBadge clube={clube.nome} size={28} />
-                </SearchOptionAvatar>
+            <>
+              {clubesFiltrados.length > 0 && (
+                <SearchSectionTitle>Clubes</SearchSectionTitle>
+              )}
 
-                <SearchOptionText>
-                  <strong>{clube.nome}</strong>
-                  <span>Abrir página do clube</span>
-                </SearchOptionText>
-              </SearchOption>
-            ))
+              {clubesFiltrados.map((clube, index) => (
+                <SearchOption
+                  key={`clube-${clube.id ?? clube.legacyId}`}
+                  type="button"
+                  $active={index === searchIndexAtivo}
+                  onMouseEnter={() => setSearchIndexAtivo(index)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    irParaClube(clube);
+                  }}
+                >
+                  <SearchOptionAvatar>
+                    <ClubBadge clube={clube.nome} size={28} />
+                  </SearchOptionAvatar>
+
+                  <SearchOptionText>
+                    <strong>{clube.nome}</strong>
+                    <span>Abrir página do clube</span>
+                  </SearchOptionText>
+                </SearchOption>
+              ))}
+
+              {usuariosFiltrados.length > 0 && (
+                <SearchSectionTitle>Usuários</SearchSectionTitle>
+              )}
+
+              {usuariosFiltrados.map((usuarioPerfil, index) => {
+                const resultIndex = clubesFiltrados.length + index;
+
+                const nomePerfil = usuarioPerfil.nomeUsuario
+                  ? `@${usuarioPerfil.nomeUsuario}`
+                  : usuarioPerfil.nomePublico ||
+                    usuarioPerfil.nome ||
+                    'Usuário';
+
+                return (
+                  <SearchOption
+                    key={`usuario-${usuarioPerfil.id}`}
+                    type="button"
+                    $active={resultIndex === searchIndexAtivo}
+                    onMouseEnter={() => setSearchIndexAtivo(resultIndex)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      irParaPerfil(usuarioPerfil);
+                    }}
+                  >
+                    <SearchUserAvatar>
+                      {String(nomePerfil)
+                        .replace('@', '')
+                        .charAt(0)
+                        .toUpperCase()}
+                    </SearchUserAvatar>
+
+                    <SearchOptionText>
+                      <strong>{nomePerfil}</strong>
+                      <span>
+                        {usuarioPerfil.estatisticas?.seguidores || 0}{' '}
+                        seguidores · {usuarioPerfil.quantidadePosicoes || 0}{' '}
+                        posições
+                      </span>
+                    </SearchOptionText>
+
+                    <SearchPlanBadge
+                      $premium={usuarioPerfil.plano === 'premium'}
+                    >
+                      {usuarioPerfil.plano === 'premium' ? 'Premium' : 'Lite'}
+                    </SearchPlanBadge>
+                  </SearchOption>
+                );
+              })}
+            </>
           )}
         </SearchDropdown>
       )}
@@ -388,24 +624,25 @@ const handleNotificationClick = async (notificacao) => {
     <Barra>
       <TopRow>
         <LeftBlock>
-  <Logo>
-    <Link href="/" aria-label="TradeSports">
-      <LogoImagem src="/tradesports-logo.png" alt="TradeSports" />
-    </Link>
-  </Logo>
-</LeftBlock>
+          <Logo>
+            <Link href="/" aria-label="TradeSports">
+              <LogoImagem src="/tradesports-logo.png" alt="TradeSports" />
+            </Link>
+          </Logo>
+        </LeftBlock>
 
         <RightBlock>
           {!usuario ? (
             <>
               <DesktopSearchForm onSubmit={handleBusca}>
-  {renderSearchBox()}
-</DesktopSearchForm>
+                {renderSearchBox()}
+              </DesktopSearchForm>
 
               <GuestActions>
                 <Link href="/login" passHref>
                   <BotaoAzul as="span">Login</BotaoAzul>
                 </Link>
+
                 <Link href="/cadastro" passHref>
                   <BotaoVerde as="span">Registrar</BotaoVerde>
                 </Link>
@@ -414,8 +651,8 @@ const handleNotificationClick = async (notificacao) => {
           ) : (
             <UserRow>
               <DesktopSearchForm onSubmit={handleBusca}>
-  {renderSearchBox()}
-</DesktopSearchForm>
+                {renderSearchBox()}
+              </DesktopSearchForm>
 
               <IconWrap ref={notifRef}>
                 <IconButton
@@ -424,6 +661,7 @@ const handleNotificationClick = async (notificacao) => {
                   aria-label="Notificações"
                 >
                   <Bell>🔔</Bell>
+
                   {unreadCount > 0 && (
                     <Badge>{unreadCount > 99 ? '99+' : unreadCount}</Badge>
                   )}
@@ -431,7 +669,9 @@ const handleNotificationClick = async (notificacao) => {
 
                 {notifAberto && (
                   <>
-                    <NotifMobileOverlay onClick={() => setNotifAberto(false)} />
+                    <NotifMobileOverlay
+                      onClick={() => setNotifAberto(false)}
+                    />
 
                     <NotifDropdown>
                       <NotifHeader>
@@ -441,9 +681,13 @@ const handleNotificationClick = async (notificacao) => {
                         </NotifHeaderText>
 
                         <NotifHeaderActions>
-                          <MarkAllBtn type="button" onClick={marcarTodasComoLidas}>
+                          <MarkAllBtn
+                            type="button"
+                            onClick={marcarTodasComoLidas}
+                          >
                             Marcar tudo
                           </MarkAllBtn>
+
                           <CloseNotifBtn
                             type="button"
                             onClick={() => setNotifAberto(false)}
@@ -455,29 +699,32 @@ const handleNotificationClick = async (notificacao) => {
                       </NotifHeader>
 
                       {notificationsPreview.length === 0 ? (
-                        <NotifEmpty>Você ainda não recebeu notificações.</NotifEmpty>
+                        <NotifEmpty>
+                          Você ainda não recebeu notificações.
+                        </NotifEmpty>
                       ) : (
                         <NotifList>
                           {notificationsPreview.map((n) => (
                             <NotifItem
-                             key={n.id}
-                             $unread={!n.read}
-                             $clickable={Boolean(getNotificationTargetUrl(n))}
-                             onClick={() => handleNotificationClick(n)}
-                             title={
-                             !n.read
-                             ? 'Clique para marcar como lida'
-                             : getNotificationTargetUrl(n)
-                             ? 'Clique para abrir a página do clube'
-                             : 'Notificação'
-                             }
+                              key={n.id}
+                              $unread={!n.read}
+                              $clickable={Boolean(getNotificationTargetUrl(n))}
+                              onClick={() => handleNotificationClick(n)}
+                              title={
+                                getNotificationTargetUrl(n)
+                                  ? 'Clique para abrir'
+                                  : 'Notificação'
+                              }
                             >
                               <NotifDot $unread={!n.read} />
+
                               <NotifBody>
                                 <strong>{n.title}</strong>
                                 <p>{n.body}</p>
                                 <small>
-                                  {new Date(n.createdAt).toLocaleString('pt-BR')}
+                                  {new Date(n.createdAt).toLocaleString(
+                                    'pt-BR'
+                                  )}
                                 </small>
                               </NotifBody>
                             </NotifItem>
@@ -490,28 +737,37 @@ const handleNotificationClick = async (notificacao) => {
               </IconWrap>
 
               <BancoWrap ref={bancoRef}>
-                <BotaoVerde type="button" onClick={() => setBancoAberto((v) => !v)}>
+                <BotaoVerde
+                  type="button"
+                  onClick={() => setBancoAberto((v) => !v)}
+                >
                   <UserAndSaldo>
-                    <SaldoInline>👤 R$ {parseFloat(saldo || 0).toFixed(2)}</SaldoInline>
+                    <SaldoInline>
+                      👤 R$ {parseFloat(saldo || 0).toFixed(2)}
+                    </SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
                   <Dropdown>
-  <DropLink href="/carteira">Carteira</DropLink>
-  <DropLink href="/ranking">Ranking</DropLink>
-  <DropLink href="/social">Comunidade</DropLink>
-  <DropLink href="/convites">Convites</DropLink>
-  <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
-  <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
-  <DropLink href="/extrato">Extrato</DropLink>
-  <DropLink href="/deposito">Depósito</DropLink>
-  <DropLink href="/saque">Saque</DropLink>
-</Dropdown>
+                    <DropLink href="/carteira">Carteira</DropLink>
+                    <DropLink href="/ranking">Ranking</DropLink>
+                    <DropLink href="/social">Comunidade</DropLink>
+                    <DropLink href="/convites">Convites</DropLink>
+                    <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
+                    <DropLink href="/minhas-transacoes">
+                      Minhas Transações
+                    </DropLink>
+                    <DropLink href="/extrato">Extrato</DropLink>
+                    <DropLink href="/deposito">Depósito</DropLink>
+                    <DropLink href="/saque">Saque</DropLink>
+                  </Dropdown>
                 )}
               </BancoWrap>
 
-              <Botao onClick={handleLogout}>Sair</Botao>
+              <Botao type="button" onClick={handleLogout}>
+                Sair
+              </Botao>
             </UserRow>
           )}
         </RightBlock>
@@ -519,8 +775,8 @@ const handleNotificationClick = async (notificacao) => {
 
       <MobileSearchRow>
         <SearchForm onSubmit={handleBusca}>
-  {renderSearchBox(true)}
-</SearchForm>
+          {renderSearchBox(true)}
+        </SearchForm>
       </MobileSearchRow>
     </Barra>
   );
@@ -530,7 +786,11 @@ const Barra = styled.header`
   width: 100%;
   padding: 10px 18px 12px;
   background:
-    radial-gradient(circle at top center, rgba(37, 99, 235, 0.18), transparent 35%),
+    radial-gradient(
+      circle at top center,
+      rgba(37, 99, 235, 0.18),
+      transparent 35%
+    ),
     linear-gradient(180deg, #0f172a, #0b1324);
   color: white;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
@@ -548,6 +808,7 @@ const TopRow = styled.div`
   width: 100%;
   max-width: none;
   margin: 0;
+
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
@@ -556,7 +817,6 @@ const TopRow = styled.div`
   @media (max-width: 640px) {
     grid-template-columns: auto 1fr;
     gap: 8px;
-    align-items: center;
   }
 `;
 
@@ -635,11 +895,11 @@ const UserRow = styled.div`
 
 const DesktopSearchForm = styled.form`
   position: relative;
-  width: min(420px, 32vw);
+  width: min(440px, 32vw);
   min-width: 220px;
 
   @media (max-width: 900px) {
-    width: min(290px, 28vw);
+    width: min(300px, 28vw);
     min-width: 180px;
   }
 
@@ -672,13 +932,24 @@ const SearchDropdown = styled.div`
   left: 0;
   right: 0;
   top: calc(100% + 8px);
+
   background: linear-gradient(180deg, #0f172a, #111827);
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+
   padding: 6px;
   z-index: 90;
   overflow: hidden;
+`;
+
+const SearchSectionTitle = styled.div`
+  padding: 8px 10px 5px;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 `;
 
 const SearchOption = styled.button`
@@ -689,9 +960,11 @@ const SearchOption = styled.button`
     $active ? 'rgba(59, 130, 246, 0.16)' : 'transparent'};
   color: #f8fafc;
   padding: 10px;
+
   display: flex;
   align-items: center;
   gap: 10px;
+
   text-align: left;
   cursor: pointer;
 
@@ -704,9 +977,25 @@ const SearchOptionAvatar = styled.div`
   width: 34px;
   height: 34px;
   border-radius: 999px;
+
   display: grid;
   place-items: center;
   flex: 0 0 auto;
+`;
+
+const SearchUserAvatar = styled.div`
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+
+  background: rgba(59, 130, 246, 0.17);
+  color: #93c5fd;
+  font-size: 0.9rem;
+  font-weight: 900;
 `;
 
 const SearchOptionText = styled.div`
@@ -714,6 +1003,7 @@ const SearchOptionText = styled.div`
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 
   strong {
     color: #f8fafc;
@@ -727,6 +1017,26 @@ const SearchOptionText = styled.div`
     color: #94a3b8;
     font-size: 0.75rem;
   }
+`;
+
+const SearchPlanBadge = styled.span`
+  margin-left: auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+
+  background: ${({ $premium }) =>
+    $premium ? 'rgba(250, 204, 21, 0.11)' : 'rgba(34, 197, 94, 0.09)'};
+
+  color: ${({ $premium }) => ($premium ? '#fde68a' : '#86efac')};
+
+  border: 1px solid
+    ${({ $premium }) =>
+      $premium ? 'rgba(250, 204, 21, 0.2)' : 'rgba(34, 197, 94, 0.16)'};
+
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
 `;
 
 const SearchEmpty = styled.div`
@@ -750,6 +1060,7 @@ const SearchInput = styled.input`
   width: 100%;
   height: 44px;
   padding: 0 14px 0 42px;
+
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(255, 255, 255, 0.05);
@@ -775,12 +1086,15 @@ const IconButton = styled.button`
   position: relative;
   height: 42px;
   width: 42px;
+
   border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.05);
   color: white;
+
   cursor: pointer;
   font-size: 1.05rem;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -806,14 +1120,18 @@ const Badge = styled.span`
   position: absolute;
   top: -6px;
   right: -6px;
+
   min-width: 19px;
   height: 19px;
   padding: 0 5px;
+
   border-radius: 999px;
   background: linear-gradient(180deg, #ef4444, #dc2626);
   color: #fff;
+
   font-size: 11px;
   font-weight: 800;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -835,12 +1153,15 @@ const NotifDropdown = styled.div`
   position: absolute;
   right: 0;
   top: calc(100% + 10px);
+
   width: 390px;
   max-width: min(390px, calc(100vw - 20px));
+
   background: linear-gradient(180deg, #0f172a, #111827);
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 16px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+
   overflow: hidden;
   z-index: 70;
 
@@ -850,6 +1171,7 @@ const NotifDropdown = styled.div`
     right: auto;
     top: 76px;
     transform: translateX(-50%);
+
     width: calc(100vw - 16px);
     max-width: 430px;
     max-height: calc(100vh - 96px);
@@ -859,10 +1181,12 @@ const NotifDropdown = styled.div`
 
 const NotifHeader = styled.div`
   padding: 14px 16px;
+
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 
   strong {
@@ -906,12 +1230,15 @@ const CloseNotifBtn = styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
     height: 32px;
     width: 32px;
+
     border: 1px solid rgba(148, 163, 184, 0.18);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.04);
     color: #e5e7eb;
+
     cursor: pointer;
     font-size: 0.95rem;
   }
@@ -928,14 +1255,18 @@ const NotifList = styled.div`
 
 const NotifItem = styled.button`
   width: 100%;
+  border: 0;
+  padding: 14px 16px;
+
   display: flex;
   gap: 12px;
+
   text-align: left;
-  border: 0;
   cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
-  padding: 14px 16px;
+
   background: ${({ $unread }) =>
     $unread ? 'rgba(59,130,246,.08)' : 'transparent'};
+
   border-bottom: 1px solid rgba(148, 163, 184, 0.08);
 
   &:hover {
@@ -951,8 +1282,10 @@ const NotifDot = styled.span`
   width: 10px;
   height: 10px;
   margin-top: 6px;
+
   border-radius: 999px;
   background: ${({ $unread }) => ($unread ? '#22c55e' : '#334155')};
+
   flex: 0 0 auto;
 `;
 
@@ -1001,14 +1334,19 @@ const Dropdown = styled.div`
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
+
   min-width: 220px;
   max-width: min(240px, calc(100vw - 20px));
+
   background: #0f172a;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 12px;
+
   padding: 8px;
+
   display: flex;
   flex-direction: column;
+
   z-index: 50;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
 `;
@@ -1016,6 +1354,7 @@ const Dropdown = styled.div`
 const DropLink = styled(Link)`
   color: #e5e7eb;
   text-decoration: none;
+
   padding: 10px 12px;
   border-radius: 8px;
 
@@ -1027,17 +1366,22 @@ const DropLink = styled(Link)`
 const BaseButton = styled.button`
   border: none;
   border-radius: 14px;
+
   padding: 10px 14px;
-  font-size: 0.92rem;
-  cursor: pointer;
+  min-height: 42px;
+
   color: white;
+  font-size: 0.92rem;
   font-weight: 800;
   text-decoration: none;
+
+  cursor: pointer;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   line-height: 1;
-  min-height: 42px;
   white-space: nowrap;
 
   @media (max-width: 640px) {

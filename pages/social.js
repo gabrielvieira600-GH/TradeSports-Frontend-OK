@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
@@ -23,6 +24,7 @@ function nomeExibicao(usuario) {
 }
 
 function SocialPage() {
+  const router = useRouter();
   const [busca, setBusca] = useState('');
   const [usuarios, setUsuarios] = useState([]);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
@@ -137,30 +139,10 @@ function SocialPage() {
     }
   }
 
-  async function abrirPerfil(usuarioId) {
+    function abrirPerfil(usuarioId) {
     if (!usuarioId) return;
 
-    try {
-      setCarregandoPerfil(true);
-      setErroPerfil('');
-      setErroConvite('');
-      setSucessoConvite('');
-      setMensagemConvite('');
-
-      const { data } = await api.get(`/social/usuarios/${usuarioId}`);
-
-      setUsuarioSelecionado(data?.usuario || null);
-    } catch (err) {
-      console.error('Erro ao abrir perfil:', err);
-
-      setErroPerfil(
-        err?.response?.data?.erro || 'Não foi possível abrir este perfil.'
-      );
-
-      setUsuarioSelecionado(null);
-    } finally {
-      setCarregandoPerfil(false);
-    }
+    router.push(`/perfil/${usuarioId}`);
   }
 
   async function seguirUsuario() {
