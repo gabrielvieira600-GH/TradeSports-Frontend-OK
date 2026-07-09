@@ -35,7 +35,18 @@ export default function Topbar() {
 
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  
+  const meuPerfilId =
+  usuario?._id ||
+  usuario?.id ||
+  usuario?.usuarioId ||
+  usuario?.userId ||
+  usuario?.mongoId ||
+  null;
 
+const meuPerfilHref = meuPerfilId
+  ? `/perfil/${meuPerfilId}`
+  : '/social';
   const normalizeText = (txt = '') =>
     String(txt)
       .normalize('NFD')
@@ -754,6 +765,7 @@ export default function Topbar() {
 
                 {bancoAberto && (
                   <Dropdown>
+                    <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
                     <DropLink href="/social">Comunidade</DropLink>

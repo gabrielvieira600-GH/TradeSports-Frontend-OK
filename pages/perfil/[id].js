@@ -47,6 +47,30 @@ function nomeExibicao(usuario) {
   );
 }
 
+function obterUsuarioLogadoId() {
+  if (typeof window === 'undefined') return '';
+
+  try {
+    const usuarioSalvo = localStorage.getItem('usuario');
+
+    const usuario =
+      usuarioSalvo && usuarioSalvo !== 'undefined'
+        ? JSON.parse(usuarioSalvo)
+        : null;
+
+    return String(
+      usuario?._id ||
+        usuario?.id ||
+        usuario?.usuarioId ||
+        usuario?.userId ||
+        usuario?.mongoId ||
+        ''
+    );
+  } catch {
+    return '';
+  }
+}
+
 function PerfilPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -54,7 +78,7 @@ function PerfilPage() {
   const [usuario, setUsuario] = useState(null);
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
   const [erroPerfil, setErroPerfil] = useState('');
-
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState('');
   const [processandoFollow, setProcessandoFollow] = useState(false);
 
   const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState('lite');
@@ -78,20 +102,26 @@ function PerfilPage() {
 
   const rentabilidadePositiva = Number(mercado.rentabilidade || 0) >= 0;
   const resultadoPositivo = Number(mercado.resultado || 0) >= 0;
+  const perfilProprio =
+  usuarioLogadoId &&
+  usuario?.id &&
+  String(usuarioLogadoId) === String(usuario.id);
 
   const podeConvidar = useMemo(() => {
-    return (
-      usuarioLogadoPremium &&
-      perfilPremium &&
-      rankingsCriados.length > 0 &&
-      usuario?.id
-    );
-  }, [
-    usuarioLogadoPremium,
-    perfilPremium,
-    rankingsCriados.length,
-    usuario,
-  ]);
+  return (
+    !perfilProprio &&
+    usuarioLogadoPremium &&
+    perfilPremium &&
+    rankingsCriados.length > 0 &&
+    usuario?.id
+  );
+}, [
+  perfilProprio,
+  usuarioLogadoPremium,
+  perfilPremium,
+  rankingsCriados.length,
+  usuario,
+]);
 
   async function carregarPerfil() {
     if (!id) return;
@@ -254,8 +284,9 @@ function PerfilPage() {
   }, [router.isReady, id]);
 
   useEffect(() => {
-    carregarPlanoUsuario();
-  }, []);
+  setUsuarioLogadoId(obterUsuarioLogadoId());
+  carregarPlanoUsuario();
+}, []);
 
   useEffect(() => {
     if (usuarioLogadoPremium) {
@@ -364,25 +395,31 @@ function PerfilPage() {
       </HeroCard>
 
       <AcoesTopo>
-        <BotaoPrimario
-          type="button"
-          disabled={processandoFollow}
-          onClick={alternarFollow}
-        >
-          {processandoFollow
-            ? 'Atualizando...'
-            : usuario.relacao?.seguindo
-            ? 'Deixar de seguir'
-            : 'Seguir'}
-        </BotaoPrimario>
+  {perfilProprio ? (
+    <BotaoSecundario type="button" disabled>
+      Meu perfil
+    </BotaoSecundario>
+  ) : (
+    <BotaoPrimario
+      type="button"
+      disabled={processandoFollow}
+      onClick={alternarFollow}
+    >
+      {processandoFollow
+        ? 'Atualizando...'
+        : usuario.relacao?.seguindo
+        ? 'Deixar de seguir'
+        : 'Seguir'}
+    </BotaoPrimario>
+  )}
 
-        <BotaoSecundario
-          type="button"
-          onClick={() => router.push('/convites')}
-        >
-          Ver convites
-        </BotaoSecundario>
-      </AcoesTopo>
+  <BotaoSecundario
+    type="button"
+    onClick={() => router.push('/convites')}
+  >
+    Ver convites
+  </BotaoSecundario>
+</AcoesTopo>
 
       <GridMetricas>
         <MetricaCard>
@@ -463,11 +500,15 @@ function PerfilPage() {
             Convidar para ranking privado
           </PainelTitulo>
 
-          {!usuarioLogadoPremium ? (
-            <TextoAuxiliar>
-              Apenas usuários Premium podem convidar outros usuários para rankings privados.
-            </TextoAuxiliar>
-          ) : !perfilPremium ? (
+          {perfilProprio ? (
+  <TextoAuxiliar>
+    Este é o seu perfil público. Outros usuários Premium poderão te convidar para rankings privados.
+  </TextoAuxiliar>
+) : !usuarioLogadoPremium ? (
+  <TextoAuxiliar>
+    Apenas usuários Premium podem convidar outros usuários para rankings privados.
+  </TextoAuxiliar>
+) : !perfilPremium ? (
             <TextoAuxiliar>
               Este usuário é Lite. Apenas usuários Premium podem participar de rankings privados.
             </TextoAuxiliar>
@@ -616,6 +657,10 @@ const Container = styled.div`
   width: 100%;
   padding: 0.2rem 0 2rem;
   color: #f8fafc;
+
+  @media (max-width: 640px) {
+    padding: 0 0 1rem;
+  }
 `;
 
 const VoltarBotao = styled.button`
@@ -632,6 +677,13 @@ const VoltarBotao = styled.button`
   &:hover {
     background: rgba(255, 255, 255, 0.07);
     color: #f8fafc;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 8px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    font-size: 0.76rem;
   }
 `;
 
@@ -662,6 +714,13 @@ const HeroCard = styled.section`
   @media (max-width: 820px) {
     flex-direction: column;
   }
+
+  @media (max-width: 640px) {
+    margin-bottom: 10px;
+    padding: 13px;
+    border-radius: 18px;
+    gap: 12px;
+  }
 `;
 
 const HeroLeft = styled.div`
@@ -669,9 +728,9 @@ const HeroLeft = styled.div`
   align-items: center;
   gap: 18px;
 
-  @media (max-width: 560px) {
-    flex-direction: column;
-    align-items: flex-start;
+  @media (max-width: 640px) {
+    gap: 11px;
+    align-items: center;
   }
 `;
 
@@ -690,6 +749,15 @@ const AvatarGrande = styled.div`
 
   font-size: 2.4rem;
   font-weight: 950;
+
+  @media (max-width: 640px) {
+    width: 62px;
+    height: 62px;
+    border-width: 3px;
+    box-shadow: none;
+    font-size: 1.45rem;
+    flex: 0 0 auto;
+  }
 `;
 
 const NomeArea = styled.div`
@@ -702,8 +770,8 @@ const NomePrincipal = styled.h1`
   font-size: 1.9rem;
   line-height: 1.1;
 
-  @media (max-width: 560px) {
-    font-size: 1.45rem;
+  @media (max-width: 640px) {
+    font-size: 1.18rem;
   }
 `;
 
@@ -711,6 +779,11 @@ const NomeSecundario = styled.div`
   margin-top: 5px;
   color: #94a3b8;
   font-size: 0.95rem;
+
+  @media (max-width: 640px) {
+    margin-top: 3px;
+    font-size: 0.76rem;
+  }
 `;
 
 const BadgesLinha = styled.div`
@@ -718,6 +791,11 @@ const BadgesLinha = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+
+  @media (max-width: 640px) {
+    margin-top: 7px;
+    gap: 5px;
+  }
 `;
 
 const PlanoBadge = styled.span`
@@ -742,6 +820,11 @@ const PlanoBadge = styled.span`
   font-size: 0.7rem;
   font-weight: 950;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    padding: 4px 6px;
+    font-size: 0.55rem;
+  }
 `;
 
 const SegueVoceBadge = styled.span`
@@ -756,6 +839,11 @@ const SegueVoceBadge = styled.span`
   font-size: 0.7rem;
   font-weight: 950;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    padding: 4px 6px;
+    font-size: 0.55rem;
+  }
 `;
 
 const DesdeBadge = styled.span`
@@ -770,6 +858,11 @@ const DesdeBadge = styled.span`
   font-size: 0.7rem;
   font-weight: 900;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    padding: 4px 6px;
+    font-size: 0.55rem;
+  }
 `;
 
 const HeroRight = styled.div`
@@ -782,8 +875,9 @@ const HeroRight = styled.div`
     min-width: 0;
   }
 
-  @media (max-width: 520px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 `;
 
@@ -815,6 +909,21 @@ const HeroStat = styled.div`
   .negativo {
     color: #fca5a5;
   }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    border-radius: 13px;
+
+    span {
+      margin-bottom: 4px;
+      font-size: 0.58rem;
+      letter-spacing: 0.03em;
+    }
+
+    strong {
+      font-size: 0.86rem;
+    }
+  }
 `;
 
 const AcoesTopo = styled.div`
@@ -822,6 +931,13 @@ const AcoesTopo = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
+
+  @media (max-width: 640px) {
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
 `;
 
 const BotaoPrimario = styled.button`
@@ -842,6 +958,12 @@ const BotaoPrimario = styled.button`
   &:not(:disabled):hover {
     background: rgba(59, 130, 246, 0.25);
   }
+
+  @media (max-width: 640px) {
+    padding: 9px 10px;
+    border-radius: 11px;
+    font-size: 0.76rem;
+  }
 `;
 
 const BotaoSecundario = styled.button`
@@ -858,6 +980,17 @@ const BotaoSecundario = styled.button`
     background: rgba(255, 255, 255, 0.075);
     color: #f8fafc;
   }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  @media (max-width: 640px) {
+    padding: 9px 10px;
+    border-radius: 11px;
+    font-size: 0.76rem;
+  }
 `;
 
 const GridMetricas = styled.div`
@@ -870,8 +1003,9 @@ const GridMetricas = styled.div`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 460px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 640px) {
+    margin-bottom: 10px;
+    gap: 8px;
   }
 `;
 
@@ -893,6 +1027,20 @@ const MetricaCard = styled.div`
     color: #f8fafc;
     font-size: 1.35rem;
   }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    border-radius: 13px;
+
+    span {
+      margin-bottom: 4px;
+      font-size: 0.62rem;
+    }
+
+    strong {
+      font-size: 0.95rem;
+    }
+  }
 `;
 
 const GridPrincipal = styled.div`
@@ -904,6 +1052,11 @@ const GridPrincipal = styled.div`
   @media (max-width: 980px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 640px) {
+    margin-bottom: 10px;
+    gap: 10px;
+  }
 `;
 
 const Painel = styled.section`
@@ -911,18 +1064,32 @@ const Painel = styled.section`
   border: 1px solid rgba(148, 163, 184, 0.13);
   border-radius: 20px;
   background: rgba(15, 23, 42, 0.66);
+
+  @media (max-width: 640px) {
+    padding: 12px;
+    border-radius: 16px;
+  }
 `;
 
 const PainelTitulo = styled.h2`
   margin: 0 0 14px;
   color: #f8fafc;
   font-size: 1.05rem;
+
+  @media (max-width: 640px) {
+    margin-bottom: 9px;
+    font-size: 0.92rem;
+  }
 `;
 
 const PerformanceGrid = styled.div`
   display: flex;
   flex-direction: column;
   gap: 9px;
+
+  @media (max-width: 640px) {
+    gap: 7px;
+  }
 `;
 
 const LinhaInfo = styled.div`
@@ -954,12 +1121,17 @@ const LinhaInfo = styled.div`
     color: #fca5a5;
   }
 
-  @media (max-width: 520px) {
-    align-items: flex-start;
-    flex-direction: column;
+  @media (max-width: 640px) {
+    padding: 9px;
+    border-radius: 11px;
+    gap: 8px;
+
+    span {
+      font-size: 0.7rem;
+    }
 
     strong {
-      text-align: left;
+      font-size: 0.76rem;
     }
   }
 `;
@@ -969,13 +1141,20 @@ const TextoAuxiliar = styled.p`
   color: #94a3b8;
   font-size: 0.86rem;
   line-height: 1.5;
-`;
 
-const ConviteForm = styled.form``;
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+`;
 
 const CampoGrupo = styled.label`
   display: block;
   margin-bottom: 13px;
+
+  @media (max-width: 640px) {
+    margin-bottom: 9px;
+  }
 `;
 
 const CampoLabel = styled.span`
@@ -984,6 +1163,11 @@ const CampoLabel = styled.span`
   color: #cbd5e1;
   font-size: 0.76rem;
   font-weight: 800;
+
+  @media (max-width: 640px) {
+    margin-bottom: 4px;
+    font-size: 0.66rem;
+  }
 `;
 
 const SelectRanking = styled.select`
@@ -999,6 +1183,12 @@ const SelectRanking = styled.select`
 
   &:focus {
     border-color: rgba(59, 130, 246, 0.55);
+  }
+
+  @media (max-width: 640px) {
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 0.76rem;
   }
 `;
 
@@ -1024,6 +1214,13 @@ const TextareaConvite = styled.textarea`
   &::placeholder {
     color: #64748b;
   }
+
+  @media (max-width: 640px) {
+    min-height: 62px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 0.76rem;
+  }
 `;
 
 const BotaoConvite = styled.button`
@@ -1045,12 +1242,22 @@ const BotaoConvite = styled.button`
   &:not(:disabled):hover {
     background: rgba(250, 204, 21, 0.22);
   }
+
+  @media (max-width: 640px) {
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 0.76rem;
+  }
 `;
 
 const ListaPosicoes = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  @media (max-width: 640px) {
+    gap: 8px;
+  }
 `;
 
 const PosicaoItem = styled.article`
@@ -1066,6 +1273,12 @@ const PosicaoItem = styled.article`
 
   @media (max-width: 820px) {
     grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 13px;
   }
 `;
 
@@ -1086,6 +1299,18 @@ const ClubeResumo = styled.div`
     color: #94a3b8;
     font-size: 0.76rem;
   }
+
+  @media (max-width: 640px) {
+    gap: 8px;
+
+    strong {
+      font-size: 0.78rem;
+    }
+
+    span {
+      font-size: 0.66rem;
+    }
+  }
 `;
 
 const PosicaoMetricas = styled.div`
@@ -1097,8 +1322,8 @@ const PosicaoMetricas = styled.div`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 420px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 640px) {
+    gap: 7px;
   }
 `;
 
@@ -1125,6 +1350,20 @@ const MiniMetrica = styled.div`
 
   .negativo {
     color: #fca5a5;
+  }
+
+  @media (max-width: 640px) {
+    padding: 7px;
+    border-radius: 10px;
+
+    span {
+      margin-bottom: 3px;
+      font-size: 0.57rem;
+    }
+
+    strong {
+      font-size: 0.66rem;
+    }
   }
 `;
 
