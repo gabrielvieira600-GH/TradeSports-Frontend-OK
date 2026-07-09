@@ -153,13 +153,11 @@ function PlanosPage() {
           <PlanoTopo>
             <PlanoNome>Premium</PlanoNome>
 
-            <PlanoBadge $premium>
-              Upgrade
-            </PlanoBadge>
+            
           </PlanoTopo>
 
           <PrecoArea>
-            <Preco>R$ --</Preco>
+            <Preco>R$ 19,90</Preco>
             <Periodo>/mês</Periodo>
           </PrecoArea>
 
@@ -206,7 +204,7 @@ function PlanosPage() {
 
             <Beneficio>
               <Check>✓</Check>
-              <span>Sem limite comercial de ordens por rodada</span>
+              <span>Ordens ilimitadas</span>
             </Beneficio>
 
             <Beneficio>
