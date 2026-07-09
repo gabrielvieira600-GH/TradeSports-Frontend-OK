@@ -106,7 +106,8 @@ function PerfilPage() {
   usuarioLogadoId &&
   usuario?.id &&
   String(usuarioLogadoId) === String(usuario.id);
-
+  const podeVerPosicoes =
+  Boolean(perfilProprio) || Boolean(usuarioLogadoPremium);
   const podeConvidar = useMemo(() => {
   return (
     !perfilProprio &&
@@ -589,64 +590,123 @@ function PerfilPage() {
       </GridPrincipal>
 
       <Painel>
-        <PainelTitulo>
-          Principais posições
-        </PainelTitulo>
+  <PainelHeader>
+    <PainelTitulo>
+      Principais posições
+    </PainelTitulo>
 
-        {!Array.isArray(mercado.topPosicoes) ||
-        mercado.topPosicoes.length === 0 ? (
-          <EstadoCard>
-            Este usuário ainda não possui posições em carteira.
-          </EstadoCard>
-        ) : (
-          <ListaPosicoes>
-            {mercado.topPosicoes.map((posicao) => (
-              <PosicaoItem key={posicao.clubeId}>
-                <ClubeResumo>
-                  <ClubBadge
-                    clube={posicao.nomeClube}
-                    size={36}
-                  />
+    {!podeVerPosicoes && (
+      <PremiumMiniBadge>
+        Premium
+      </PremiumMiniBadge>
+    )}
+  </PainelHeader>
 
-                  <div>
-                    <strong>
-                      {posicao.nomeClube}
-                    </strong>
+  {!Array.isArray(mercado.topPosicoes) ||
+  mercado.topPosicoes.length === 0 ? (
+    <EstadoCard>
+      Este usuário ainda não possui posições em carteira.
+    </EstadoCard>
+  ) : !podeVerPosicoes ? (
+    <PremiumLockedArea>
+      <BlurredPositions aria-hidden="true">
+        {[1, 2, 3].map((item) => (
+          <BlurCard key={item}>
+            <ClubeResumo>
+              <BlurAvatar />
 
-                    <span>
-                      {formatarNumero(posicao.quantidade)} cotas
-                    </span>
-                  </div>
-                </ClubeResumo>
+              <div>
+                <BlurLine $width="120px" />
+                <BlurLine $width="72px" $small />
+              </div>
+            </ClubeResumo>
 
-                <PosicaoMetricas>
-                  <MiniMetrica>
-                    <span>Preço médio</span>
-                    <strong>{formatarMoeda(posicao.precoMedio)}</strong>
-                  </MiniMetrica>
+            <BlurGrid>
+              <BlurMetric />
+              <BlurMetric />
+              <BlurMetric />
+              <BlurMetric />
+            </BlurGrid>
+          </BlurCard>
+        ))}
+      </BlurredPositions>
 
-                  <MiniMetrica>
-                    <span>Preço atual</span>
-                    <strong>{formatarMoeda(posicao.precoAtual)}</strong>
-                  </MiniMetrica>
+      <PremiumOverlay>
+        <PremiumLockIcon>
+          🔒
+        </PremiumLockIcon>
 
-                  <MiniMetrica>
-                    <span>Valor atual</span>
-                    <strong>{formatarMoeda(posicao.valorAtual)}</strong>
-                  </MiniMetrica>
+        <PremiumLockTitle>
+          Posições disponíveis apenas para Premium
+        </PremiumLockTitle>
 
-                  <MiniMetrica>
-                    <span>Rentabilidade</span>
-                    <strong className={Number(posicao.rentabilidade || 0) >= 0 ? 'positivo' : 'negativo'}>
-                      {formatarPercentual(posicao.rentabilidade)}
-                    </strong>
-                  </MiniMetrica>
-                </PosicaoMetricas>
-              </PosicaoItem>
-            ))}
-          </ListaPosicoes>
-        )}
-      </Painel>
+        <PremiumLockTexto>
+          Usuários Lite não podem ver a carteira detalhada de outros usuários.
+        </PremiumLockTexto>
+
+        <UpgradeButton
+          type="button"
+          onClick={() => router.push('/planos')}
+        >
+          Fazer upgrade
+        </UpgradeButton>
+      </PremiumOverlay>
+    </PremiumLockedArea>
+  ) : (
+    <ListaPosicoes>
+      {mercado.topPosicoes.map((posicao) => (
+        <PosicaoItem key={posicao.clubeId}>
+          <ClubeResumo>
+            <ClubBadge
+              clube={posicao.nomeClube}
+              size={36}
+            />
+
+            <div>
+              <strong>
+                {posicao.nomeClube}
+              </strong>
+
+              <span>
+                {formatarNumero(posicao.quantidade)} cotas
+              </span>
+            </div>
+          </ClubeResumo>
+
+          <PosicaoMetricas>
+            <MiniMetrica>
+              <span>Preço médio</span>
+              <strong>{formatarMoeda(posicao.precoMedio)}</strong>
+            </MiniMetrica>
+
+            <MiniMetrica>
+              <span>Preço atual</span>
+              <strong>{formatarMoeda(posicao.precoAtual)}</strong>
+            </MiniMetrica>
+
+            <MiniMetrica>
+              <span>Valor atual</span>
+              <strong>{formatarMoeda(posicao.valorAtual)}</strong>
+            </MiniMetrica>
+
+            <MiniMetrica>
+              <span>Rentabilidade</span>
+              <strong
+                className={
+                  Number(posicao.rentabilidade || 0) >= 0
+                    ? 'positivo'
+                    : 'negativo'
+                }
+              >
+                {formatarPercentual(posicao.rentabilidade)}
+              </strong>
+            </MiniMetrica>
+          </PosicaoMetricas>
+        </PosicaoItem>
+      ))}
+    </ListaPosicoes>
+  )}
+</Painel>
     </Container>
   );
 }
@@ -1247,6 +1307,235 @@ const BotaoConvite = styled.button`
     padding: 9px 10px;
     border-radius: 10px;
     font-size: 0.76rem;
+  }
+`;
+
+const PainelHeader = styled.div`
+  margin-bottom: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  ${PainelTitulo} {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 9px;
+  }
+`;
+
+const PremiumMiniBadge = styled.span`
+  width: fit-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+  border: 1px solid rgba(250, 204, 21, 0.22);
+
+  font-size: 0.65rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  @media (max-width: 640px) {
+    padding: 4px 7px;
+    font-size: 0.56rem;
+  }
+`;
+
+const PremiumLockedArea = styled.div`
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+
+  @media (max-width: 640px) {
+    border-radius: 13px;
+  }
+`;
+
+const BlurredPositions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  filter: blur(5px);
+  opacity: 0.58;
+  pointer-events: none;
+  user-select: none;
+
+  @media (max-width: 640px) {
+    gap: 8px;
+    filter: blur(4px);
+  }
+`;
+
+const BlurCard = styled.article`
+  padding: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.11);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  align-items: center;
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 13px;
+  }
+`;
+
+const BlurAvatar = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.26);
+
+  @media (max-width: 640px) {
+    width: 30px;
+    height: 30px;
+  }
+`;
+
+const BlurLine = styled.div`
+  width: ${({ $width }) => $width || '100px'};
+  max-width: 100%;
+  height: ${({ $small }) => ($small ? '9px' : '13px')};
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.34);
+  margin-top: ${({ $small }) => ($small ? '6px' : '0')};
+
+  @media (max-width: 640px) {
+    height: ${({ $small }) => ($small ? '7px' : '10px')};
+  }
+`;
+
+const BlurGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    gap: 7px;
+  }
+`;
+
+const BlurMetric = styled.div`
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+
+  @media (max-width: 640px) {
+    height: 38px;
+    border-radius: 10px;
+  }
+`;
+
+const PremiumOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  padding: 22px;
+
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(15, 23, 42, 0.82),
+      rgba(15, 23, 42, 0.7)
+    );
+
+  @media (max-width: 640px) {
+    padding: 14px;
+  }
+`;
+
+const PremiumLockIcon = styled.div`
+  width: 42px;
+  height: 42px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  color: #fde68a;
+  font-size: 1.2rem;
+
+  @media (max-width: 640px) {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 7px;
+    font-size: 1rem;
+  }
+`;
+
+const PremiumLockTitle = styled.strong`
+  display: block;
+  max-width: 420px;
+  color: #f8fafc;
+  font-size: 1.05rem;
+  line-height: 1.25;
+
+  @media (max-width: 640px) {
+    font-size: 0.86rem;
+  }
+`;
+
+const PremiumLockTexto = styled.p`
+  margin: 8px 0 14px;
+  max-width: 430px;
+  color: #cbd5e1;
+  font-size: 0.86rem;
+  line-height: 1.45;
+
+  @media (max-width: 640px) {
+    margin: 6px 0 10px;
+    font-size: 0.7rem;
+    line-height: 1.35;
+  }
+`;
+
+const UpgradeButton = styled.button`
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  border-radius: 12px;
+  padding: 10px 15px;
+
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+  font-weight: 950;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(250, 204, 21, 0.24);
+  }
+
+  @media (max-width: 640px) {
+    padding: 8px 11px;
+    border-radius: 10px;
+    font-size: 0.75rem;
   }
 `;
 
