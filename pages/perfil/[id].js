@@ -99,7 +99,15 @@ function PerfilPage() {
     usuario?.premiumAtivo === true;
 
   const mercado = usuario?.mercado || {};
+  const ranking = usuario?.ranking || {};
 
+const rankingHeroLabel = perfilPremium
+  ? 'Ranking Premium'
+  : 'Ranking Geral';
+
+const rankingHeroPosicao = perfilPremium
+  ? ranking.premium
+  : ranking.geral;
   const rentabilidadePositiva = Number(mercado.rentabilidade || 0) >= 0;
   const resultadoPositivo = Number(mercado.resultado || 0) >= 0;
   const perfilProprio =
@@ -371,28 +379,35 @@ function PerfilPage() {
                 </SegueVoceBadge>
               )}
 
-              <DesdeBadge>
-                Desde {formatarData(usuario.criadoEm)}
-              </DesdeBadge>
+              
             </BadgesLinha>
           </NomeArea>
         </HeroLeft>
 
         <HeroRight>
-          <HeroStat>
-            <span>Rentabilidade geral</span>
-            <strong className={rentabilidadePositiva ? 'positivo' : 'negativo'}>
-              {formatarPercentual(mercado.rentabilidade)}
-            </strong>
-          </HeroStat>
+  <HeroStat>
+    <span>{rankingHeroLabel}</span>
+    <strong>
+      {rankingHeroPosicao
+        ? `${rankingHeroPosicao}º`
+        : '-'}
+    </strong>
+  </HeroStat>
 
-          <HeroStat>
-            <span>Patrimônio</span>
-            <strong>
-              {formatarMoeda(mercado.patrimonio)}
-            </strong>
-          </HeroStat>
-        </HeroRight>
+  <HeroStat>
+    <span>Rentabilidade geral</span>
+    <strong className={rentabilidadePositiva ? 'positivo' : 'negativo'}>
+      {formatarPercentual(mercado.rentabilidade)}
+    </strong>
+  </HeroStat>
+
+  <HeroStat>
+    <span>Patrimônio</span>
+    <strong>
+      {formatarMoeda(mercado.patrimonio)}
+    </strong>
+  </HeroStat>
+</HeroRight>
       </HeroCard>
 
       <AcoesTopo>
@@ -927,18 +942,18 @@ const DesdeBadge = styled.span`
 
 const HeroRight = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, minmax(135px, 1fr));
   gap: 10px;
-  min-width: 330px;
+  min-width: 500px;
 
   @media (max-width: 820px) {
     min-width: 0;
   }
 
   @media (max-width: 640px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
 `;
 
 const HeroStat = styled.div`
