@@ -80,7 +80,11 @@ function PerfilPage() {
   const [erroPerfil, setErroPerfil] = useState('');
   const [usuarioLogadoId, setUsuarioLogadoId] = useState('');
   const [processandoFollow, setProcessandoFollow] = useState(false);
-
+  const [modalSeguidoresAberto, setModalSeguidoresAberto] = useState(false);
+const [seguidoresPerfil, setSeguidoresPerfil] = useState([]);
+const [buscaSeguidores, setBuscaSeguidores] = useState('');
+const [carregandoSeguidores, setCarregandoSeguidores] = useState(false);
+const [erroSeguidores, setErroSeguidores] = useState('');
   const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState('lite');
   const [rankingsCriados, setRankingsCriados] = useState([]);
   const [carregandoRankings, setCarregandoRankings] = useState(false);
@@ -250,6 +254,54 @@ const rankingHeroPosicao = perfilPremium
       setProcessandoFollow(false);
     }
   }
+  
+  async function carregarSeguidoresPerfil(busca = '') {
+  if (!usuario?.id) return;
+
+  try {
+    setCarregandoSeguidores(true);
+    setErroSeguidores('');
+
+    const { data } = await api.get(
+      `/social/usuarios/${usuario.id}/seguidores`,
+      {
+        params: {
+          busca,
+          limit: 80,
+        },
+      }
+    );
+
+    setSeguidoresPerfil(
+      Array.isArray(data?.usuarios) ? data.usuarios : []
+    );
+  } catch (err) {
+    console.error('Erro ao carregar seguidores:', err);
+
+    setErroSeguidores(
+      err?.response?.data?.erro ||
+        'Não foi possível carregar os seguidores deste perfil.'
+    );
+
+    setSeguidoresPerfil([]);
+  } finally {
+    setCarregandoSeguidores(false);
+  }
+}
+
+function abrirModalSeguidores() {
+  setBuscaSeguidores('');
+  setErroSeguidores('');
+  setModalSeguidoresAberto(true);
+  carregarSeguidoresPerfil('');
+}
+
+function fecharModalSeguidores() {
+  setModalSeguidoresAberto(false);
+  setBuscaSeguidores('');
+  setSeguidoresPerfil([]);
+  setErroSeguidores('');
+}
 
   async function enviarConviteRanking(e) {
     e.preventDefault();
@@ -302,7 +354,8 @@ const rankingHeroPosicao = perfilPremium
       carregarRankingsPrivadosCriados();
     }
   }, [usuarioLogadoPremium]);
-
+  
+  
   if (carregandoPerfil) {
     return (
       <Container>
@@ -312,7 +365,7 @@ const rankingHeroPosicao = perfilPremium
       </Container>
     );
   }
-
+  
   if (erroPerfil && !usuario) {
     return (
       <Container>
@@ -336,6 +389,16 @@ const rankingHeroPosicao = perfilPremium
       </Container>
     );
   }
+  
+  useEffect(() => {
+  if (!modalSeguidoresAberto || !usuario?.id) return;
+
+  const timeout = setTimeout(() => {
+    carregarSeguidoresPerfil(buscaSeguidores.trim());
+  }, 280);
+
+  return () => clearTimeout(timeout);
+}, [buscaSeguidores, modalSeguidoresAberto, usuario?.id]);
 
   return (
     <Container>
@@ -438,12 +501,15 @@ const rankingHeroPosicao = perfilPremium
 </AcoesTopo>
 
       <GridMetricas>
-        <MetricaCard>
-          <span>Seguidores</span>
-          <strong>
-            {formatarNumero(usuario.estatisticas?.seguidores)}
-          </strong>
-        </MetricaCard>
+        <MetricaButton
+  type="button"
+  onClick={abrirModalSeguidores}
+>
+  <span>Seguidores</span>
+  <strong>
+    {formatarNumero(usuario.estatisticas?.seguidores)}
+  </strong>
+</MetricaButton>
 
         <MetricaCard>
           <span>Seguindo</span>
@@ -722,6 +788,121 @@ const rankingHeroPosicao = perfilPremium
     </ListaPosicoes>
   )}
 </Painel>
+
+{modalSeguidoresAberto && (
+  <ModalOverlay
+    onClick={fecharModalSeguidores}
+  >
+    <ModalCard
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ModalTopo>
+        <div>
+          <ModalTitulo>
+            Seguidores
+          </ModalTitulo>
+
+          <ModalTexto>
+            Usuários que seguem{' '}
+            {usuario.nomeUsuario
+              ? `@${usuario.nomeUsuario}`
+              : nomeExibicao(usuario)}
+          </ModalTexto>
+        </div>
+
+        <BotaoFecharModal
+          type="button"
+          onClick={fecharModalSeguidores}
+        >
+          ×
+        </BotaoFecharModal>
+      </ModalTopo>
+
+      <ModalBuscaArea>
+        <ModalBuscaInput
+          type="text"
+          value={buscaSeguidores}
+          placeholder="Pesquisar seguidores"
+          autoFocus
+          onChange={(e) => setBuscaSeguidores(e.target.value)}
+        />
+      </ModalBuscaArea>
+
+      {erroSeguidores && (
+        <MensagemErro>
+          {erroSeguidores}
+        </MensagemErro>
+      )}
+
+      <ModalListaArea>
+        {carregandoSeguidores ? (
+          <ModalEstado>
+            Carregando seguidores...
+          </ModalEstado>
+        ) : seguidoresPerfil.length === 0 ? (
+          <ModalEstado>
+            {buscaSeguidores.trim()
+              ? 'Nenhum seguidor encontrado para essa busca.'
+              : 'Este perfil ainda não possui seguidores.'}
+          </ModalEstado>
+        ) : (
+          <ListaUsuariosModal>
+            {seguidoresPerfil.map((seguidor) => {
+              const nomeSeguidor = seguidor.nomeUsuario
+                ? `@${seguidor.nomeUsuario}`
+                : seguidor.nomePublico || seguidor.nome || 'Usuário';
+
+              return (
+                <UsuarioModalItem
+                  key={seguidor.id}
+                  type="button"
+                  onClick={() => {
+                    fecharModalSeguidores();
+                    router.push(`/perfil/${seguidor.id}`);
+                  }}
+                >
+                  <UsuarioModalAvatar>
+                    {String(nomeSeguidor)
+                      .replace('@', '')
+                      .charAt(0)
+                      .toUpperCase()}
+                  </UsuarioModalAvatar>
+
+                  <UsuarioModalInfo>
+                    <strong>
+                      {nomeSeguidor}
+                    </strong>
+
+                    {seguidor.nome && seguidor.nomeUsuario && (
+                      <span>
+                        {seguidor.nome}
+                      </span>
+                    )}
+                  </UsuarioModalInfo>
+
+                  <UsuarioModalBadges>
+                    <PlanoBadge $premium={seguidor.plano === 'premium'}>
+                      {seguidor.plano === 'premium'
+                        ? 'Premium'
+                        : 'Lite'}
+                    </PlanoBadge>
+
+                    {seguidor.seguindo && (
+                      <SegueVoceBadge>
+                        Seguindo
+                      </SegueVoceBadge>
+                    )}
+                  </UsuarioModalBadges>
+                </UsuarioModalItem>
+              );
+            })}
+          </ListaUsuariosModal>
+        )}
+      </ModalListaArea>
+    </ModalCard>
+  </ModalOverlay>
+)}
+
     </Container>
   );
 }
@@ -1101,6 +1282,48 @@ const MetricaCard = styled.div`
   strong {
     color: #f8fafc;
     font-size: 1.35rem;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    border-radius: 13px;
+
+    span {
+      margin-bottom: 4px;
+      font-size: 0.62rem;
+    }
+
+    strong {
+      font-size: 0.95rem;
+    }
+  }
+`;
+
+const MetricaButton = styled.button`
+  padding: 15px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 17px;
+  background: rgba(15, 23, 42, 0.68);
+
+  text-align: left;
+  cursor: pointer;
+
+  span {
+    display: block;
+    margin-bottom: 7px;
+    color: #94a3b8;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  strong {
+    color: #f8fafc;
+    font-size: 1.35rem;
+  }
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.32);
+    background: rgba(59, 130, 246, 0.08);
   }
 
   @media (max-width: 640px) {
@@ -1680,7 +1903,222 @@ const EstadoCard = styled.div`
   text-align: center;
   background: rgba(255, 255, 255, 0.025);
 `;
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 20px;
 
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 640px) {
+    padding: 12px;
+    align-items: flex-end;
+  }
+`;
+
+const ModalCard = styled.div`
+  width: 100%;
+  max-width: 460px;
+  max-height: 82vh;
+  overflow: hidden;
+
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(59, 130, 246, 0.12),
+      transparent 36%
+    ),
+    #0f172a;
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 640px) {
+    max-width: 100%;
+    max-height: 86vh;
+    border-radius: 20px 20px 0 0;
+  }
+`;
+
+const ModalTopo = styled.div`
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+`;
+
+const ModalTitulo = styled.h2`
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.12rem;
+
+  @media (max-width: 640px) {
+    font-size: 1rem;
+  }
+`;
+
+const ModalTexto = styled.p`
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.4;
+`;
+
+const BotaoFecharModal = styled.button`
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+  }
+`;
+
+const ModalBuscaArea = styled.div`
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+`;
+
+const ModalBuscaInput = styled.input`
+  width: 100%;
+  height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 0 14px;
+
+  background: rgba(15, 23, 42, 0.82);
+  color: #f8fafc;
+  outline: none;
+
+  &::placeholder {
+    color: #64748b;
+  }
+
+  &:focus {
+    border-color: rgba(59, 130, 246, 0.55);
+  }
+
+  @media (max-width: 640px) {
+    height: 38px;
+    font-size: 0.82rem;
+  }
+`;
+
+const ModalListaArea = styled.div`
+  overflow-y: auto;
+  padding: 8px;
+`;
+
+const ModalEstado = styled.div`
+  padding: 26px 12px;
+  color: #94a3b8;
+  text-align: center;
+  font-size: 0.86rem;
+`;
+
+const ListaUsuariosModal = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const UsuarioModalItem = styled.button`
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px;
+
+  background: transparent;
+  color: #f8fafc;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.12);
+  }
+`;
+
+const UsuarioModalAvatar = styled.div`
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+
+  background: rgba(59, 130, 246, 0.17);
+  color: #93c5fd;
+  font-weight: 950;
+
+  @media (max-width: 640px) {
+    width: 36px;
+    height: 36px;
+    font-size: 0.84rem;
+  }
+`;
+
+const UsuarioModalInfo = styled.div`
+  min-width: 0;
+  flex: 1;
+
+  strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    display: block;
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 0.74rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
+
+const UsuarioModalBadges = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+
+  @media (max-width: 420px) {
+    display: none;
+  }
+`;
 const MensagemErro = styled.div`
   margin-bottom: 14px;
   padding: 12px 14px;
