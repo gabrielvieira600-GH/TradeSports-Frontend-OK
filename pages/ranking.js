@@ -74,6 +74,17 @@ const [paginaPrivada, setPaginaPrivada] = useState(1);
 const [totalPaginasPrivada, setTotalPaginasPrivada] = useState(1);
 
 const [totalUsuariosPrivado, setTotalUsuariosPrivado] = useState(0);  
+const [membrosPrivados, setMembrosPrivados] = useState([]);
+const [carregandoMembrosPrivados, setCarregandoMembrosPrivados] =
+  useState(false);
+const [erroMembrosPrivados, setErroMembrosPrivados] = useState('');
+const [sucessoMembrosPrivados, setSucessoMembrosPrivados] = useState('');
+
+const [buscaNovoParticipante, setBuscaNovoParticipante] = useState('');
+const [adicionandoParticipante, setAdicionandoParticipante] =
+  useState(false);
+const [removendoParticipanteId, setRemovendoParticipanteId] =
+  useState('');
 const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
@@ -319,6 +330,148 @@ const totalCategoriaAtual =
     rankingPrivadoSelecionado.id,
     paginaValida
   );
+  
+  const carregarMembrosPrivados = async (rankingPrivadoId) => {
+  if (!rankingPrivadoId) return;
+
+  try {
+    setCarregandoMembrosPrivados(true);
+    setErroMembrosPrivados('');
+
+    const { data } = await api.get(
+      `/rankings-privados/${rankingPrivadoId}/membros`
+    );
+
+    setMembrosPrivados(
+      Array.isArray(data?.membros)
+        ? data.membros
+        : []
+    );
+  } catch (err) {
+    console.error(
+      'Erro ao carregar membros privados:',
+      err
+    );
+
+    setErroMembrosPrivados(
+      err?.response?.data?.erro ||
+        'Não foi possível carregar os participantes deste ranking.'
+    );
+
+    setMembrosPrivados([]);
+  } finally {
+    setCarregandoMembrosPrivados(false);
+  }
+};
+
+const adicionarParticipantePrivado = async (e) => {
+  e.preventDefault();
+
+  if (!rankingPrivadoSelecionado?.id) {
+    return;
+  }
+
+  const busca = String(buscaNovoParticipante || '').trim();
+
+  if (!busca) {
+    setErroMembrosPrivados(
+      'Informe o @usuário, nome ou e-mail do participante.'
+    );
+    return;
+  }
+
+  try {
+    setAdicionandoParticipante(true);
+    setErroMembrosPrivados('');
+    setSucessoMembrosPrivados('');
+
+    await api.post(
+      `/rankings-privados/${rankingPrivadoSelecionado.id}/adicionar`,
+      {
+        busca,
+      }
+    );
+
+    setBuscaNovoParticipante('');
+    setSucessoMembrosPrivados(
+      'Participante adicionado com sucesso.'
+    );
+
+    await carregarClassificacaoPrivada(
+      rankingPrivadoSelecionado.id,
+      paginaPrivada
+    );
+
+    await carregarMembrosPrivados(
+      rankingPrivadoSelecionado.id
+    );
+
+    await carregarRankingsPrivados();
+  } catch (err) {
+    console.error(
+      'Erro ao adicionar participante:',
+      err
+    );
+
+    setErroMembrosPrivados(
+      err?.response?.data?.erro ||
+        'Não foi possível adicionar este participante.'
+    );
+  } finally {
+    setAdicionandoParticipante(false);
+  }
+};
+
+const removerParticipantePrivado = async (usuarioId) => {
+  if (!rankingPrivadoSelecionado?.id || !usuarioId) {
+    return;
+  }
+
+  const confirmar = window.confirm(
+    'Tem certeza que deseja remover este participante do ranking privado?'
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    setRemovendoParticipanteId(String(usuarioId));
+    setErroMembrosPrivados('');
+    setSucessoMembrosPrivados('');
+
+    await api.post(
+      `/rankings-privados/${rankingPrivadoSelecionado.id}/remover/${usuarioId}`
+    );
+
+    setSucessoMembrosPrivados(
+      'Participante removido com sucesso.'
+    );
+
+    await carregarClassificacaoPrivada(
+      rankingPrivadoSelecionado.id,
+      paginaPrivada
+    );
+
+    await carregarMembrosPrivados(
+      rankingPrivadoSelecionado.id
+    );
+
+    await carregarRankingsPrivados();
+  } catch (err) {
+    console.error(
+      'Erro ao remover participante:',
+      err
+    );
+
+    setErroMembrosPrivados(
+      err?.response?.data?.erro ||
+        'Não foi possível remover este participante.'
+    );
+  } finally {
+    setRemovendoParticipanteId('');
+  }
+};
 
   if (typeof window !== 'undefined') {
     window.scrollTo({
@@ -458,6 +611,7 @@ const carregarClassificacaoPrivada = async (
     setTotalUsuariosPrivado(
       Number(data?.totalUsuarios || 0)
     );
+    await carregarMembrosPrivados(rankingPrivadoId);
   } catch (err) {
     console.error(
       'Erro ao carregar classificação privada:',
@@ -484,6 +638,12 @@ const voltarParaListaPrivados = () => {
   setPaginaPrivada(1);
   setTotalPaginasPrivada(1);
   setTotalUsuariosPrivado(0);
+
+  setMembrosPrivados([]);
+  setErroMembrosPrivados('');
+  setSucessoMembrosPrivados('');
+  setBuscaNovoParticipante('');
+  setRemovendoParticipanteId('');
 };
   return (
   <Container>
@@ -736,7 +896,142 @@ const voltarParaListaPrivados = () => {
             </MeuRankingGrid>
           </MeuRanking>
         )}
+                {rankingPrivadoSelecionado?.isCriador && (
+          <PainelMembros>
+            <PainelMembrosTopo>
+              <div>
+                <PainelMembrosTitulo>
+                  Participantes
+                </PainelMembrosTitulo>
 
+                <PainelMembrosTexto>
+                  Adicione ou remova usuários Premium deste ranking privado.
+                </PainelMembrosTexto>
+              </div>
+
+              <ContadorMembros>
+                {membrosPrivados.length} membro
+                {membrosPrivados.length === 1 ? '' : 's'}
+              </ContadorMembros>
+            </PainelMembrosTopo>
+
+            <FormularioAdicionarMembro
+              onSubmit={adicionarParticipantePrivado}
+            >
+              <CampoInput
+                type="text"
+                value={buscaNovoParticipante}
+                placeholder="@usuario, nome ou e-mail"
+                onChange={(e) => {
+                  setBuscaNovoParticipante(e.target.value);
+                  setErroMembrosPrivados('');
+                  setSucessoMembrosPrivados('');
+                }}
+              />
+
+              <BotaoSalvarModal
+                type="submit"
+                disabled={adicionandoParticipante}
+              >
+                {adicionandoParticipante
+                  ? 'Adicionando...'
+                  : 'Adicionar participante'}
+              </BotaoSalvarModal>
+            </FormularioAdicionarMembro>
+
+            {erroMembrosPrivados && (
+              <MensagemErro>
+                {erroMembrosPrivados}
+              </MensagemErro>
+            )}
+
+            {sucessoMembrosPrivados && (
+              <MensagemSucesso>
+                {sucessoMembrosPrivados}
+              </MensagemSucesso>
+            )}
+
+            {carregandoMembrosPrivados ? (
+              <CarregandoCard>
+                Carregando participantes...
+              </CarregandoCard>
+            ) : membrosPrivados.length === 0 ? (
+              <VazioCard>
+                Nenhum participante encontrado.
+              </VazioCard>
+            ) : (
+              <ListaMembros>
+                {membrosPrivados.map((membro) => (
+                  <MembroItem key={membro.usuarioId}>
+                    <UsuarioCelula>
+                      <AvatarPequeno>
+                        {String(
+                          membro.nomeUsuario ||
+                            membro.nome ||
+                            'U'
+                        )
+                          .charAt(0)
+                          .toUpperCase()}
+                      </AvatarPequeno>
+
+                      <UsuarioInfo>
+                        <strong>
+                          {membro.nomeUsuario
+                            ? `@${membro.nomeUsuario}`
+                            : membro.nome || 'Usuário'}
+                        </strong>
+
+                        <PlanoUsuarioLinha
+                          $premium={membro.plano === 'premium'}
+                        >
+                          {membro.plano === 'premium'
+                            ? 'Premium'
+                            : 'Lite'}
+                        </PlanoUsuarioLinha>
+
+                        {membro.isCriador && (
+                          <small>
+                            Criador
+                          </small>
+                        )}
+
+                        {!membro.isCriador && membro.status === 'pendente' && (
+                          <small>
+                            Pendente
+                          </small>
+                        )}
+                      </UsuarioInfo>
+                    </UsuarioCelula>
+
+                    <MembroAcoes>
+                      {membro.isCriador ? (
+                        <RankingPrivadoStatus>
+                          Criador
+                        </RankingPrivadoStatus>
+                      ) : (
+                        <BotaoRemoverMembro
+                          type="button"
+                          disabled={
+                            removendoParticipanteId ===
+                            String(membro.usuarioId)
+                          }
+                          onClick={() =>
+                            removerParticipantePrivado(membro.usuarioId)
+                          }
+                        >
+                          {removendoParticipanteId ===
+                          String(membro.usuarioId)
+                            ? 'Removendo...'
+                            : 'Remover'}
+                        </BotaoRemoverMembro>
+                      )}
+                    </MembroAcoes>
+                  </MembroItem>
+                ))}
+              </ListaMembros>
+            )}
+          </PainelMembros>
+        )}
         {erroClassificacaoPrivada && (
           <MensagemErro>
             {erroClassificacaoPrivada}
@@ -2437,7 +2732,134 @@ const BotaoSecundario = styled.button`
   }
 `;
 
+const PainelMembros = styled.section`
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 18px;
 
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(59, 130, 246, 0.1),
+      transparent 38%
+    ),
+    rgba(15, 23, 42, 0.68);
+`;
+
+const PainelMembrosTopo = styled.div`
+  margin-bottom: 14px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+  }
+`;
+
+const PainelMembrosTitulo = styled.h3`
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1rem;
+`;
+
+const PainelMembrosTexto = styled.p`
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  line-height: 1.45;
+`;
+
+const ContadorMembros = styled.span`
+  padding: 6px 9px;
+  border-radius: 999px;
+
+  background: rgba(59, 130, 246, 0.13);
+  color: #bfdbfe;
+
+  border: 1px solid rgba(59, 130, 246, 0.18);
+
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+`;
+
+const FormularioAdicionarMembro = styled.form`
+  margin-bottom: 14px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ListaMembros = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const MembroItem = styled.div`
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.11);
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+`;
+
+const MembroAcoes = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const BotaoRemoverMembro = styled.button`
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 10px;
+  padding: 8px 11px;
+
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.16);
+  }
+`;
+
+const MensagemSucesso = styled.div`
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  border-radius: 13px;
+
+  background: rgba(34, 197, 94, 0.08);
+  color: #86efac;
+`;
 
 const Paginacao = styled.div`
   margin-top: 22px;
