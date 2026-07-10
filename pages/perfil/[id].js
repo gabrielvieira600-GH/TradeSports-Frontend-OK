@@ -355,7 +355,16 @@ function fecharModalSeguidores() {
     }
   }, [usuarioLogadoPremium]);
   
-  
+  useEffect(() => {
+  if (!modalSeguidoresAberto || !usuario?.id) return;
+
+  const timeout = setTimeout(() => {
+    carregarSeguidoresPerfil(buscaSeguidores.trim());
+  }, 280);
+
+  return () => clearTimeout(timeout);
+}, [buscaSeguidores, modalSeguidoresAberto, usuario?.id]);
+
   if (carregandoPerfil) {
     return (
       <Container>
@@ -390,15 +399,7 @@ function fecharModalSeguidores() {
     );
   }
   
-  useEffect(() => {
-  if (!modalSeguidoresAberto || !usuario?.id) return;
-
-  const timeout = setTimeout(() => {
-    carregarSeguidoresPerfil(buscaSeguidores.trim());
-  }, 280);
-
-  return () => clearTimeout(timeout);
-}, [buscaSeguidores, modalSeguidoresAberto, usuario?.id]);
+  
 
   return (
     <Container>
