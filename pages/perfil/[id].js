@@ -80,11 +80,13 @@ function PerfilPage() {
   const [erroPerfil, setErroPerfil] = useState('');
   const [usuarioLogadoId, setUsuarioLogadoId] = useState('');
   const [processandoFollow, setProcessandoFollow] = useState(false);
-  const [modalSeguidoresAberto, setModalSeguidoresAberto] = useState(false);
-const [seguidoresPerfil, setSeguidoresPerfil] = useState([]);
-const [buscaSeguidores, setBuscaSeguidores] = useState('');
-const [carregandoSeguidores, setCarregandoSeguidores] = useState(false);
-const [erroSeguidores, setErroSeguidores] = useState('');
+  const [modalConexoesAberto, setModalConexoesAberto] = useState(false);
+const [abaConexoes, setAbaConexoes] = useState('seguidores');
+const [usuariosConexoes, setUsuariosConexoes] = useState([]);
+const [buscaConexoes, setBuscaConexoes] = useState('');
+const [carregandoConexoes, setCarregandoConexoes] = useState(false);
+const [erroConexoes, setErroConexoes] = useState('');
+const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState('lite');
   const [rankingsCriados, setRankingsCriados] = useState([]);
   const [carregandoRankings, setCarregandoRankings] = useState(false);
@@ -255,52 +257,104 @@ const rankingHeroPosicao = perfilPremium
     }
   }
   
-  async function carregarSeguidoresPerfil(busca = '') {
+  async function carregarConexoesPerfil(tipo = abaConexoes, busca = '') {
   if (!usuario?.id) return;
 
+  const rota =
+    tipo === 'seguindo'
+      ? `/social/usuarios/${usuario.id}/seguindo`
+      : `/social/usuarios/${usuario.id}/seguidores`;
+
   try {
-    setCarregandoSeguidores(true);
-    setErroSeguidores('');
+    setCarregandoConexoes(true);
+    setErroConexoes('');
 
-    const { data } = await api.get(
-      `/social/usuarios/${usuario.id}/seguidores`,
-      {
-        params: {
-          busca,
-          limit: 80,
-        },
-      }
-    );
+    const { data } = await api.get(rota, {
+      params: {
+        busca,
+        limit: 80,
+      },
+    });
 
-    setSeguidoresPerfil(
+    setUsuariosConexoes(
       Array.isArray(data?.usuarios) ? data.usuarios : []
     );
   } catch (err) {
-    console.error('Erro ao carregar seguidores:', err);
+    console.error('Erro ao carregar conexões:', err);
 
-    setErroSeguidores(
+    setErroConexoes(
       err?.response?.data?.erro ||
-        'Não foi possível carregar os seguidores deste perfil.'
+        'Não foi possível carregar esta lista.'
     );
 
-    setSeguidoresPerfil([]);
+    setUsuariosConexoes([]);
   } finally {
-    setCarregandoSeguidores(false);
+    setCarregandoConexoes(false);
   }
 }
 
-function abrirModalSeguidores() {
-  setBuscaSeguidores('');
-  setErroSeguidores('');
-  setModalSeguidoresAberto(true);
-  carregarSeguidoresPerfil('');
+function abrirModalConexoes(tipo) {
+  const tipoNormalizado = tipo === 'seguindo' ? 'seguindo' : 'seguidores';
+
+  setAbaConexoes(tipoNormalizado);
+  setBuscaConexoes('');
+  setErroConexoes('');
+  setModalConexoesAberto(true);
+  carregarConexoesPerfil(tipoNormalizado, '');
 }
 
-function fecharModalSeguidores() {
-  setModalSeguidoresAberto(false);
-  setBuscaSeguidores('');
-  setSeguidoresPerfil([]);
-  setErroSeguidores('');
+function fecharModalConexoes() {
+  setModalConexoesAberto(false);
+  setBuscaConexoes('');
+  setUsuariosConexoes([]);
+  setErroConexoes('');
+  setProcessandoConexaoId('');
+}
+
+function trocarAbaConexoes(tipo) {
+  const tipoNormalizado = tipo === 'seguindo' ? 'seguindo' : 'seguidores';
+
+  setAbaConexoes(tipoNormalizado);
+  setBuscaConexoes('');
+  setErroConexoes('');
+  carregarConexoesPerfil(tipoNormalizado, '');
+}
+
+async function alternarFollowModal(usuarioAlvo) {
+  if (!usuarioAlvo?.id) return;
+
+  try {
+    setProcessandoConexaoId(String(usuarioAlvo.id));
+    setErroConexoes('');
+
+    const seguindoAtual = Boolean(usuarioAlvo.seguindo);
+
+    const endpoint = seguindoAtual
+      ? `/social/usuarios/${usuarioAlvo.id}/deixar-de-seguir`
+      : `/social/usuarios/${usuarioAlvo.id}/seguir`;
+
+    const { data } = await api.post(endpoint);
+
+    setUsuariosConexoes((listaAtual) =>
+      listaAtual.map((item) =>
+        String(item.id) === String(usuarioAlvo.id)
+          ? {
+              ...item,
+              seguindo: Boolean(data?.seguindo),
+            }
+          : item
+      )
+    );
+  } catch (err) {
+    console.error('Erro ao seguir/deixar de seguir no modal:', err);
+
+    setErroConexoes(
+      err?.response?.data?.erro ||
+        'Não foi possível atualizar a relação social.'
+    );
+  } finally {
+    setProcessandoConexaoId('');
+  }
 }
 
   async function enviarConviteRanking(e) {
@@ -356,14 +410,14 @@ function fecharModalSeguidores() {
   }, [usuarioLogadoPremium]);
   
   useEffect(() => {
-  if (!modalSeguidoresAberto || !usuario?.id) return;
+  if (!modalConexoesAberto || !usuario?.id) return;
 
   const timeout = setTimeout(() => {
-    carregarSeguidoresPerfil(buscaSeguidores.trim());
+    carregarConexoesPerfil(abaConexoes, buscaConexoes.trim());
   }, 280);
 
   return () => clearTimeout(timeout);
-}, [buscaSeguidores, modalSeguidoresAberto, usuario?.id]);
+}, [buscaConexoes, abaConexoes, modalConexoesAberto, usuario?.id]);
 
   if (carregandoPerfil) {
     return (
@@ -504,7 +558,7 @@ function fecharModalSeguidores() {
       <GridMetricas>
         <MetricaButton
   type="button"
-  onClick={abrirModalSeguidores}
+  onClick={() => abrirModalConexoes('seguidores')}
 >
   <span>Seguidores</span>
   <strong>
@@ -512,12 +566,15 @@ function fecharModalSeguidores() {
   </strong>
 </MetricaButton>
 
-        <MetricaCard>
-          <span>Seguindo</span>
-          <strong>
-            {formatarNumero(usuario.estatisticas?.seguindo)}
-          </strong>
-        </MetricaCard>
+<MetricaButton
+  type="button"
+  onClick={() => abrirModalConexoes('seguindo')}
+>
+  <span>Seguindo</span>
+  <strong>
+    {formatarNumero(usuario.estatisticas?.seguindo)}
+  </strong>
+</MetricaButton>
 
         <MetricaCard>
           <span>Posições</span>
@@ -790,110 +847,136 @@ function fecharModalSeguidores() {
   )}
 </Painel>
 
-{modalSeguidoresAberto && (
+{modalConexoesAberto && (
   <ModalOverlay
-    onClick={fecharModalSeguidores}
+    onClick={fecharModalConexoes}
   >
     <ModalCard
       onClick={(e) => e.stopPropagation()}
     >
       <ModalTopo>
-        <div>
-          <ModalTitulo>
-            Seguidores
-          </ModalTitulo>
-
-          <ModalTexto>
-            Usuários que seguem{' '}
-            {usuario.nomeUsuario
-              ? `@${usuario.nomeUsuario}`
-              : nomeExibicao(usuario)}
-          </ModalTexto>
-        </div>
-
-        <BotaoFecharModal
+        <BotaoVoltarModal
           type="button"
-          onClick={fecharModalSeguidores}
+          onClick={fecharModalConexoes}
         >
-          ×
-        </BotaoFecharModal>
+          ‹
+        </BotaoVoltarModal>
+
+        <ModalTituloCentro>
+          {usuario.nomeUsuario
+            ? usuario.nomeUsuario
+            : nomeExibicao(usuario)}
+        </ModalTituloCentro>
+
+        <ModalTopoEspaco />
       </ModalTopo>
+
+      <ModalAbas>
+        <ModalAba
+          type="button"
+          $ativa={abaConexoes === 'seguidores'}
+          onClick={() => trocarAbaConexoes('seguidores')}
+        >
+          Seguidores
+        </ModalAba>
+
+        <ModalAba
+          type="button"
+          $ativa={abaConexoes === 'seguindo'}
+          onClick={() => trocarAbaConexoes('seguindo')}
+        >
+          Seguindo
+        </ModalAba>
+      </ModalAbas>
 
       <ModalBuscaArea>
         <ModalBuscaInput
           type="text"
-          value={buscaSeguidores}
-          placeholder="Pesquisar seguidores"
-          autoFocus
-          onChange={(e) => setBuscaSeguidores(e.target.value)}
+          value={buscaConexoes}
+          placeholder="Pesquisar"
+          onChange={(e) => setBuscaConexoes(e.target.value)}
         />
       </ModalBuscaArea>
 
-      {erroSeguidores && (
+      {erroConexoes && (
         <MensagemErro>
-          {erroSeguidores}
+          {erroConexoes}
         </MensagemErro>
       )}
 
       <ModalListaArea>
-        {carregandoSeguidores ? (
+        {carregandoConexoes ? (
           <ModalEstado>
-            Carregando seguidores...
+            Carregando...
           </ModalEstado>
-        ) : seguidoresPerfil.length === 0 ? (
+        ) : usuariosConexoes.length === 0 ? (
           <ModalEstado>
-            {buscaSeguidores.trim()
-              ? 'Nenhum seguidor encontrado para essa busca.'
-              : 'Este perfil ainda não possui seguidores.'}
+            {buscaConexoes.trim()
+              ? 'Nenhum usuário encontrado para essa busca.'
+              : abaConexoes === 'seguidores'
+              ? 'Este perfil ainda não possui seguidores.'
+              : 'Este perfil ainda não segue ninguém.'}
           </ModalEstado>
         ) : (
           <ListaUsuariosModal>
-            {seguidoresPerfil.map((seguidor) => {
-              const nomeSeguidor = seguidor.nomeUsuario
-                ? `@${seguidor.nomeUsuario}`
-                : seguidor.nomePublico || seguidor.nome || 'Usuário';
+            {usuariosConexoes.map((pessoa) => {
+              const nomePessoa = pessoa.nomeUsuario
+                ? `@${pessoa.nomeUsuario}`
+                : pessoa.nomePublico || pessoa.nome || 'Usuário';
+
+              const ehMeuPerfil =
+                usuarioLogadoId &&
+                String(usuarioLogadoId) === String(pessoa.id);
 
               return (
                 <UsuarioModalItem
-                  key={seguidor.id}
-                  type="button"
-                  onClick={() => {
-                    fecharModalSeguidores();
-                    router.push(`/perfil/${seguidor.id}`);
-                  }}
+                  key={pessoa.id}
                 >
-                  <UsuarioModalAvatar>
-                    {String(nomeSeguidor)
-                      .replace('@', '')
-                      .charAt(0)
-                      .toUpperCase()}
-                  </UsuarioModalAvatar>
+                  <UsuarioModalConteudo
+                    type="button"
+                    onClick={() => {
+                      fecharModalConexoes();
+                      router.push(`/perfil/${pessoa.id}`);
+                    }}
+                  >
+                    <UsuarioModalAvatar>
+                      {String(nomePessoa)
+                        .replace('@', '')
+                        .charAt(0)
+                        .toUpperCase()}
+                    </UsuarioModalAvatar>
 
-                  <UsuarioModalInfo>
-                    <strong>
-                      {nomeSeguidor}
-                    </strong>
+                    <UsuarioModalInfo>
+                      <strong>
+                        {nomePessoa}
+                      </strong>
 
-                    {seguidor.nome && seguidor.nomeUsuario && (
                       <span>
-                        {seguidor.nome}
+                        {pessoa.nome && pessoa.nomeUsuario
+                          ? pessoa.nome
+                          : pessoa.plano === 'premium'
+                          ? 'Usuário Premium'
+                          : 'Usuário Lite'}
                       </span>
-                    )}
-                  </UsuarioModalInfo>
+                    </UsuarioModalInfo>
+                  </UsuarioModalConteudo>
 
-                  <UsuarioModalBadges>
-                    <PlanoBadge $premium={seguidor.plano === 'premium'}>
-                      {seguidor.plano === 'premium'
-                        ? 'Premium'
-                        : 'Lite'}
-                    </PlanoBadge>
-
-                    {seguidor.seguindo && (
-                      <SegueVoceBadge>
-                        Seguindo
-                      </SegueVoceBadge>
-                    )}
-                  </UsuarioModalBadges>
+                  {!ehMeuPerfil && (
+                    <BotaoSeguirModal
+                      type="button"
+                      $seguindo={pessoa.seguindo}
+                      disabled={
+                        processandoConexaoId === String(pessoa.id)
+                      }
+                      onClick={() => alternarFollowModal(pessoa)}
+                    >
+                      {processandoConexaoId === String(pessoa.id)
+                        ? '...'
+                        : pessoa.seguindo
+                        ? 'Seguindo'
+                        : 'Seguir'}
+                    </BotaoSeguirModal>
+                  )}
                 </UsuarioModalItem>
               );
             })}
@@ -1908,9 +1991,8 @@ const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
   z-index: 1000;
-  padding: 20px;
 
-  background: rgba(2, 6, 23, 0.78);
+  background: rgba(2, 6, 23, 0.82);
   backdrop-filter: blur(8px);
 
   display: flex;
@@ -1918,125 +2000,158 @@ const ModalOverlay = styled.div`
   justify-content: center;
 
   @media (max-width: 640px) {
-    padding: 12px;
-    align-items: flex-end;
+    align-items: stretch;
+    justify-content: stretch;
   }
 `;
 
 const ModalCard = styled.div`
   width: 100%;
-  max-width: 460px;
-  max-height: 82vh;
+  max-width: 520px;
+  height: 78vh;
+  max-height: 720px;
   overflow: hidden;
 
   border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 20px;
+  border-radius: 22px;
 
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(59, 130, 246, 0.12),
-      transparent 36%
-    ),
-    #0f172a;
-
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  background: #0b1220;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
 
   display: flex;
   flex-direction: column;
 
   @media (max-width: 640px) {
-    max-width: 100%;
-    max-height: 86vh;
-    border-radius: 20px 20px 0 0;
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
   }
 `;
 
 const ModalTopo = styled.div`
-  padding: 18px 18px 12px;
+  height: 56px;
+  padding: 0 16px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 8px;
 `;
 
-const ModalTitulo = styled.h2`
-  margin: 0;
-  color: #f8fafc;
-  font-size: 1.12rem;
-
-  @media (max-width: 640px) {
-    font-size: 1rem;
-  }
-`;
-
-const ModalTexto = styled.p`
-  margin: 5px 0 0;
-  color: #94a3b8;
-  font-size: 0.8rem;
-  line-height: 1.4;
-`;
-
-const BotaoFecharModal = styled.button`
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
+const BotaoVoltarModal = styled.button`
+  width: 38px;
+  height: 38px;
+  border: 0;
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.04);
-  color: #cbd5e1;
-  font-size: 1.35rem;
+  background: transparent;
+  color: #f8fafc;
+  font-size: 2rem;
   line-height: 1;
   cursor: pointer;
 
+  display: grid;
+  place-items: center;
+
   &:hover {
-    background: rgba(239, 68, 68, 0.12);
-    color: #fecaca;
+    background: rgba(255, 255, 255, 0.07);
+  }
+`;
+
+const ModalTituloCentro = styled.h2`
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 950;
+  text-align: center;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ModalTopoEspaco = styled.div``;
+
+const ModalAbas = styled.div`
+  height: 52px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+`;
+
+const ModalAba = styled.button`
+  position: relative;
+  border: 0;
+  background: transparent;
+
+  color: ${({ $ativa }) => ($ativa ? '#f8fafc' : '#94a3b8')};
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+
+  &:after {
+    content: '';
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 999px;
+
+    background: ${({ $ativa }) =>
+      $ativa ? '#f8fafc' : 'transparent'};
+  }
+
+  &:hover {
+    color: #f8fafc;
   }
 `;
 
 const ModalBuscaArea = styled.div`
-  padding: 12px 18px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  padding: 14px 16px 10px;
 `;
 
 const ModalBuscaInput = styled.input`
   width: 100%;
-  height: 42px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 999px;
+  height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
   padding: 0 14px;
 
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(148, 163, 184, 0.12);
   color: #f8fafc;
   outline: none;
 
+  font-size: 0.95rem;
+
   &::placeholder {
-    color: #64748b;
+    color: #94a3b8;
   }
 
   &:focus {
-    border-color: rgba(59, 130, 246, 0.55);
-  }
-
-  @media (max-width: 640px) {
-    height: 38px;
-    font-size: 0.82rem;
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(15, 23, 42, 0.88);
   }
 `;
 
 const ModalListaArea = styled.div`
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px 16px 18px;
 `;
 
 const ModalEstado = styled.div`
-  padding: 26px 12px;
+  padding: 38px 12px;
   color: #94a3b8;
   text-align: center;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
 `;
 
 const ListaUsuariosModal = styled.div`
@@ -2045,30 +2160,34 @@ const ListaUsuariosModal = styled.div`
   gap: 4px;
 `;
 
-const UsuarioModalItem = styled.button`
+const UsuarioModalItem = styled.div`
   width: 100%;
-  border: 0;
-  border-radius: 14px;
-  padding: 10px;
+  min-height: 66px;
+  border-radius: 12px;
 
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+`;
+
+const UsuarioModalConteudo = styled.button`
+  min-width: 0;
+  border: 0;
   background: transparent;
-  color: #f8fafc;
+  padding: 8px 0;
 
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    background: rgba(59, 130, 246, 0.12);
-  }
 `;
 
 const UsuarioModalAvatar = styled.div`
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
 
   display: grid;
@@ -2078,12 +2197,7 @@ const UsuarioModalAvatar = styled.div`
   background: rgba(59, 130, 246, 0.17);
   color: #93c5fd;
   font-weight: 950;
-
-  @media (max-width: 640px) {
-    width: 36px;
-    height: 36px;
-    font-size: 0.84rem;
-  }
+  font-size: 1rem;
 `;
 
 const UsuarioModalInfo = styled.div`
@@ -2093,7 +2207,9 @@ const UsuarioModalInfo = styled.div`
   strong {
     display: block;
     color: #f8fafc;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.2;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2101,25 +2217,47 @@ const UsuarioModalInfo = styled.div`
 
   span {
     display: block;
-    margin-top: 2px;
+    margin-top: 3px;
     color: #94a3b8;
-    font-size: 0.74rem;
+    font-size: 0.84rem;
+    line-height: 1.2;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 `;
 
-const UsuarioModalBadges = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex: 0 0 auto;
+const BotaoSeguirModal = styled.button`
+  min-width: 96px;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 13px;
+
+  background: ${({ $seguindo }) =>
+    $seguindo ? 'rgba(148, 163, 184, 0.18)' : '#3b82f6'};
+
+  color: #f8fafc;
+  font-size: 0.84rem;
+  font-weight: 950;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    filter: brightness(1.08);
+  }
 
   @media (max-width: 420px) {
-    display: none;
+    min-width: 82px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
   }
 `;
+
 const MensagemErro = styled.div`
   margin-bottom: 14px;
   padding: 12px 14px;
