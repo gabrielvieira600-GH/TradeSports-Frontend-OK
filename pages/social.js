@@ -4,11 +4,23 @@ import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
 
-function formatarData(data) {
+function formatarDataRelativa(data) {
   if (!data) return '';
 
   try {
-    return new Date(data).toLocaleDateString('pt-BR');
+    const agora = new Date();
+    const dataEvento = new Date(data);
+    const diffMs = agora.getTime() - dataEvento.getTime();
+    const diffMinutos = Math.floor(diffMs / 60000);
+    const diffHoras = Math.floor(diffMinutos / 60);
+    const diffDias = Math.floor(diffHoras / 24);
+
+    if (diffMinutos < 1) return 'agora';
+    if (diffMinutos < 60) return `${diffMinutos} min`;
+    if (diffHoras < 24) return `${diffHoras} h`;
+    if (diffDias < 7) return `${diffDias} d`;
+
+    return dataEvento.toLocaleDateString('pt-BR');
   } catch {
     return '';
   }
@@ -23,49 +35,166 @@ function nomeExibicao(usuario) {
   );
 }
 
+function getEventoIcone(tipo) {
+  switch (tipo) {
+    case 'FOLLOW_USER':
+      return '👥';
+
+    case 'PRIVATE_RANKING_CREATED':
+      return '🏆';
+
+    case 'PRIVATE_RANKING_JOINED':
+    case 'PRIVATE_RANKING_INVITE_ACCEPTED':
+      return '🎟️';
+
+    case 'RANKING_POSITION_CHANGED':
+      return '📈';
+
+    case 'TRADE_EXECUTED':
+      return '⚡';
+
+    case 'MILESTONE_RENTABILITY':
+      return '🚀';
+
+    default:
+      return '📣';
+  }
+}
+
+function getEventoCategoria(tipo) {
+  switch (tipo) {
+    case 'FOLLOW_USER':
+      return 'Social';
+
+    case 'PRIVATE_RANKING_CREATED':
+    case 'PRIVATE_RANKING_JOINED':
+    case 'PRIVATE_RANKING_INVITE_ACCEPTED':
+      return 'Ranking privado';
+
+    case 'RANKING_POSITION_CHANGED':
+      return 'Ranking';
+
+    case 'TRADE_EXECUTED':
+      return 'Mercado';
+
+    case 'MILESTONE_RENTABILITY':
+      return 'Performance';
+
+    default:
+      return 'Comunidade';
+  }
+}
+
+function montarTituloEvento(evento) {
+  if (evento?.titulo) return evento.titulo;
+
+  const usuario = nomeExibicao(evento?.usuario);
+
+  switch (evento?.tipo) {
+    case 'FOLLOW_USER':
+      return `${usuario} começou a seguir outro usuário`;
+
+    case 'PRIVATE_RANKING_CREATED':
+      return `${usuario} criou um ranking privado`;
+
+    case 'PRIVATE_RANKING_JOINED':
+      return `${usuario} entrou em um ranking privado`;
+
+    case 'PRIVATE_RANKING_INVITE_ACCEPTED':
+      return `${usuario} aceitou um convite para ranking privado`;
+
+    case 'RANKING_POSITION_CHANGED':
+      return `${usuario} mudou de posição no ranking`;
+
+    case 'TRADE_EXECUTED':
+      return `${usuario} executou uma negociação`;
+
+    case 'MILESTONE_RENTABILITY':
+      return `${usuario} atingiu uma nova marca de rentabilidade`;
+
+    default:
+      return 'Novo acontecimento na comunidade';
+  }
+}
+
+function montarTextoEvento(evento) {
+  if (evento?.mensagem) return evento.mensagem;
+
+  const usuarioAlvo = evento?.usuarioAlvo
+    ? nomeExibicao(evento.usuarioAlvo)
+    : '';
+
+  const rankingPrivado = evento?.rankingPrivado?.nome || '';
+
+  switch (evento?.tipo) {
+    case 'FOLLOW_USER':
+      return usuarioAlvo
+        ? `Agora está acompanhando ${usuarioAlvo}.`
+        : 'Novo vínculo social na comunidade.';
+
+    case 'PRIVATE_RANKING_CREATED':
+      return rankingPrivado
+        ? `Ranking criado: ${rankingPrivado}.`
+        : 'Um novo ranking privado foi criado.';
+
+    case 'PRIVATE_RANKING_JOINED':
+    case 'PRIVATE_RANKING_INVITE_ACCEPTED':
+      return rankingPrivado
+        ? `Participando do ranking ${rankingPrivado}.`
+        : 'Nova participação em ranking privado.';
+
+    case 'RANKING_POSITION_CHANGED':
+      return 'A classificação da temporada foi atualizada.';
+
+    case 'TRADE_EXECUTED':
+      return 'Uma negociação movimentou o mercado simulado.';
+
+    case 'MILESTONE_RENTABILITY':
+      return 'Uma nova marca de performance foi alcançada.';
+
+    default:
+      return 'Acompanhe os principais movimentos da comunidade TradeSports.';
+  }
+}
+
 function SocialPage() {
   const router = useRouter();
-  const [busca, setBusca] = useState('');
-  const [usuarios, setUsuarios] = useState([]);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
 
-  const [carregandoBusca, setCarregandoBusca] = useState(false);
-  const [carregandoPerfil, setCarregandoPerfil] = useState(false);
-  const [erroBusca, setErroBusca] = useState('');
-  const [erroPerfil, setErroPerfil] = useState('');
+  const [eventos, setEventos] = useState([]);
+  const [carregandoFeed, setCarregandoFeed] = useState(true);
+  const [erroFeed, setErroFeed] = useState('');
+  const [filtro, setFiltro] = useState('todos');
 
   const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState('lite');
-  const [rankingsCriados, setRankingsCriados] = useState([]);
-  const [carregandoRankings, setCarregandoRankings] = useState(false);
-
-  const [rankingSelecionadoParaConvite, setRankingSelecionadoParaConvite] =
-    useState('');
-  const [mensagemConvite, setMensagemConvite] = useState('');
-  const [enviandoConvite, setEnviandoConvite] = useState(false);
-  const [erroConvite, setErroConvite] = useState('');
-  const [sucessoConvite, setSucessoConvite] = useState('');
-
-  const [seguindoProcessando, setSeguindoProcessando] = useState(false);
 
   const usuarioLogadoPremium = planoUsuarioLogado === 'premium';
 
-  const perfilSelecionadoPremium =
-    usuarioSelecionado?.plano === 'premium' ||
-    usuarioSelecionado?.premiumAtivo === true;
+  const eventosFiltrados = useMemo(() => {
+    if (filtro === 'todos') return eventos;
 
-  const podeConvidarParaRanking = useMemo(() => {
-    return (
-      usuarioLogadoPremium &&
-      perfilSelecionadoPremium &&
-      rankingsCriados.length > 0 &&
-      usuarioSelecionado?.id
-    );
-  }, [
-    usuarioLogadoPremium,
-    perfilSelecionadoPremium,
-    rankingsCriados.length,
-    usuarioSelecionado,
-  ]);
+    if (filtro === 'social') {
+      return eventos.filter((evento) => evento.tipo === 'FOLLOW_USER');
+    }
+
+    if (filtro === 'rankings') {
+      return eventos.filter((evento) =>
+        [
+          'PRIVATE_RANKING_CREATED',
+          'PRIVATE_RANKING_JOINED',
+          'PRIVATE_RANKING_INVITE_ACCEPTED',
+          'RANKING_POSITION_CHANGED',
+        ].includes(evento.tipo)
+      );
+    }
+
+    if (filtro === 'mercado') {
+      return eventos.filter((evento) =>
+        ['TRADE_EXECUTED', 'MILESTONE_RENTABILITY'].includes(evento.tipo)
+      );
+    }
+
+    return eventos;
+  }, [eventos, filtro]);
 
   async function carregarPlanoUsuario() {
     try {
@@ -82,198 +211,82 @@ function SocialPage() {
     }
   }
 
-  async function carregarRankingsPrivadosCriados() {
+  async function carregarFeed() {
     try {
-      setCarregandoRankings(true);
+      setCarregandoFeed(true);
+      setErroFeed('');
 
-      const { data } = await api.get('/rankings-privados');
-
-      const criados = Array.isArray(data?.criados) ? data.criados : [];
-
-      setRankingsCriados(criados);
-
-      if (criados.length > 0) {
-        setRankingSelecionadoParaConvite((atual) => atual || criados[0]._id);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar rankings privados:', err);
-      setRankingsCriados([]);
-    } finally {
-      setCarregandoRankings(false);
-    }
-  }
-
-  async function buscarUsuarios(e) {
-    e?.preventDefault?.();
-
-    const termo = String(busca || '').trim();
-
-    if (termo.length < 2) {
-      setErroBusca('Digite pelo menos 2 caracteres para buscar.');
-      setUsuarios([]);
-      return;
-    }
-
-    try {
-      setCarregandoBusca(true);
-      setErroBusca('');
-
-      const { data } = await api.get('/social/usuarios', {
+      const { data } = await api.get('/social/feed', {
         params: {
-          busca: termo,
-          limit: 20,
+          limit: 50,
         },
       });
 
-      setUsuarios(Array.isArray(data?.usuarios) ? data.usuarios : []);
-    } catch (err) {
-      console.error('Erro ao buscar usuários:', err);
-
-      setErroBusca(
-        err?.response?.data?.erro || 'Não foi possível buscar usuários.'
-      );
-
-      setUsuarios([]);
-    } finally {
-      setCarregandoBusca(false);
-    }
-  }
-
-    function abrirPerfil(usuarioId) {
-    if (!usuarioId) return;
-
-    router.push(`/perfil/${usuarioId}`);
-  }
-
-  async function seguirUsuario() {
-    if (!usuarioSelecionado?.id) return;
-
-    try {
-      setSeguindoProcessando(true);
-      setErroPerfil('');
-
-      const seguindoAtual = Boolean(usuarioSelecionado?.relacao?.seguindo);
-
-      const endpoint = seguindoAtual
-        ? `/social/usuarios/${usuarioSelecionado.id}/deixar-de-seguir`
-        : `/social/usuarios/${usuarioSelecionado.id}/seguir`;
-
-      const { data } = await api.post(endpoint);
-
-      setUsuarioSelecionado((atual) => {
-        if (!atual) return atual;
-
-        return {
-          ...atual,
-          relacao: {
-            ...(atual.relacao || {}),
-            seguindo: Boolean(data?.seguindo),
-          },
-          estatisticas: {
-            ...(atual.estatisticas || {}),
-            seguidores:
-              data?.estatisticas?.seguidores ??
-              atual?.estatisticas?.seguidores ??
-              0,
-            seguindo:
-              data?.estatisticas?.seguindo ??
-              atual?.estatisticas?.seguindo ??
-              0,
-          },
-        };
-      });
-
-      setUsuarios((atuais) =>
-        atuais.map((usuario) => {
-          if (String(usuario.id) !== String(usuarioSelecionado.id)) {
-            return usuario;
-          }
-
-          return {
-            ...usuario,
-            seguindo: Boolean(data?.seguindo),
-            estatisticas: {
-              ...(usuario.estatisticas || {}),
-              seguidores:
-                data?.estatisticas?.seguidores ??
-                usuario?.estatisticas?.seguidores ??
-                0,
-            },
-          };
-        })
+      setEventos(
+        Array.isArray(data?.eventos)
+          ? data.eventos
+          : Array.isArray(data?.feed)
+          ? data.feed
+          : []
       );
     } catch (err) {
-      console.error('Erro ao seguir/deixar de seguir:', err);
+      console.error('Erro ao carregar feed social:', err);
 
-      setErroPerfil(
+      if (err?.response?.status === 404) {
+        setEventos([]);
+        setErroFeed('');
+        return;
+      }
+
+      setErroFeed(
         err?.response?.data?.erro ||
-          'Não foi possível atualizar a relação social.'
+          'Não foi possível carregar o feed da comunidade.'
       );
+
+      setEventos([]);
     } finally {
-      setSeguindoProcessando(false);
+      setCarregandoFeed(false);
     }
   }
 
-  async function enviarConviteRanking(e) {
-    e.preventDefault();
+  function abrirDestinoEvento(evento) {
+    const targetUrl =
+      evento?.targetUrl ||
+      evento?.metadata?.targetUrl ||
+      '';
 
-    if (!usuarioSelecionado?.id) return;
-
-    if (!rankingSelecionadoParaConvite) {
-      setErroConvite('Selecione um ranking privado.');
+    if (targetUrl) {
+      router.push(targetUrl);
       return;
     }
 
-    try {
-      setEnviandoConvite(true);
-      setErroConvite('');
-      setSucessoConvite('');
-
-      await api.post('/ranking-convites', {
-        rankingId: rankingSelecionadoParaConvite,
-        destinatarioId: usuarioSelecionado.id,
-        mensagem: String(mensagemConvite || '').trim(),
-      });
-
-      setSucessoConvite('Convite enviado com sucesso.');
-      setMensagemConvite('');
-    } catch (err) {
-      console.error('Erro ao enviar convite:', err);
-
-      setErroConvite(
-        err?.response?.data?.erro ||
-          'Não foi possível enviar o convite para ranking privado.'
+    if (evento?.usuarioId || evento?.usuario?.id || evento?.usuario?._id) {
+      router.push(
+        `/perfil/${evento.usuarioId || evento.usuario.id || evento.usuario._id}`
       );
-    } finally {
-      setEnviandoConvite(false);
     }
   }
 
   useEffect(() => {
     carregarPlanoUsuario();
+    carregarFeed();
   }, []);
-
-  useEffect(() => {
-    if (usuarioLogadoPremium) {
-      carregarRankingsPrivadosCriados();
-    }
-  }, [usuarioLogadoPremium]);
 
   return (
     <Container>
       <Cabecalho>
-        <div>
+        <CabecalhoTexto>
           <Eyebrow>Comunidade</Eyebrow>
 
           <Titulo>
-            Encontre usuários, siga perfis e convide para rankings privados
+            Acompanhe os principais movimentos da TradeSports
           </Titulo>
 
           <Subtitulo>
-            Busque outros traders da TradeSports, acompanhe perfis e monte
-            competições privadas com usuários Premium.
+            Veja atividades sociais, rankings privados, mudanças de posição e
+            marcos importantes dos usuários da plataforma.
           </Subtitulo>
-        </div>
+        </CabecalhoTexto>
 
         <ResumoCard>
           <ResumoLabel>Seu plano</ResumoLabel>
@@ -284,271 +297,178 @@ function SocialPage() {
         </ResumoCard>
       </Cabecalho>
 
+      <FeedToolbar>
+        <Filtros>
+          <FiltroBotao
+            type="button"
+            $ativo={filtro === 'todos'}
+            onClick={() => setFiltro('todos')}
+          >
+            Todos
+          </FiltroBotao>
+
+          <FiltroBotao
+            type="button"
+            $ativo={filtro === 'social'}
+            onClick={() => setFiltro('social')}
+          >
+            Social
+          </FiltroBotao>
+
+          <FiltroBotao
+            type="button"
+            $ativo={filtro === 'rankings'}
+            onClick={() => setFiltro('rankings')}
+          >
+            Rankings
+          </FiltroBotao>
+
+          <FiltroBotao
+            type="button"
+            $ativo={filtro === 'mercado'}
+            onClick={() => setFiltro('mercado')}
+          >
+            Mercado
+          </FiltroBotao>
+        </Filtros>
+
+        <BotaoAtualizar
+          type="button"
+          disabled={carregandoFeed}
+          onClick={carregarFeed}
+        >
+          {carregandoFeed ? 'Atualizando...' : 'Atualizar'}
+        </BotaoAtualizar>
+      </FeedToolbar>
+
+      {erroFeed && (
+        <MensagemErro>
+          {erroFeed}
+        </MensagemErro>
+      )}
+
       <GridPrincipal>
-        <PainelBusca>
-          <BuscaForm onSubmit={buscarUsuarios}>
-            <CampoBusca
-              type="text"
-              value={busca}
-              placeholder="Buscar por nome ou @usuário"
-              onChange={(e) => {
-                setBusca(e.target.value);
-                setErroBusca('');
-              }}
-            />
-
-            <BotaoPrimario type="submit" disabled={carregandoBusca}>
-              {carregandoBusca ? 'Buscando...' : 'Buscar'}
-            </BotaoPrimario>
-          </BuscaForm>
-
-          {erroBusca && <MensagemErro>{erroBusca}</MensagemErro>}
-
-          {carregandoBusca ? (
-            <EstadoCard>Buscando usuários...</EstadoCard>
-          ) : usuarios.length === 0 ? (
+        <FeedColuna>
+          {carregandoFeed ? (
             <EstadoCard>
-              Busque usuários para visualizar perfis da comunidade.
+              Carregando feed da comunidade...
             </EstadoCard>
+          ) : eventosFiltrados.length === 0 ? (
+            <FeedVazio>
+              <FeedVazioIcone>
+                📣
+              </FeedVazioIcone>
+
+              <FeedVazioTitulo>
+                O feed ainda está vazio
+              </FeedVazioTitulo>
+
+              <FeedVazioTexto>
+                Assim que os eventos sociais forem conectados no backend, as
+                atividades da comunidade aparecerão aqui automaticamente.
+              </FeedVazioTexto>
+            </FeedVazio>
           ) : (
-            <ListaUsuarios>
-              {usuarios.map((usuario) => (
-                <UsuarioItem
-                  key={usuario.id}
-                  type="button"
-                  $ativo={
-                    String(usuarioSelecionado?.id) === String(usuario.id)
-                  }
-                  onClick={() => abrirPerfil(usuario.id)}
-                >
-                  <Avatar>
-                    {nomeExibicao(usuario).charAt(0).toUpperCase()}
-                  </Avatar>
+            <FeedLista>
+              {eventosFiltrados.map((evento) => {
+                const usuario = evento.usuario || {};
+                const nomeUsuario = nomeExibicao(usuario);
+                const categoria = getEventoCategoria(evento.tipo);
 
-                  <UsuarioResumo>
-                    <strong>
-                      {usuario.nomeUsuario
-                        ? `@${usuario.nomeUsuario}`
-                        : usuario.nomePublico}
-                    </strong>
-
-                    <span>
-                      {usuario.estatisticas?.seguidores || 0} seguidores ·{' '}
-                      {usuario.quantidadePosicoes || 0} posições
-                    </span>
-                  </UsuarioResumo>
-
-                  <PlanoBadge $premium={usuario.plano === 'premium'}>
-                    {usuario.plano === 'premium' ? 'Premium' : 'Lite'}
-                  </PlanoBadge>
-                </UsuarioItem>
-              ))}
-            </ListaUsuarios>
-          )}
-        </PainelBusca>
-
-        <PainelPerfil>
-          {carregandoPerfil ? (
-            <EstadoCard>Carregando perfil...</EstadoCard>
-          ) : erroPerfil ? (
-            <MensagemErro>{erroPerfil}</MensagemErro>
-          ) : !usuarioSelecionado ? (
-            <PerfilVazio>
-              <PerfilVazioTitulo>
-                Selecione um perfil
-              </PerfilVazioTitulo>
-
-              <PerfilVazioTexto>
-                Clique em um usuário encontrado na busca para ver detalhes,
-                seguir e convidar para rankings privados.
-              </PerfilVazioTexto>
-            </PerfilVazio>
-          ) : (
-            <>
-              <PerfilCard>
-                <PerfilTopo>
-                  <PerfilAvatar>
-                    {nomeExibicao(usuarioSelecionado)
-                      .charAt(0)
-                      .toUpperCase()}
-                  </PerfilAvatar>
-
-                  <PerfilInfo>
-                    <PerfilNome>
-                      {usuarioSelecionado.nomeUsuario
-                        ? `@${usuarioSelecionado.nomeUsuario}`
-                        : usuarioSelecionado.nomePublico}
-                    </PerfilNome>
-
-                    {usuarioSelecionado.nome &&
-                      usuarioSelecionado.nomeUsuario && (
-                        <PerfilSubnome>
-                          {usuarioSelecionado.nome}
-                        </PerfilSubnome>
-                      )}
-
-                    <PerfilBadges>
-                      <PlanoBadge
-                        $premium={usuarioSelecionado.plano === 'premium'}
-                      >
-                        {usuarioSelecionado.plano === 'premium'
-                          ? 'Premium'
-                          : 'Lite'}
-                      </PlanoBadge>
-
-                      {usuarioSelecionado.relacao?.segueVoce && (
-                        <SegueVoceBadge>
-                          Segue você
-                        </SegueVoceBadge>
-                      )}
-                    </PerfilBadges>
-                  </PerfilInfo>
-                </PerfilTopo>
-
-                <PerfilMetricas>
-                  <Metrica>
-                    <span>Seguidores</span>
-                    <strong>
-                      {Number(
-                        usuarioSelecionado.estatisticas?.seguidores || 0
-                      ).toLocaleString('pt-BR')}
-                    </strong>
-                  </Metrica>
-
-                  <Metrica>
-                    <span>Seguindo</span>
-                    <strong>
-                      {Number(
-                        usuarioSelecionado.estatisticas?.seguindo || 0
-                      ).toLocaleString('pt-BR')}
-                    </strong>
-                  </Metrica>
-
-                  <Metrica>
-                    <span>Posições</span>
-                    <strong>
-                      {Number(
-                        usuarioSelecionado.mercado?.quantidadePosicoes || 0
-                      ).toLocaleString('pt-BR')}
-                    </strong>
-                  </Metrica>
-
-                  <Metrica>
-                    <span>Na plataforma desde</span>
-                    <strong>
-                      {formatarData(usuarioSelecionado.criadoEm) || '-'}
-                    </strong>
-                  </Metrica>
-                </PerfilMetricas>
-
-                <PerfilAcoes>
-                  <BotaoPrimario
+                return (
+                  <FeedCard
+                    key={evento._id || evento.id}
                     type="button"
-                    disabled={seguindoProcessando}
-                    onClick={seguirUsuario}
+                    onClick={() => abrirDestinoEvento(evento)}
                   >
-                    {seguindoProcessando
-                      ? 'Atualizando...'
-                      : usuarioSelecionado.relacao?.seguindo
-                      ? 'Deixar de seguir'
-                      : 'Seguir'}
-                  </BotaoPrimario>
-                </PerfilAcoes>
-              </PerfilCard>
+                    <FeedIcone>
+                      {getEventoIcone(evento.tipo)}
+                    </FeedIcone>
 
-              <ConviteCard>
-                <ConviteTitulo>
-                  Convidar para ranking privado
-                </ConviteTitulo>
+                    <FeedConteudo>
+                      <FeedMeta>
+                        <span>{categoria}</span>
 
-                {!usuarioLogadoPremium ? (
-                  <ConviteTexto>
-                    Apenas usuários Premium podem convidar outros usuários para
-                    rankings privados.
-                  </ConviteTexto>
-                ) : !perfilSelecionadoPremium ? (
-                  <ConviteTexto>
-                    Este usuário é Lite. Apenas usuários Premium podem
-                    participar de rankings privados.
-                  </ConviteTexto>
-                ) : carregandoRankings ? (
-                  <ConviteTexto>
-                    Carregando seus rankings privados...
-                  </ConviteTexto>
-                ) : rankingsCriados.length === 0 ? (
-                  <ConviteTexto>
-                    Você ainda não criou rankings privados. Crie um ranking na
-                    aba Privados para convidar outros usuários.
-                  </ConviteTexto>
-                ) : (
-                  <ConviteForm onSubmit={enviarConviteRanking}>
-                    <CampoGrupo>
-                      <CampoLabel>
-                        Ranking privado
-                      </CampoLabel>
+                        <small>
+                          {formatarDataRelativa(
+                            evento.createdAt || evento.criadoEm
+                          )}
+                        </small>
+                      </FeedMeta>
 
-                      <SelectRanking
-                        value={rankingSelecionadoParaConvite}
-                        onChange={(e) => {
-                          setRankingSelecionadoParaConvite(e.target.value);
-                          setErroConvite('');
-                          setSucessoConvite('');
-                        }}
-                      >
-                        {rankingsCriados.map((ranking) => (
-                          <option
-                            key={ranking._id || ranking.id}
-                            value={ranking._id || ranking.id}
-                          >
-                            {ranking.nome}
-                          </option>
-                        ))}
-                      </SelectRanking>
-                    </CampoGrupo>
+                      <FeedTitulo>
+                        {montarTituloEvento({
+                          ...evento,
+                          usuario: {
+                            ...usuario,
+                            nomePublico: nomeUsuario,
+                          },
+                        })}
+                      </FeedTitulo>
 
-                    <CampoGrupo>
-                      <CampoLabel>
-                        Mensagem opcional
-                      </CampoLabel>
+                      <FeedTexto>
+                        {montarTextoEvento(evento)}
+                      </FeedTexto>
 
-                      <TextareaConvite
-                        value={mensagemConvite}
-                        maxLength={500}
-                        placeholder="Ex: Entra na nossa liga da Temporada Zero!"
-                        onChange={(e) => {
-                          setMensagemConvite(e.target.value);
-                          setErroConvite('');
-                          setSucessoConvite('');
-                        }}
-                      />
-                    </CampoGrupo>
+                      {usuario?.id || usuario?._id ? (
+                        <FeedUsuario>
+                          <MiniAvatar>
+                            {nomeUsuario.charAt(0).toUpperCase()}
+                          </MiniAvatar>
 
-                    {erroConvite && (
-                      <MensagemErro>
-                        {erroConvite}
-                      </MensagemErro>
-                    )}
-
-                    {sucessoConvite && (
-                      <MensagemSucesso>
-                        {sucessoConvite}
-                      </MensagemSucesso>
-                    )}
-
-                    <BotaoConvite
-                      type="submit"
-                      disabled={!podeConvidarParaRanking || enviandoConvite}
-                    >
-                      {enviandoConvite
-                        ? 'Enviando convite...'
-                        : 'Convidar para ranking privado'}
-                    </BotaoConvite>
-                  </ConviteForm>
-                )}
-              </ConviteCard>
-            </>
+                          <span>
+                            {usuario.nomeUsuario
+                              ? `@${usuario.nomeUsuario}`
+                              : nomeUsuario}
+                          </span>
+                        </FeedUsuario>
+                      ) : null}
+                    </FeedConteudo>
+                  </FeedCard>
+                );
+              })}
+            </FeedLista>
           )}
-        </PainelPerfil>
+        </FeedColuna>
+
+        <LateralColuna>
+          <LateralCard>
+            <LateralTitulo>
+              O que aparece aqui?
+            </LateralTitulo>
+
+            <LateralTexto>
+              O feed da comunidade será alimentado automaticamente com ações
+              relevantes dos usuários dentro da TradeSports.
+            </LateralTexto>
+
+            <ListaInfo>
+              <li>Novos seguidores</li>
+              <li>Criação de rankings privados</li>
+              <li>Entrada em rankings privados</li>
+              <li>Mudanças relevantes no ranking</li>
+              <li>Marcos de rentabilidade</li>
+            </ListaInfo>
+          </LateralCard>
+
+          <LateralCard>
+            <LateralTitulo>
+              Busca de perfis
+            </LateralTitulo>
+
+            <LateralTexto>
+              A busca por clubes, mercados e usuários agora fica no Topbar para
+              estar disponível em toda a plataforma.
+            </LateralTexto>
+
+            <BotaoSecundario
+              type="button"
+              onClick={() => router.push('/ranking')}
+            >
+              Ver ranking
+            </BotaoSecundario>
+          </LateralCard>
+        </LateralColuna>
       </GridPrincipal>
     </Container>
   );
@@ -576,6 +496,10 @@ const Cabecalho = styled.div`
     flex-direction: column;
     align-items: stretch;
   }
+`;
+
+const CabecalhoTexto = styled.div`
+  max-width: 820px;
 `;
 
 const Eyebrow = styled.div`
@@ -629,9 +553,92 @@ const ResumoValor = styled.strong`
   font-size: 1.15rem;
 `;
 
+const FeedToolbar = styled.div`
+  margin-bottom: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (max-width: 700px) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+`;
+
+const Filtros = styled.div`
+  padding: 5px;
+  width: fit-content;
+  max-width: 100%;
+
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.58);
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  @media (max-width: 700px) {
+    width: 100%;
+    overflow-x: auto;
+  }
+`;
+
+const FiltroBotao = styled.button`
+  min-height: 38px;
+  border: 1px solid
+    ${({ $ativo }) =>
+      $ativo ? 'rgba(59, 130, 246, 0.4)' : 'transparent'};
+
+  border-radius: 10px;
+  padding: 8px 13px;
+
+  background: ${({ $ativo }) =>
+    $ativo ? 'rgba(37, 99, 235, 0.22)' : 'transparent'};
+
+  color: ${({ $ativo }) => ($ativo ? '#eff6ff' : '#94a3b8')};
+
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: #f8fafc;
+    background: rgba(59, 130, 246, 0.12);
+  }
+
+  @media (max-width: 700px) {
+    flex: 1;
+  }
+`;
+
+const BotaoAtualizar = styled.button`
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 10px 13px;
+
+  background: rgba(255, 255, 255, 0.045);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: rgba(59, 130, 246, 0.12);
+  }
+`;
+
 const GridPrincipal = styled.div`
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 18px;
 
   @media (max-width: 980px) {
@@ -639,101 +646,132 @@ const GridPrincipal = styled.div`
   }
 `;
 
-const PainelBusca = styled.section`
-  padding: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.13);
-  border-radius: 18px;
-  background: rgba(15, 23, 42, 0.62);
-`;
-
-const PainelPerfil = styled.section`
+const FeedColuna = styled.section`
   min-width: 0;
 `;
 
-const BuscaForm = styled.form`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-
-  @media (max-width: 560px) {
-    flex-direction: column;
-  }
-`;
-
-const CampoBusca = styled.input`
-  flex: 1;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 12px;
-  padding: 11px 12px;
-
-  background: rgba(15, 23, 42, 0.78);
-  color: #f8fafc;
-  font-size: 0.9rem;
-  outline: none;
-
-  &:focus {
-    border-color: rgba(59, 130, 246, 0.55);
-  }
-
-  &::placeholder {
-    color: #64748b;
-  }
-`;
-
-const BotaoPrimario = styled.button`
-  border: 1px solid rgba(59, 130, 246, 0.32);
-  border-radius: 12px;
-  padding: 10px 14px;
-
-  background: rgba(59, 130, 246, 0.15);
-  color: #bfdbfe;
-  font-weight: 900;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  &:not(:disabled):hover {
-    background: rgba(59, 130, 246, 0.23);
-  }
-`;
-
-const ListaUsuarios = styled.div`
+const FeedLista = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 `;
 
-const UsuarioItem = styled.button`
+const FeedCard = styled.button`
   width: 100%;
-  border: 1px solid
-    ${({ $ativo }) =>
-      $ativo ? 'rgba(59, 130, 246, 0.45)' : 'rgba(148, 163, 184, 0.12)'};
-  border-radius: 14px;
-  padding: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 18px;
+  padding: 15px;
 
-  background: ${({ $ativo }) =>
-    $ativo ? 'rgba(59, 130, 246, 0.11)' : 'rgba(255, 255, 255, 0.025)'};
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(59, 130, 246, 0.08),
+      transparent 34%
+    ),
+    rgba(15, 23, 42, 0.66);
 
   display: grid;
-  grid-template-columns: 38px 1fr auto;
-  align-items: center;
-  gap: 10px;
+  grid-template-columns: 46px 1fr;
+  gap: 13px;
 
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.28);
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(59, 130, 246, 0.13),
+        transparent 36%
+      ),
+      rgba(15, 23, 42, 0.76);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 40px 1fr;
+    padding: 13px;
+    border-radius: 16px;
   }
 `;
 
-const Avatar = styled.div`
-  width: 38px;
-  height: 38px;
+const FeedIcone = styled.div`
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+
+  font-size: 1.15rem;
+
+  @media (max-width: 640px) {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+`;
+
+const FeedConteudo = styled.div`
+  min-width: 0;
+`;
+
+const FeedMeta = styled.div`
+  margin-bottom: 5px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    color: #60a5fa;
+    font-size: 0.68rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  small {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+`;
+
+const FeedTitulo = styled.strong`
+  display: block;
+  color: #f8fafc;
+  font-size: 0.98rem;
+  line-height: 1.35;
+`;
+
+const FeedTexto = styled.p`
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.45;
+`;
+
+const FeedUsuario = styled.div`
+  margin-top: 11px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+`;
+
+const MiniAvatar = styled.div`
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
 
   display: grid;
@@ -741,288 +779,111 @@ const Avatar = styled.div`
 
   background: rgba(59, 130, 246, 0.17);
   color: #93c5fd;
-  font-size: 0.95rem;
-  font-weight: 900;
+  font-size: 0.68rem;
+  font-weight: 950;
 `;
 
-const UsuarioResumo = styled.div`
-  min-width: 0;
-
-  strong {
-    display: block;
-    color: #f8fafc;
-    font-size: 0.86rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  span {
-    display: block;
-    margin-top: 2px;
-    color: #94a3b8;
-    font-size: 0.72rem;
-  }
-`;
-
-const PlanoBadge = styled.span`
-  width: fit-content;
-  padding: 4px 7px;
-  border-radius: 999px;
-
-  background: ${({ $premium }) =>
-    $premium ? 'rgba(250, 204, 21, 0.11)' : 'rgba(34, 197, 94, 0.09)'};
-
-  color: ${({ $premium }) => ($premium ? '#fde68a' : '#86efac')};
-
-  border: 1px solid
-    ${({ $premium }) =>
-      $premium ? 'rgba(250, 204, 21, 0.2)' : 'rgba(34, 197, 94, 0.16)'};
-
-  font-size: 0.62rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  white-space: nowrap;
-`;
-
-const EstadoCard = styled.div`
-  padding: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.11);
-  border-radius: 15px;
-  color: #94a3b8;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.025);
-`;
-
-const PerfilVazio = styled(EstadoCard)`
-  min-height: 260px;
-  display: grid;
-  place-content: center;
-`;
-
-const PerfilVazioTitulo = styled.strong`
-  color: #f8fafc;
-  font-size: 1rem;
-`;
-
-const PerfilVazioTexto = styled.p`
-  margin: 7px auto 0;
-  max-width: 460px;
-  color: #94a3b8;
-  line-height: 1.5;
-`;
-
-const PerfilCard = styled.article`
-  margin-bottom: 16px;
-  padding: 18px;
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  border-radius: 18px;
-
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(59, 130, 246, 0.13),
-      transparent 38%
-    ),
-    rgba(15, 23, 42, 0.7);
-`;
-
-const PerfilTopo = styled.div`
+const LateralColuna = styled.aside`
   display: flex;
+  flex-direction: column;
   gap: 14px;
-  align-items: center;
 `;
 
-const PerfilAvatar = styled.div`
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-
-  display: grid;
-  place-items: center;
-
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
-  color: #fff;
-  font-size: 1.45rem;
-  font-weight: 900;
-`;
-
-const PerfilInfo = styled.div`
-  min-width: 0;
-`;
-
-const PerfilNome = styled.h2`
-  margin: 0;
-  color: #f8fafc;
-  font-size: 1.2rem;
-`;
-
-const PerfilSubnome = styled.div`
-  margin-top: 3px;
-  color: #94a3b8;
-  font-size: 0.84rem;
-`;
-
-const PerfilBadges = styled.div`
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-`;
-
-const SegueVoceBadge = styled.span`
-  width: fit-content;
-  padding: 4px 7px;
-  border-radius: 999px;
-
-  background: rgba(59, 130, 246, 0.12);
-  color: #bfdbfe;
-  border: 1px solid rgba(59, 130, 246, 0.18);
-
-  font-size: 0.62rem;
-  font-weight: 900;
-  text-transform: uppercase;
-`;
-
-const PerfilMetricas = styled.div`
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-
-  @media (max-width: 680px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-`;
-
-const Metrica = styled.div`
-  padding: 11px;
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.04);
-
-  span {
-    display: block;
-    margin-bottom: 4px;
-    color: #94a3b8;
-    font-size: 0.7rem;
-  }
-
-  strong {
-    color: #f8fafc;
-    font-size: 0.88rem;
-  }
-`;
-
-const PerfilAcoes = styled.div`
-  margin-top: 16px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const ConviteCard = styled.section`
-  padding: 17px;
-  border: 1px solid rgba(250, 204, 21, 0.18);
+const LateralCard = styled.section`
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
   border-radius: 18px;
 
   background:
     radial-gradient(
       circle at top right,
-      rgba(250, 204, 21, 0.1),
-      transparent 36%
+      rgba(250, 204, 21, 0.08),
+      transparent 34%
     ),
-    rgba(15, 23, 42, 0.68);
+    rgba(15, 23, 42, 0.62);
 `;
 
-const ConviteTitulo = styled.strong`
+const LateralTitulo = styled.strong`
   display: block;
   color: #f8fafc;
-  font-size: 1rem;
+  font-size: 0.95rem;
 `;
 
-const ConviteTexto = styled.p`
+const LateralTexto = styled.p`
   margin: 7px 0 0;
   color: #94a3b8;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   line-height: 1.5;
 `;
 
-const ConviteForm = styled.form`
-  margin-top: 14px;
-`;
-
-const CampoGrupo = styled.label`
-  display: block;
-  margin-bottom: 13px;
-`;
-
-const CampoLabel = styled.span`
-  display: block;
-  margin-bottom: 6px;
+const ListaInfo = styled.ul`
+  margin: 12px 0 0;
+  padding-left: 18px;
   color: #cbd5e1;
-  font-size: 0.76rem;
-  font-weight: 800;
-`;
+  font-size: 0.8rem;
+  line-height: 1.7;
 
-const SelectRanking = styled.select`
-  width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 12px;
-  padding: 11px 12px;
-
-  background: rgba(15, 23, 42, 0.78);
-  color: #f8fafc;
-  font-size: 0.9rem;
-  outline: none;
-
-  &:focus {
-    border-color: rgba(59, 130, 246, 0.55);
+  li::marker {
+    color: #60a5fa;
   }
 `;
 
-const TextareaConvite = styled.textarea`
+const BotaoSecundario = styled.button`
+  margin-top: 13px;
   width: 100%;
-  min-height: 88px;
-  resize: vertical;
 
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 12px;
-  padding: 11px 12px;
+  padding: 10px 13px;
 
-  background: rgba(15, 23, 42, 0.78);
-  color: #f8fafc;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  outline: none;
-
-  &:focus {
-    border-color: rgba(59, 130, 246, 0.55);
-  }
-
-  &::placeholder {
-    color: #64748b;
-  }
-`;
-
-const BotaoConvite = styled.button`
-  width: 100%;
-  border: 1px solid rgba(250, 204, 21, 0.32);
-  border-radius: 12px;
-  padding: 11px 14px;
-
-  background: rgba(250, 204, 21, 0.14);
-  color: #fde68a;
+  background: rgba(255, 255, 255, 0.045);
+  color: #e2e8f0;
+  font-size: 0.8rem;
   font-weight: 900;
   cursor: pointer;
 
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+  &:hover {
+    background: rgba(59, 130, 246, 0.12);
   }
+`;
 
-  &:not(:disabled):hover {
-    background: rgba(250, 204, 21, 0.22);
-  }
+const FeedVazio = styled.div`
+  padding: 38px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 18px;
+
+  background: rgba(15, 23, 42, 0.62);
+
+  text-align: center;
+`;
+
+const FeedVazioIcone = styled.div`
+  margin-bottom: 10px;
+  font-size: 2rem;
+`;
+
+const FeedVazioTitulo = styled.strong`
+  display: block;
+  color: #f8fafc;
+  font-size: 1rem;
+`;
+
+const FeedVazioTexto = styled.p`
+  margin: 7px auto 0;
+  max-width: 520px;
+  color: #94a3b8;
+  font-size: 0.86rem;
+  line-height: 1.5;
+`;
+
+const EstadoCard = styled.div`
+  padding: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 15px;
+
+  color: #94a3b8;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.025);
 `;
 
 const MensagemErro = styled.div`
@@ -1033,16 +894,5 @@ const MensagemErro = styled.div`
 
   background: rgba(239, 68, 68, 0.08);
   color: #fca5a5;
-  font-size: 0.82rem;
-`;
-
-const MensagemSucesso = styled.div`
-  margin: 12px 0;
-  padding: 11px 13px;
-  border: 1px solid rgba(34, 197, 94, 0.22);
-  border-radius: 12px;
-
-  background: rgba(34, 197, 94, 0.08);
-  color: #86efac;
   font-size: 0.82rem;
 `;
