@@ -49,9 +49,9 @@ export default function NegociacaoModal({
   carregando: false,
   erro: '',
   temporadaAtiva: false,
-  rodadaAberta: false,
+  mercadoAberto: false,
   temporada: null,
-  rodada: null,
+  periodo: null,
   plano: null,
   ordensIlimitadas: false,
   limite: null,
@@ -357,32 +357,34 @@ export default function NegociacaoModal({
     });
 
     const atualizado = {
-      carregando: false,
-      erro: '',
-      temporadaAtiva: Boolean(data?.temporadaAtiva),
-      rodadaAberta: Boolean(data?.rodadaAberta),
-      temporada: data?.temporada || null,
-      rodada: data?.rodada || null,
-      plano: data?.plano || 'lite',
-      ordensIlimitadas: Boolean(data?.ordensIlimitadas),
+  carregando: false,
+  erro: '',
+  temporadaAtiva: Boolean(data?.temporadaAtiva),
+  mercadoAberto:
+    Boolean(data?.temporadaAtiva) &&
+    data?.mercadoAberto !== false,
+  temporada: data?.temporada || null,
+  periodo: data?.periodo || null,
+  plano: data?.plano || 'lite',
+  ordensIlimitadas: Boolean(data?.ordensIlimitadas),
 
-      limite:
-        data?.limite !== undefined && data?.limite !== null
-          ? Number(data.limite)
-          : null,
+  limite:
+    data?.limite !== undefined && data?.limite !== null
+      ? Number(data.limite)
+      : null,
 
-      utilizadas:
-        data?.utilizadas !== undefined && data?.utilizadas !== null
-          ? Number(data.utilizadas)
-          : null,
+  utilizadas:
+    data?.utilizadas !== undefined && data?.utilizadas !== null
+      ? Number(data.utilizadas)
+      : null,
 
-      restantes:
-        data?.restantes !== undefined && data?.restantes !== null
-          ? Number(data.restantes)
-          : null,
+  restantes:
+    data?.restantes !== undefined && data?.restantes !== null
+      ? Number(data.restantes)
+      : null,
 
-      limiteAtingido: Boolean(data?.limiteAtingido),
-    };
+  limiteAtingido: Boolean(data?.limiteAtingido),
+};
 
     setLimiteOrdens(atualizado);
 
@@ -486,36 +488,36 @@ export default function NegociacaoModal({
     return;
   }
 
-  if (!limiteOrdens.rodadaAberta) {
-    setMensagem(
-      '❌ Não existe uma rodada aberta no momento.'
-    );
+  if (!limiteOrdens.mercadoAberto) {
+  setMensagem(
+    '❌ O mercado está temporariamente fechado para novas ordens.'
+  );
 
-    adicionarToast(
-      '❌ Não existe uma rodada aberta no momento.',
-      'erro'
-    );
+  adicionarToast(
+    '❌ O mercado está temporariamente fechado.',
+    'erro'
+  );
 
-    setCarregando(false);
-    return;
-  }
+  setCarregando(false);
+  return;
+}
 
-  if (
-    limiteOrdens.plano === 'lite' &&
-    limiteOrdens.limiteAtingido
-  ) {
-    setMensagem(
-      '❌ Você atingiu o limite de ordens desta rodada.'
-    );
+if (
+  limiteOrdens.plano === 'lite' &&
+  limiteOrdens.limiteAtingido
+) {
+  setMensagem(
+    '❌ Você atingiu o limite semanal de ordens.'
+  );
 
-    adicionarToast(
-      '❌ Limite de ordens da rodada atingido.',
-      'erro'
-    );
+  adicionarToast(
+    '❌ Limite semanal de ordens atingido.',
+    'erro'
+  );
 
-    setCarregando(false);
-    return;
-  }
+  setCarregando(false);
+  return;
+}
 }
 
     try {
@@ -681,26 +683,22 @@ if (response?.franquiaOrdens) {
     'TEMPORADA_NAO_ATIVA'
   ) {
     setLimiteOrdens((prev) => ({
-      ...prev,
-      carregando: false,
-      temporadaAtiva: false,
-      rodadaAberta: false,
-      temporada: null,
-      rodada: null,
-    }));
+  ...prev,
+  carregando: false,
+  temporadaAtiva: false,
+  mercadoAberto: false,
+  temporada: null,
+  periodo: null,
+}));
   }
 
-  if (
-    codigoErro ===
-    'RODADA_NAO_ABERTA'
-  ) {
-    setLimiteOrdens((prev) => ({
-      ...prev,
-      carregando: false,
-      rodadaAberta: false,
-      rodada: null,
-    }));
-  }
+  if (codigoErro === 'MERCADO_FECHADO') {
+  setLimiteOrdens((prev) => ({
+    ...prev,
+    carregando: false,
+    mercadoAberto: false,
+  }));
+}
 
   if (error.response) {
         erroMsg =
@@ -871,7 +869,7 @@ const mercadoSecundarioBloqueado =
   (
     limiteOrdens.carregando ||
     !limiteOrdens.temporadaAtiva ||
-    !limiteOrdens.rodadaAberta ||
+    !limiteOrdens.mercadoAberto ||
     (
       limiteOrdens.plano === 'lite' &&
       limiteOrdens.limiteAtingido
@@ -942,11 +940,11 @@ return (
           : 'Lite'}
       </span>
 
-      {limiteOrdens.rodada?.numero && (
-        <small>
-          Rodada {limiteOrdens.rodada.numero}
-        </small>
-      )}
+      <small>
+  {limiteOrdens.mercadoAberto
+    ? 'Mercado aberto'
+    : 'Mercado fechado'}
+</small>
     </FranquiaTopo>
 
     {limiteOrdens.carregando ? (
@@ -961,14 +959,14 @@ return (
       <FranquiaTexto>
         Nenhuma temporada ativa no momento.
       </FranquiaTexto>
-    ) : !limiteOrdens.rodadaAberta ? (
-      <FranquiaTexto>
-        Nenhuma rodada aberta no momento.
-      </FranquiaTexto>
-    ) : limiteOrdens.ordensIlimitadas ? (
-      <FranquiaTexto>
-        Ordens ilimitadas nesta rodada.
-      </FranquiaTexto>
+    ) : !limiteOrdens.mercadoAberto ? (
+  <FranquiaTexto>
+    O mercado está temporariamente fechado para novas ordens.
+  </FranquiaTexto>
+) : limiteOrdens.ordensIlimitadas ? (
+  <FranquiaTexto>
+    Ordens ilimitadas durante a temporada.
+  </FranquiaTexto>
     ) : (
       <>
         <FranquiaTexto>
@@ -1013,16 +1011,29 @@ return (
             limiteOrdens.restantes || 0
           ) > 0 && (
             <FranquiaAviso>
-              Você está perto do limite desta
-              rodada.
-            </FranquiaAviso>
+  Você está perto do limite semanal.
+</FranquiaAviso>
           )}
 
         {limiteOrdens.limiteAtingido && (
           <FranquiaAviso>
-            Limite atingido. A franquia será
-            renovada na próxima rodada.
-          </FranquiaAviso>
+  Limite semanal atingido.
+  {limiteOrdens.periodo?.renovaEm && (
+    <>
+      {' '}
+      A quota será renovada em{' '}
+      {new Date(
+        limiteOrdens.periodo.renovaEm
+      ).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}.
+    </>
+  )}
+</FranquiaAviso>
         )}
       </>
     )}
@@ -1188,8 +1199,8 @@ return (
     !limiteOrdens.temporadaAtiva
   ? 'Temporada indisponível'
   : ipoEncerrado &&
-    !limiteOrdens.rodadaAberta
-  ? 'Rodada fechada'
+  !limiteOrdens.mercadoAberto
+? 'Mercado fechado'
   : ipoEncerrado &&
     limiteOrdens.plano === 'lite' &&
     limiteOrdens.limiteAtingido
