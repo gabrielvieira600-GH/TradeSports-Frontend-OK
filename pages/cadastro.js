@@ -582,9 +582,6 @@ Dúvidas sobre esta Política:
 
   return (
     <Container>
-      <Glow $um />
-      <Glow $dois />
-
       <Shell>
         <BrandPanel>
           <BrandContent>
@@ -629,14 +626,6 @@ Dúvidas sobre esta Política:
         </BrandPanel>
 
         <Card>
-          <MobileBrand href="/">
-            <BrandMark aria-hidden="true">
-              <span>↗</span>
-              <span>↙</span>
-            </BrandMark>
-            <BrandName>Trade<span>Sports</span></BrandName>
-          </MobileBrand>
-
           <CardHeader>
             <StepLabel>Crie sua conta</StepLabel>
             <Titulo>Comece sua jornada</Titulo>

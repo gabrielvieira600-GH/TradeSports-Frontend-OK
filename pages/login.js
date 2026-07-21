@@ -112,11 +112,6 @@ export default function Login() {
         </BrandPanel>
 
         <FormPanel>
-          <MobileBrand href="/" aria-label="TradeSports — página inicial">
-            <BrandMark aria-hidden="true"><MarkBar $small /><MarkBar /><MarkArrow>↗</MarkArrow></BrandMark>
-            <BrandName>TradeSports</BrandName>
-          </MobileBrand>
-
           <FormWrap>
             <FormEyebrow>ACESSO À PLATAFORMA</FormEyebrow>
             <Title>Entre na sua conta</Title>
