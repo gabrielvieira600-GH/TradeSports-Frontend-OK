@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import styled, { keyframes } from "styled-components";
+import ClubBadge from "./ClubBadge";
 
 const ATUALIZACAO_MS = 60_000;
 
@@ -10,6 +11,26 @@ const normalizar = (valor = "") =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]/g, "")
     .toLowerCase();
+
+const ALIASES = {
+  gremio: "gremio",
+  saopaulo: "saopaulo",
+  cuiaba: "cuiaba",
+  goias: "goias",
+  athleticoparanaense: "atleticoparanaense",
+  athletico: "atleticoparanaense",
+  fortaleza: "fortalezaec",
+  fortalezaec: "fortalezaec",
+  americamg: "americamineiro",
+  americamineiro: "americamineiro",
+  atleticomg: "atleticomg",
+  chapeconse: "chapecoense-sc",
+};
+
+const canon = (nome = "") => {
+  const base = normalizar(nome);
+  return ALIASES[base] || base;
+};
 
 const comoArray = (resposta, chaves = []) => {
   if (Array.isArray(resposta)) return resposta;
@@ -95,21 +116,21 @@ const statusClube = (item) => {
 function unirDados(tabela, clubes) {
   const clubesPorNome = new Map();
   clubes.forEach((clube) => {
-    const chave = normalizar(nomeCadastro(clube));
+    const chave = canon(nomeCadastro(clube));
     if (chave) clubesPorNome.set(chave, clube);
   });
 
   return tabela
     .map((linha) => {
       const nome = nomeTabela(linha);
-      const cadastro = clubesPorNome.get(normalizar(nome));
+      const cadastro = clubesPorNome.get(canon(nome));
       const posicao = posicaoTabela(linha);
       const preco = cadastro ? precoClube(cadastro) : null;
 
       if (!nome || !cadastro || posicao === null || preco === null) return null;
 
       return {
-        id: primeiroValor(cadastro?._id, cadastro?.id, normalizar(nome)),
+        id: primeiroValor(cadastro?._id, cadastro?.id, cadastro?.legacyId, canon(nome)),
         nome,
         sigla: siglaClube(cadastro, nome),
         posicao,
@@ -144,7 +165,7 @@ export default function LiveMarketTable({ variant = "home", limit = 4, className
         axios.get(`${API}/clube/clubes`),
       ]);
 
-      const tabela = comoArray(respostaTabela.data, ["tabela", "classificacao", "clubes", "dados"]);
+      const tabela = comoArray(respostaTabela.data, ["data", "tabela", "classificacao", "clubes", "dados"]);
       const cadastro = comoArray(respostaClubes.data, ["clubes", "dados", "data"]);
       const unidos = unirDados(tabela, cadastro);
 
@@ -208,11 +229,7 @@ export default function LiveMarketTable({ variant = "home", limit = 4, className
             <Linha key={clube.id} $compacto={compacto}>
               <Clube>
                 <EscudoWrap>
-                  {clube.escudo ? (
-                    <Escudo src={clube.escudo} alt={`Escudo do ${clube.nome}`} loading="lazy" />
-                  ) : (
-                    <Sigla aria-label={clube.nome}>{clube.sigla}</Sigla>
-                  )}
+                  <ClubBadge clube={clube.nome} size={30} />
                 </EscudoWrap>
                 <Nome>
                   <strong>{clube.nome}</strong>
