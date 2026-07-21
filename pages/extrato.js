@@ -161,7 +161,7 @@ function Extrato() {
     const inicio = new Date();
 
     inicio.setDate(
-      hoje.getDate() - dias
+      hoje.getDate() - (dias - 1)
     );
 
     setFrom(yyyyMMdd(inicio));
@@ -392,7 +392,7 @@ function Extrato() {
                 aplicarRange(1)
               }
             >
-              24h
+              Hoje
             </BtnPill>
 
             <BtnPill
@@ -410,7 +410,7 @@ function Extrato() {
                 aplicarRange(30)
               }
             >
-              1 mês
+              30 dias
             </BtnPill>
 
             <BtnPill
@@ -419,7 +419,7 @@ function Extrato() {
                 aplicarRange(90)
               }
             >
-              3 meses
+              90 dias
             </BtnPill>
 
             <BtnPill
