@@ -31,6 +31,7 @@ export default function NegociacaoModal({
   const [preco, setPreco] = useState(0);
   const [modo, setModo] = useState(modoInicial);
   const [mensagem, setMensagem] = useState('');
+  const [resultadoOrdem, setResultadoOrdem] = useState(null);
   const [poderCompra, setPoderCompra] = useState(0);
   const [carregando, setCarregando] = useState(false);
   const [ordensCompra, setOrdensCompra] = useState([]);
@@ -157,11 +158,13 @@ export default function NegociacaoModal({
   }, [isOpen, clubeId]);
 
   useEffect(() => {
-    setMensagem('');
-    if (usuario?.saldo !== undefined) {
-      setPoderCompra(Number(usuario.saldo) || 0);
-    }
-  }, [clube, isOpen, usuario]);
+  setMensagem('');
+  setResultadoOrdem(null);
+
+  if (usuario?.saldo !== undefined) {
+    setPoderCompra(Number(usuario.saldo) || 0);
+  }
+}, [clube, isOpen, usuario]);
 
   useEffect(() => {
     setModo(modoInicial);
@@ -447,8 +450,9 @@ export default function NegociacaoModal({
 }
 
   async function enviarOrdem() {
-    setCarregando(true);
-    setMensagem('');
+  setCarregando(true);
+  setMensagem('');
+  setResultadoOrdem(null);
 
     if (!token || !verificarTokenValido(token)) {
       setMensagem('❌ Você precisa estar logado para enviar ordens.');
@@ -629,11 +633,91 @@ if (response?.franquiaOrdens) {
 }
       }
 
-      setMensagem('✅ Ordem enviada com sucesso!');
-      adicionarToast(
-        `✅ ${modo === 'compra' ? 'Compra' : 'Venda'} realizada!`,
-        'sucesso'
-      );
+      if (ipoEncerrado && response?.ordem) {
+  const execucoes = Array.isArray(response.execucoes)
+    ? response.execucoes
+    : [];
+
+  const quantidadeOriginal = Number(
+    response.ordem.quantidade || 0
+  );
+
+  const quantidadeRestante = Number(
+    response.ordem.restante || 0
+  );
+
+  const quantidadeExecutada = execucoes.reduce(
+    (total, execucao) =>
+      total + Number(execucao.quantidade || 0),
+    0
+  );
+
+  const valorExecutado = execucoes.reduce(
+    (total, execucao) =>
+      total +
+      Number(execucao.quantidade || 0) *
+        Number(execucao.preco || 0),
+    0
+  );
+
+  const precoMedioExecutado =
+    quantidadeExecutada > 0
+      ? valorExecutado / quantidadeExecutada
+      : null;
+
+  const taxaTotal = execucoes.reduce(
+    (total, execucao) =>
+      total +
+      Number(
+        modo === 'compra'
+          ? execucao.taxaBuyer
+          : execucao.taxaSeller
+      ),
+    0
+  );
+
+  const status = response.ordem.status || 'aberta';
+
+  const titulo =
+    status === 'executada'
+      ? 'Ordem executada integralmente'
+      : status === 'parcial'
+      ? 'Ordem executada parcialmente'
+      : 'Ordem enviada para o livro';
+
+  setResultadoOrdem({
+    titulo,
+    status,
+    tipo: response.ordem.tipo || modo,
+    clube:
+      response?.clube?.nome ||
+      clube?.nome ||
+      'Clube',
+    precoLimite: Number(
+      response.ordem.preco || precoAtual || 0
+    ),
+    quantidadeOriginal,
+    quantidadeExecutada,
+    quantidadeRestante,
+    precoMedioExecutado,
+    taxaTotal,
+    ordensIlimitadas: Boolean(
+      response?.plano?.ordensIlimitadas
+    ),
+    ordensRestantes:
+      response?.franquiaOrdens?.restantes ??
+      null,
+  });
+
+  adicionarToast(`✅ ${titulo}.`, 'sucesso');
+} else {
+  setMensagem('✅ Compra realizada com sucesso no IPO!');
+
+  adicionarToast(
+    '✅ Compra realizada com sucesso no IPO!',
+    'sucesso'
+  );
+}
 
       await carregarOrdens();
       await verificarIPO();
@@ -1171,9 +1255,128 @@ return (
             )}
           </Bloco>
 
-          {mensagem && <Mensagem>{mensagem}</Mensagem>}
+          {resultadoOrdem && (
+  <ResultadoOrdem
+    $status={resultadoOrdem.status}
+  >
+    <ResultadoCabecalho>
+      <ResultadoIcone
+        $status={resultadoOrdem.status}
+      >
+        {resultadoOrdem.status === 'executada'
+          ? '✓'
+          : resultadoOrdem.status === 'parcial'
+          ? '◐'
+          : '↗'}
+      </ResultadoIcone>
 
-          <BotaoComprar
+      <div>
+        <ResultadoTitulo>
+          {resultadoOrdem.titulo}
+        </ResultadoTitulo>
+
+        <ResultadoSubtitulo>
+          {resultadoOrdem.tipo === 'compra'
+            ? 'Compra'
+            : 'Venda'}{' '}
+          de {resultadoOrdem.clube}
+        </ResultadoSubtitulo>
+      </div>
+    </ResultadoCabecalho>
+
+    <ResultadoGrade>
+      <ResultadoItem>
+        <span>Quantidade solicitada</span>
+        <strong>
+          {resultadoOrdem.quantidadeOriginal}
+        </strong>
+      </ResultadoItem>
+
+      <ResultadoItem>
+        <span>Quantidade executada</span>
+        <strong>
+          {resultadoOrdem.quantidadeExecutada}
+        </strong>
+      </ResultadoItem>
+
+      <ResultadoItem>
+        <span>Quantidade restante</span>
+        <strong>
+          {resultadoOrdem.quantidadeRestante}
+        </strong>
+      </ResultadoItem>
+
+      <ResultadoItem>
+        <span>Preço limite</span>
+        <strong>
+          T${' '}
+          {resultadoOrdem.precoLimite.toLocaleString(
+            'pt-BR',
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }
+          )}
+        </strong>
+      </ResultadoItem>
+
+      {resultadoOrdem.precoMedioExecutado !== null && (
+        <ResultadoItem>
+          <span>Preço médio executado</span>
+          <strong>
+            T${' '}
+            {resultadoOrdem.precoMedioExecutado.toLocaleString(
+              'pt-BR',
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }
+            )}
+          </strong>
+        </ResultadoItem>
+      )}
+
+      {resultadoOrdem.quantidadeExecutada > 0 && (
+        <ResultadoItem>
+          <span>Taxa cobrada</span>
+          <strong>
+            T${' '}
+            {resultadoOrdem.taxaTotal.toLocaleString(
+              'pt-BR',
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }
+            )}
+          </strong>
+        </ResultadoItem>
+      )}
+    </ResultadoGrade>
+
+    <ResultadoFranquia>
+      {resultadoOrdem.ordensIlimitadas
+        ? 'Plano Premium: ordens ilimitadas.'
+        : resultadoOrdem.ordensRestantes !== null
+        ? `Você ainda pode enviar ${resultadoOrdem.ordensRestantes} ${
+            Number(resultadoOrdem.ordensRestantes) === 1
+              ? 'ordem'
+              : 'ordens'
+          } nesta semana.`
+        : 'Consulte sua franquia semanal antes da próxima ordem.'}
+    </ResultadoFranquia>
+
+    {resultadoOrdem.quantidadeRestante > 0 && (
+      <ResultadoAviso>
+        A quantidade restante continua aberta no livro
+        de ofertas e pode ser executada posteriormente.
+      </ResultadoAviso>
+    )}
+  </ResultadoOrdem>
+)}
+
+{mensagem && <Mensagem>{mensagem}</Mensagem>}
+
+<BotaoComprar
             onClick={enviarOrdem}
             disabled={
   (ipoEncerrado && !tickValidation.valid) ||
@@ -1443,6 +1646,123 @@ const FranquiaAviso = styled.div`
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.35;
+`;
+
+const ResultadoOrdem = styled.section`
+  margin-top: 1rem;
+  padding: 14px;
+  border-radius: 14px;
+
+  border: 1px solid
+    ${({ $status }) =>
+      $status === 'executada'
+        ? 'rgba(34, 197, 94, 0.3)'
+        : $status === 'parcial'
+        ? 'rgba(250, 204, 21, 0.3)'
+        : 'rgba(59, 130, 246, 0.3)'};
+
+  background:
+    ${({ $status }) =>
+      $status === 'executada'
+        ? 'rgba(34, 197, 94, 0.08)'
+        : $status === 'parcial'
+        ? 'rgba(250, 204, 21, 0.07)'
+        : 'rgba(59, 130, 246, 0.08)'};
+`;
+
+const ResultadoCabecalho = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ResultadoIcone = styled.div`
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  background:
+    ${({ $status }) =>
+      $status === 'executada'
+        ? 'rgba(34, 197, 94, 0.18)'
+        : $status === 'parcial'
+        ? 'rgba(250, 204, 21, 0.18)'
+        : 'rgba(59, 130, 246, 0.18)'};
+
+  color:
+    ${({ $status }) =>
+      $status === 'executada'
+        ? '#86efac'
+        : $status === 'parcial'
+        ? '#fde68a'
+        : '#93c5fd'};
+
+  font-size: 1rem;
+  font-weight: 900;
+`;
+
+const ResultadoTitulo = styled.strong`
+  display: block;
+  color: #f8fafc;
+  font-size: 0.9rem;
+`;
+
+const ResultadoSubtitulo = styled.span`
+  display: block;
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+`;
+
+const ResultadoGrade = styled.div`
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+`;
+
+const ResultadoItem = styled.div`
+  min-width: 0;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.52);
+
+  span {
+    display: block;
+    margin-bottom: 4px;
+    color: #94a3b8;
+    font-size: 0.66rem;
+    line-height: 1.25;
+  }
+
+  strong {
+    display: block;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 0.79rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const ResultadoFranquia = styled.div`
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.13);
+  color: #bfdbfe;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+`;
+
+const ResultadoAviso = styled.div`
+  margin-top: 8px;
+  color: #fde68a;
+  font-size: 0.72rem;
+  line-height: 1.4;
 `;
 
 const Mensagem = styled.p`
