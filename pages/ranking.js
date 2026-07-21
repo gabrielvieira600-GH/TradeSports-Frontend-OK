@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import MarketStatusCard from '../components/MarketStatusCard';
 
 const ITENS_POR_PAGINA = 50;
 
@@ -197,22 +198,6 @@ const [pagina, setPagina] = useState(1);
     carregarRankingsPrivados();
   }
 }, [abaPrivadosAtiva, planoUsuario]);
-
-  const topTres = useMemo(() => {
-    if (pagina !== 1) return [];
-
-    return ranking
-      .filter((usuario) =>
-        [1, 2, 3].includes(
-          Number(usuario.posicao)
-        )
-      )
-      .sort(
-        (a, b) =>
-          Number(a.posicao) -
-          Number(b.posicao)
-      );
-  }, [ranking, pagina]);
   
   const categoriaMeuPlano =
   planoUsuario === 'premium'
@@ -647,6 +632,7 @@ const voltarParaListaPrivados = () => {
 };
   return (
   <Container>
+    <MarketStatusCard compacto />
     <Cabecalho>
       <CabecalhoTexto>
         <Eyebrow>Mercado simulado</Eyebrow>
@@ -1481,265 +1467,92 @@ const voltarParaListaPrivados = () => {
       </CarregandoCard>
     ) : (
       <>
-        {topTres.length > 0 && (
-          <Podio>
-            {topTres.map((usuario) => (
-              <PodioCard
-                key={usuario.usuarioId}
-                $posicao={usuario.posicao}
-              >
-                <PodioPosicao
-                  $posicao={usuario.posicao}
-                >
-                  {usuario.posicao}º
-                </PodioPosicao>
-
-                <Avatar>
-                  {String(
-                    usuario.nomeUsuario ||
-                      usuario.nome ||
-                      'U'
-                  )
-                    .charAt(0)
-                    .toUpperCase()}
-                </Avatar>
-
-                <PodioUsuario>
-                  {usuario.nomeUsuario
-                    ? `@${usuario.nomeUsuario}`
-                    : usuario.nome || 'Usuário'}
-                </PodioUsuario>
-
-                <PodioPatrimonio>
-                  {formatarTS(usuario.patrimonio)}
-                </PodioPatrimonio>
-
-                <Variacao
-                  $positivo={Number(usuario.rentabilidade) >= 0}
-                >
-                  {formatarPercentual(usuario.rentabilidade)}
-                </Variacao>
-              </PodioCard>
-            ))}
-          </Podio>
-        )}
-
         {ranking.length === 0 ? (
-          <VazioCard>
-            Nenhum usuário disponível no{' '}
-            {tituloCategoria.toLowerCase()}.
-          </VazioCard>
-        ) : (
-          <>
-            <DesktopOnly>
-              <TabelaContainer>
-                <Tabela>
-                  <thead>
-                    <tr>
-                      <th>Posição</th>
-                      <th>Usuário</th>
-                      <th>Patrimônio</th>
-                      <th>Rentabilidade</th>
-                      <th>Saldo</th>
-                      <th>Posições</th>
-                      <th>Unidades</th>
-                    </tr>
-                  </thead>
+  <VazioCard>
+    Nenhum usuário disponível no{' '}
+    {tituloCategoria.toLowerCase()}.
+  </VazioCard>
+) : (
+  <>
+    <TabelaLigaContainer>
+      <TabelaLiga>
+        <thead>
+          <tr>
+            <th>Pos.</th>
+            <th>Usuário</th>
+            <th>Valorização histórica</th>
+            <th className="patrimonio">
+              Patrimônio
+            </th>
+          </tr>
+        </thead>
 
-                  <tbody>
-                    {ranking.map((usuario) => {
-                      const souEu =
-                        String(usuario.usuarioId) ===
-                        String(usuarioAtual?.usuarioId);
+        <tbody>
+          {ranking.map((usuario) => {
+            const souEu =
+              String(usuario.usuarioId) ===
+              String(usuarioAtual?.usuarioId);
 
-                      return (
-                        <LinhaRanking
-                          key={usuario.usuarioId}
-                          $destaque={souEu}
-                        >
-                          <td>
-                            <PosicaoCelula>
-                              {usuario.posicao}º
-                            </PosicaoCelula>
-                          </td>
+            return (
+              <LinhaLiga
+                key={usuario.usuarioId}
+                $destaque={souEu}
+              >
+                <td>
+                  <PosicaoLiga
+                    $posicao={usuario.posicao}
+                  >
+                    {usuario.posicao}º
+                  </PosicaoLiga>
+                </td>
 
-                          <td>
-                            <UsuarioCelula>
-                              <AvatarPequeno>
-                                {String(
-                                  usuario.nomeUsuario ||
-                                    usuario.nome ||
-                                    'U'
-                                )
-                                  .charAt(0)
-                                  .toUpperCase()}
-                              </AvatarPequeno>
+                <td>
+                  <UsuarioCelula>
+                    <AvatarPequeno>
+                      {String(
+                        usuario.nomeUsuario ||
+                          usuario.nome ||
+                          'U'
+                      )
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarPequeno>
 
-                              <UsuarioInfo>
-                                <strong>
-                                  {usuario.nomeUsuario
-                                    ? `@${usuario.nomeUsuario}`
-                                    : usuario.nome || 'Usuário'}
-                                </strong>
+                    <UsuarioLiga>
+                      <strong>
+                        {usuario.nomeUsuario
+                          ? `@${usuario.nomeUsuario}`
+                          : usuario.nome || 'Usuário'}
+                      </strong>
 
-                                <PlanoUsuarioLinha
-                                  $premium={usuario.plano === 'premium'}
-                                >
-                                  {usuario.plano === 'premium'
-                                    ? 'Premium'
-                                    : 'Lite'}
-                                </PlanoUsuarioLinha>
+                      {souEu && <small>Você</small>}
+                    </UsuarioLiga>
+                  </UsuarioCelula>
+                </td>
 
-                                {souEu && (
-                                  <small>
-                                    Você
-                                  </small>
-                                )}
-                              </UsuarioInfo>
-                            </UsuarioCelula>
-                          </td>
+                <td>
+                  <Variacao
+                    $positivo={
+                      Number(usuario.rentabilidade) >= 0
+                    }
+                  >
+                    {formatarPercentual(
+                      usuario.rentabilidade
+                    )}
+                  </Variacao>
+                </td>
 
-                          <td>
-                            <ValorDestaque>
-                              {formatarTS(usuario.patrimonio)}
-                            </ValorDestaque>
-                          </td>
-
-                          <td>
-                            <Variacao
-                              $positivo={Number(usuario.rentabilidade) >= 0}
-                            >
-                              {formatarPercentual(usuario.rentabilidade)}
-                            </Variacao>
-                          </td>
-
-                          <td>
-                            {formatarTS(usuario.saldo)}
-                          </td>
-
-                          <td>
-                            {usuario.quantidadePosicoes}
-                          </td>
-
-                          <td>
-                            {Number(
-                              usuario.quantidadeUnidades || 0
-                            ).toLocaleString('pt-BR', {
-                              maximumFractionDigits: 4,
-                            })}
-                          </td>
-                        </LinhaRanking>
-                      );
-                    })}
-                  </tbody>
-                </Tabela>
-              </TabelaContainer>
-            </DesktopOnly>
-
-            <MobileOnly>
-              <ListaMobile>
-                {ranking.map((usuario) => {
-                  const souEu =
-                    String(usuario.usuarioId) ===
-                    String(usuarioAtual?.usuarioId);
-
-                  return (
-                    <CardMobile
-                      key={usuario.usuarioId}
-                      $destaque={souEu}
-                    >
-                      <CardMobileTopo>
-                        <PosicaoMobile>
-                          {usuario.posicao}º
-                        </PosicaoMobile>
-
-                        <UsuarioMobile>
-                          <AvatarPequeno>
-                            {String(
-                              usuario.nomeUsuario ||
-                                usuario.nome ||
-                                'U'
-                            )
-                              .charAt(0)
-                              .toUpperCase()}
-                          </AvatarPequeno>
-
-                          <div>
-                            <strong>
-                              {usuario.nomeUsuario
-                                ? `@${usuario.nomeUsuario}`
-                                : usuario.nome || 'Usuário'}
-                            </strong>
-
-                            <PlanoUsuarioLinha
-                              $premium={usuario.plano === 'premium'}
-                            >
-                              {usuario.plano === 'premium'
-                                ? 'Premium'
-                                : 'Lite'}
-                            </PlanoUsuarioLinha>
-
-                            {souEu && (
-                              <small>
-                                Você
-                              </small>
-                            )}
-                          </div>
-                        </UsuarioMobile>
-                      </CardMobileTopo>
-
-                      <PatrimonioMobile>
-                        <span>Patrimônio</span>
-
-                        <strong>
-                          {formatarTS(usuario.patrimonio)}
-                        </strong>
-                      </PatrimonioMobile>
-
-                      <MetricasMobile>
-                        <MetricaMobile>
-                          <span>Rentabilidade</span>
-
-                          <Variacao
-                            $positivo={Number(usuario.rentabilidade) >= 0}
-                          >
-                            {formatarPercentual(usuario.rentabilidade)}
-                          </Variacao>
-                        </MetricaMobile>
-
-                        <MetricaMobile>
-                          <span>Saldo</span>
-
-                          <strong>
-                            {formatarTS(usuario.saldo)}
-                          </strong>
-                        </MetricaMobile>
-
-                        <MetricaMobile>
-                          <span>Posições</span>
-
-                          <strong>
-                            {usuario.quantidadePosicoes}
-                          </strong>
-                        </MetricaMobile>
-
-                        <MetricaMobile>
-                          <span>Unidades</span>
-
-                          <strong>
-                            {Number(
-                              usuario.quantidadeUnidades || 0
-                            ).toLocaleString('pt-BR', {
-                              maximumFractionDigits: 4,
-                            })}
-                          </strong>
-                        </MetricaMobile>
-                      </MetricasMobile>
-                    </CardMobile>
-                  );
-                })}
-              </ListaMobile>
-            </MobileOnly>
+                <td className="patrimonio">
+                  <ValorDestaque>
+                    {formatarTS(usuario.patrimonio)}
+                  </ValorDestaque>
+                </td>
+              </LinhaLiga>
+            );
+          })}
+        </tbody>
+      </TabelaLiga>
+    </TabelaLigaContainer>
 
             <Paginacao>
               <BotaoPagina
@@ -2198,100 +2011,153 @@ const MeuRankingMetrica = styled.div`
   }
 `;
 
-const Podio = styled.section`
-  margin-bottom: 24px;
-  display: grid;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  align-items: end;
+const TabelaLigaContainer = styled.div`
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.62);
 
-  @media (max-width: 700px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 560px) {
+    border-radius: 13px;
   }
 `;
 
-const PodioCard = styled.div`
-  min-height: ${({ $posicao }) =>
-    Number($posicao) === 1
-      ? '220px'
-      : '195px'};
+const TabelaLiga = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 
-  padding: 18px;
-  border: 1px solid
-    ${({ $posicao }) =>
-      Number($posicao) === 1
-        ? 'rgba(250, 204, 21, 0.3)'
-        : 'rgba(148, 163, 184, 0.15)'};
+  th,
+  td {
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  }
 
-  border-radius: 18px;
+  th {
+    background: rgba(255, 255, 255, 0.035);
+    color: #94a3b8;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
 
-  background:
-    ${({ $posicao }) =>
-      Number($posicao) === 1
-        ? `radial-gradient(
-            circle at top,
-            rgba(250, 204, 21, 0.16),
-            transparent 46%
-          ), rgba(15, 23, 42, 0.75)`
-        : 'rgba(15, 23, 42, 0.68)'};
+  th:first-child,
+  td:first-child {
+    width: 82px;
+    text-align: center;
+  }
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 190px;
+    text-align: right;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 180px;
+    text-align: right;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
 
   @media (max-width: 700px) {
-    min-height: auto;
+    th,
+    td {
+      padding: 12px 10px;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: 54px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 112px;
+    }
+
+    .patrimonio {
+      display: none;
+    }
   }
 `;
 
-const PodioPosicao = styled.div`
-  margin-bottom: 10px;
-  color: ${({ $posicao }) => {
+const LinhaLiga = styled.tr`
+  background: ${({ $destaque }) =>
+    $destaque
+      ? 'rgba(59, 130, 246, 0.11)'
+      : 'transparent'};
+
+  transition: background 0.18s ease;
+
+  &:hover {
+    background: ${({ $destaque }) =>
+      $destaque
+        ? 'rgba(59, 130, 246, 0.15)'
+        : 'rgba(255, 255, 255, 0.035)'};
+  }
+`;
+
+const PosicaoLiga = styled.strong`
+  display: inline-grid;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 7px;
+  place-items: center;
+  border-radius: 8px;
+
+  background: ${({ $posicao }) => {
     if (Number($posicao) === 1) {
-      return '#fde047';
+      return 'rgba(250, 204, 21, 0.16)';
     }
 
     if (Number($posicao) === 2) {
-      return '#cbd5e1';
+      return 'rgba(203, 213, 225, 0.13)';
     }
 
-    return '#fdba74';
+    if (Number($posicao) === 3) {
+      return 'rgba(251, 146, 60, 0.14)';
+    }
+
+    return 'rgba(255, 255, 255, 0.04)';
   }};
 
-  font-size: 1rem;
-  font-weight: 900;
+  color: ${({ $posicao }) => {
+    if (Number($posicao) === 1) return '#fde047';
+    if (Number($posicao) === 2) return '#cbd5e1';
+    if (Number($posicao) === 3) return '#fdba74';
+
+    return '#e2e8f0';
+  }};
+
+  font-size: 0.84rem;
 `;
 
-const Avatar = styled.div`
-  width: 58px;
-  height: 58px;
-  margin-bottom: 10px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
+const UsuarioLiga = styled.div`
+  min-width: 0;
 
-  background: linear-gradient(
-    135deg,
-    #2563eb,
-    #60a5fa
-  );
+  strong {
+    display: block;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 0.88rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-  color: white;
-  font-size: 1.3rem;
-  font-weight: 900;
-`;
-
-const PodioUsuario = styled.strong`
-  color: #f8fafc;
-  font-size: 0.95rem;
-`;
-
-const PodioPatrimonio = styled.strong`
-  margin: 8px 0 4px;
-  color: #f8fafc;
-  font-size: 1.15rem;
+  small {
+    display: block;
+    margin-top: 3px;
+    color: #60a5fa;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
 `;
 
 const TabelaContainer = styled.div`
