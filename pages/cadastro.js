@@ -589,10 +589,7 @@ Dúvidas sobre esta Política:
         <BrandPanel>
           <BrandLink href="/" aria-label="Ir para a página inicial da TradeSports">
             <BrandMark aria-hidden="true">
-              <span>↗</span>
-              <span>↙</span>
             </BrandMark>
-            <BrandName>Trade<span>Sports</span></BrandName>
           </BrandLink>
 
           <BrandContent>
