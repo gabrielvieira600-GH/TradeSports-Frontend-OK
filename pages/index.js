@@ -328,7 +328,7 @@ export default function Home() {
         <CtaGlow />
         <CtaContent>
           <CtaEyebrow>O próximo movimento é seu</CtaEyebrow>
-          <CtaTitle>Veja o esporte com olhos de mercado.</CtaTitle>
+          <CtaTitle>Veja o com olhos de mercado.</CtaTitle>
           <CtaText>
             Crie sua conta, explore os clubes e comece a construir sua
             estratégia.
