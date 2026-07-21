@@ -3,9 +3,13 @@ import styled from 'styled-components';
 import withAuth from '../components/withAuth';
 import api from '../lib/api';
 
-function formatBRL(n) {
+function formatTS(n) {
   const v = Number(n || 0);
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  return `T$ ${v.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function formatData(d) {
@@ -20,10 +24,41 @@ function formatData(d) {
 
 function statusLabel(st) {
   const s = String(st || '').toLowerCase();
+
   if (s === 'aberta') return 'Aberta';
+  if (s === 'parcial') return 'Parcialmente executada';
   if (s === 'executada') return 'Executada';
   if (s === 'cancelada') return 'Cancelada';
+
   return st || '-';
+}
+
+function dataStatusOrdem(item) {
+  if (item.status === 'executada') {
+    return {
+      label: 'Executada em',
+      data: item.executadoEm,
+    };
+  }
+
+  if (item.status === 'cancelada') {
+    return {
+      label: 'Cancelada em',
+      data: item.canceladoEm,
+    };
+  }
+
+  if (item.status === 'parcial') {
+    return {
+      label: 'Última execução',
+      data: item.executadoEm,
+    };
+  }
+
+  return {
+    label: 'Criada em',
+    data: item.criadoEm,
+  };
 }
 
 function MinhasOrdens() {
@@ -35,12 +70,6 @@ function MinhasOrdens() {
   const [filtroClubeId, setFiltroClubeId] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
-  const [filtroOrigem, setFiltroOrigem] = useState('');
-
-  const [editandoId, setEditandoId] = useState(null);
-  const [editPreco, setEditPreco] = useState('');
-  const [editQtd, setEditQtd] = useState('');
-
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
@@ -56,60 +85,47 @@ function MinhasOrdens() {
       const respOrdens = await api.get('/mercado/minhas-ordens?todas=true');
       const ordens = Array.isArray(respOrdens.data) ? respOrdens.data : [];
 
-      const respHist = await api.get('/usuario/historico');
-      const historico = Array.isArray(respHist.data) ? respHist.data : [];
-
       const mapClubeNome = (clubeId) => {
         const c = listaClubes.find((x) => String(x.id) === String(clubeId));
         return c?.nome || c?.nomeClube || '—';
       };
 
-      const itensOrdens = ordens.map((o) => {
-        const st =
-          o.status || (Number(o.restante || 0) <= 0 ? 'executada' : 'aberta');
+      const itensOrdens = ordens
+  .map((o) => {
+    const quantidade = Number(o.quantidade || 0);
+    const restante = Number(o.restante || 0);
 
-        return {
-          fonte: 'ORDEM',
-          id: o.id,
-          origem: 'SECUNDARIO',
-          tipo: o.tipo,
-          clubeId: o.clubeId,
-          clubeNome: mapClubeNome(o.clubeId),
-          preco: Number(o.preco || 0),
-          quantidade: Number(o.quantidade || 0),
-          restante: Number(o.restante || 0),
-          status: st,
-          criadoEm: o.criadoEm,
-        };
-      });
+    const status =
+      o.status ||
+      (restante <= 0
+        ? 'executada'
+        : restante < quantidade
+        ? 'parcial'
+        : 'aberta');
 
-      const itensHist = historico.map((h) => {
-        const tipoRaw = String(h.tipo || '').toUpperCase();
-        const tipo =
-          tipoRaw === 'COMPRA' ? 'compra' : tipoRaw === 'VENDA' ? 'venda' : 'outro';
+    return {
+      fonte: 'ORDEM',
+      id: o.id,
+      tipo: o.tipo,
+      clubeId: o.clubeId,
+      clubeNome: mapClubeNome(o.clubeId),
+      preco: Number(o.preco || 0),
+      quantidade,
+      executada: Math.max(0, quantidade - restante),
+      restante,
+      status,
+      criadoEm: o.criadoEm,
+      executadoEm: o.executadoEm || null,
+      canceladoEm: o.canceladoEm || null,
+    };
+  })
+  .sort(
+    (a, b) =>
+      new Date(b.criadoEm).getTime() -
+      new Date(a.criadoEm).getTime()
+  );
 
-        return {
-          fonte: 'HISTORICO',
-          id: h.id,
-          origem:
-            h.origem || (h.tipo === 'LIQUIDACAO' ? 'LIQUIDACAO' : 'IPO/HISTÓRICO'),
-          tipo,
-          clubeId: h.clubeId,
-          clubeNome: h.clubeNome || mapClubeNome(h.clubeId),
-          preco: Number(h.valorUnitario ?? h.preco ?? 0),
-          quantidade: Number(h.quantidade || 0),
-          restante: 0,
-          status: 'executada',
-          criadoEm: h.data || h.criadoEm || Date.now(),
-          tipoHistorico: h.tipo,
-        };
-      });
-
-      const tudo = [...itensOrdens, ...itensHist].sort(
-        (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
-      );
-
-      setItens(tudo);
+setItens(itensOrdens);
     } catch (e) {
       console.error(e);
       setErro(
@@ -131,14 +147,13 @@ function MinhasOrdens() {
       if (filtroClubeId && String(x.clubeId) !== String(filtroClubeId)) return false;
       if (filtroTipo && String(x.tipo) !== String(filtroTipo)) return false;
       if (filtroStatus && String(x.status) !== String(filtroStatus)) return false;
-      if (filtroOrigem && String(x.origem) !== String(filtroOrigem)) return false;
       return true;
     });
-  }, [itens, filtroClubeId, filtroTipo, filtroStatus, filtroOrigem]);
+  }, [itens, filtroClubeId, filtroTipo, filtroStatus]);
 
   useEffect(() => {
     setPage(1);
-  }, [filtroClubeId, filtroTipo, filtroStatus, filtroOrigem, pageSize]);
+  }, [filtroClubeId, filtroTipo, filtroStatus, pageSize]);
 
   const totalItens = itensFiltrados.length;
   const totalPaginas = Math.max(1, Math.ceil(totalItens / Number(pageSize || 10)));
@@ -156,45 +171,28 @@ function MinhasOrdens() {
   }, [itensFiltrados, page, pageSize]);
 
   async function cancelarOrdem(ordemId) {
-    try {
-      await api.post('/mercado/ordem/cancelar', { ordemId });
-      await carregarTudo();
-    } catch (e) {
-      console.error(e);
-      alert(e?.response?.data?.erro || 'Não foi possível cancelar.');
-    }
+  const confirmou = window.confirm(
+    'Deseja cancelar a quantidade restante desta ordem?'
+  );
+
+  if (!confirmou) return;
+
+  try {
+    await api.post(
+      `/mercado/ordem/cancelar/${ordemId}`
+    );
+
+    await carregarTudo();
+  } catch (e) {
+    console.error(e);
+
+    alert(
+      e?.response?.data?.erro ||
+        'Não foi possível cancelar esta ordem.'
+    );
   }
+}
 
-  function iniciarEdicao(item) {
-    setEditandoId(item.id);
-    setEditPreco(String(Number(item.preco || 0)));
-    setEditQtd(String(Number(item.quantidade || 0)));
-  }
-
-  function cancelarEdicao() {
-    setEditandoId(null);
-    setEditPreco('');
-    setEditQtd('');
-  }
-
-  async function salvarEdicao(ordemId) {
-    const qtd = Number(editQtd);
-    const preco = Number(editPreco);
-
-    if (!Number.isFinite(qtd) || qtd <= 0 || !Number.isFinite(preco) || preco <= 0) {
-      alert('Quantidade e preço precisam ser válidos.');
-      return;
-    }
-
-    try {
-      await api.put('/mercado/ordem/editar', { ordemId, quantidade: qtd, preco });
-      cancelarEdicao();
-      await carregarTudo();
-    } catch (e) {
-      console.error(e);
-      alert(e?.response?.data?.erro || 'Não foi possível editar.');
-    }
-  }
 
   return (
     <Container>
@@ -228,18 +226,9 @@ function MinhasOrdens() {
             <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
               <option value="">Todos</option>
               <option value="aberta">Aberta</option>
+              <option value="parcial">Parcialmente executada</option>
               <option value="executada">Executada</option>
               <option value="cancelada">Cancelada</option>
-            </select>
-          </Filtro>
-
-          <Filtro>
-            <label>Origem</label>
-            <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
-              <option value="">Todas</option>
-              <option value="SECUNDARIO">Mercado Secundário</option>
-              <option value="IPO/HISTÓRICO">IPO/Histórico</option>
-              <option value="LIQUIDACAO">Liquidação</option>
             </select>
           </Filtro>
 
@@ -318,15 +307,10 @@ function MinhasOrdens() {
                     const tipoHist = String(x.tipoHistorico || '').toUpperCase();
                     const isCompra = x.tipo === 'compra' || tipoHist === 'COMPRA';
 
-                    const podeEditar =
-                      x.fonte === 'ORDEM' &&
-                      x.status === 'aberta' &&
-                      Number(x.restante || 0) === Number(x.quantidade || 0);
-
                     const podeCancelar =
-                      x.fonte === 'ORDEM' &&
-                      x.status === 'aberta' &&
-                      Number(x.restante || 0) > 0;
+  x.fonte === 'ORDEM' &&
+  ['aberta', 'parcial'].includes(x.status) &&
+  Number(x.restante || 0) > 0;
 
                     const emEdicao = editandoId === x.id;
 
@@ -352,7 +336,7 @@ function MinhasOrdens() {
                               onChange={(e) => setEditPreco(e.target.value)}
                             />
                           ) : (
-                            formatBRL(x.preco)
+                            formatT$(x.preco)
                           )}
                         </td>
 
@@ -449,15 +433,10 @@ function MinhasOrdens() {
             const tipoHist = String(x.tipoHistorico || '').toUpperCase();
             const isCompra = x.tipo === 'compra' || tipoHist === 'COMPRA';
 
-            const podeEditar =
-              x.fonte === 'ORDEM' &&
-              x.status === 'aberta' &&
-              Number(x.restante || 0) === Number(x.quantidade || 0);
-
             const podeCancelar =
-              x.fonte === 'ORDEM' &&
-              x.status === 'aberta' &&
-              Number(x.restante || 0) > 0;
+  x.fonte === 'ORDEM' &&
+  ['aberta', 'parcial'].includes(x.status) &&
+  Number(x.restante || 0) > 0;
 
             const emEdicao = editandoId === x.id;
 
@@ -491,7 +470,7 @@ function MinhasOrdens() {
                           onChange={(e) => setEditPreco(e.target.value)}
                         />
                       ) : (
-                        formatBRL(x.preco)
+                        formatT$(x.preco)
                       )}
                     </strong>
                   </InfoBloco>
