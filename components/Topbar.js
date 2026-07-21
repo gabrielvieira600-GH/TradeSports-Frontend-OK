@@ -654,6 +654,27 @@ const meuPerfilHref = meuPerfilId
               </DesktopSearchForm>
 
               <GuestActions>
+                <ComoFuncionaLink
+
+  href="/como-funciona"
+
+  aria-label="Como funciona"
+
+>
+
+  <ComoFuncionaIcon aria-hidden="true">
+
+    i
+
+  </ComoFuncionaIcon>
+
+  <ComoFuncionaTexto>
+
+    Como funciona
+
+  </ComoFuncionaTexto>
+
+</ComoFuncionaLink>
                 <Link href="/login" passHref>
                   <BotaoAzul as="span">Login</BotaoAzul>
                 </Link>
@@ -765,6 +786,7 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
+                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
@@ -891,6 +913,100 @@ const LogoImagem = styled.img`
   @media (max-width: 640px) {
     height: 100px;
   }
+`;
+
+const ComoFuncionaLink = styled(Link)`
+
+  min-height: 42px;
+
+  padding: 0 12px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 1px solid rgba(96, 165, 250, 0.22);
+
+  border-radius: 12px;
+
+  background: rgba(59, 130, 246, 0.07);
+
+  color: #bfdbfe;
+
+  font-size: 0.82rem;
+
+  font-weight: 800;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  &:hover {
+
+    border-color: rgba(96, 165, 250, 0.38);
+
+    background: rgba(59, 130, 246, 0.13);
+
+    color: #ffffff;
+
+  }
+
+  @media (max-width: 900px) {
+
+    width: 42px;
+
+    padding: 0;
+
+  }
+
+  @media (max-width: 640px) {
+
+    width: 38px;
+
+    min-height: 38px;
+
+    border-radius: 12px;
+
+  }
+
+`;
+
+const ComoFuncionaIcon = styled.span`
+
+  width: 19px;
+
+  height: 19px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: rgba(96, 165, 250, 0.17);
+
+  color: #93c5fd;
+
+  font-size: 0.72rem;
+
+  font-weight: 900;
+
+`;
+
+const ComoFuncionaTexto = styled.span`
+
+  @media (max-width: 900px) {
+
+    display: none;
+
+  }
+
 `;
 
 const GuestActions = styled.div`
