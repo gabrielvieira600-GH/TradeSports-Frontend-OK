@@ -86,7 +86,7 @@ export default function Login() {
           <BrandContent>
             <Eyebrow>Bem-vindo de volta</Eyebrow>
             <BrandTitle>
-              O futebol muda a cada rodada.
+              O esporte muda a cada rodada.
               <Accent> Sua estratégia também.</Accent>
             </BrandTitle>
             <BrandText>
@@ -107,7 +107,7 @@ export default function Login() {
           <LoginMarketTable variant="login" limit={3} />
 
           <BrandFooter>
-            Informação, estratégia e futebol em uma experiência única.
+            Informação, estratégia e esporte em uma experiência única.
           </BrandFooter>
         </BrandPanel>
 

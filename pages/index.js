@@ -88,7 +88,7 @@ export default function Home() {
       <Hero>
         <HeroCopy>
           <Eyebrow>
-            <LiveDot /> O futebol virou mercado
+            <LiveDot /> O esporte virou mercado
           </Eyebrow>
           <HeroTitle>
             Sua leitura do jogo.
@@ -131,7 +131,7 @@ export default function Home() {
       <ProofBar>
         <ProofIntro>UMA EXPERIÊNCIA QUE UNE</ProofIntro>
         <ProofItem>
-          <strong>Futebol</strong>
+          <strong>Esporte</strong>
           <span>paixão em cada rodada</span>
         </ProofItem>
         <ProofDivider />
@@ -148,7 +148,7 @@ export default function Home() {
 
       <Section>
         <SectionHeader>
-          <SectionEyebrow>Um novo jeito de acompanhar futebol</SectionEyebrow>
+          <SectionEyebrow>Um novo jeito de acompanhar o esporte</SectionEyebrow>
           <SectionTitle>
             Você não assiste apenas à tabela.
             <br />
@@ -328,7 +328,7 @@ export default function Home() {
         <CtaGlow />
         <CtaContent>
           <CtaEyebrow>O próximo movimento é seu</CtaEyebrow>
-          <CtaTitle>Veja o futebol com olhos de mercado.</CtaTitle>
+          <CtaTitle>Veja o esporte com olhos de mercado.</CtaTitle>
           <CtaText>
             Crie sua conta, explore os clubes e comece a construir sua
             estratégia.

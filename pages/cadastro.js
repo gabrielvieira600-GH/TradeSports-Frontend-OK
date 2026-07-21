@@ -587,7 +587,7 @@ Dúvidas sobre esta Política:
           <BrandContent>
             <Eyebrow>Seu mercado. Sua estratégia.</Eyebrow>
             <BrandTitle>
-              Transforme sua leitura do futebol em <em>decisões de mercado.</em>
+              Transforme sua leitura do esporte em <em>decisões de mercado.</em>
             </BrandTitle>
             <BrandText>
               Monte sua carteira, acompanhe o desempenho dos clubes e negocie
