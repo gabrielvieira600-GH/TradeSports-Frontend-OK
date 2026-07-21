@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { useToast } from "../components/ToastProvider";
 import PoliticaPrivacidadeModal from "../components/PoliticaPrivacidadeModal";
 
@@ -38,6 +39,7 @@ export default function Cadastro() {
   });
 
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   // Aceites
   const [aceitouTermos, setAceitouTermos] = useState(false);
@@ -536,12 +538,23 @@ Dúvidas sobre esta Política:
       return;
     }
 
+    if (form.cpf.length !== 11) {
+      setErro("Digite um CPF com 11 números.");
+      return;
+    }
+
+    if (form.senha.length < 8) {
+      setErro("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
     if (form.senha !== form.confirmarSenha) {
       setErro("As senhas não conferem.");
       return;
     }
 
     try {
+      setEnviando(true);
       await axios.post(`${API}/cadastro`, {
         nome: form.nome,
         sobrenome: form.sobrenome,
@@ -562,18 +575,83 @@ Dúvidas sobre esta Política:
         "Erro ao cadastrar. Tente novamente.";
       setErro(msg);
       adicionarToast(msg, "error");
+    } finally {
+      setEnviando(false);
     }
-    const payload = {
-  ...form,
-  aceitouTermos: true
-};
   };
 
   return (
     <Container>
-      <Card>
-        <Titulo>Cadastro</Titulo>
-        <Subtitulo>Crie sua conta para começar a investir em cotas de clubes.</Subtitulo>
+      <Glow $um />
+      <Glow $dois />
+
+      <Shell>
+        <BrandPanel>
+          <BrandLink href="/" aria-label="Ir para a página inicial da TradeSports">
+            <BrandMark aria-hidden="true">
+              <span>↗</span>
+              <span>↙</span>
+            </BrandMark>
+            <BrandName>Trade<span>Sports</span></BrandName>
+          </BrandLink>
+
+          <BrandContent>
+            <Eyebrow>Seu mercado. Sua estratégia.</Eyebrow>
+            <BrandTitle>
+              Transforme sua leitura do futebol em <em>decisões de mercado.</em>
+            </BrandTitle>
+            <BrandText>
+              Monte sua carteira, acompanhe o desempenho dos clubes e negocie
+              cotas virtuais em um ambiente competitivo e transparente.
+            </BrandText>
+
+            <BenefitList>
+              <Benefit>
+                <BenefitIcon>01</BenefitIcon>
+                <div>
+                  <strong>Mercado dinâmico</strong>
+                  <span>Preços formados pela oferta e pela demanda.</span>
+                </div>
+              </Benefit>
+              <Benefit>
+                <BenefitIcon>02</BenefitIcon>
+                <div>
+                  <strong>Estratégia esportiva</strong>
+                  <span>Informação e visão de jogo orientam suas escolhas.</span>
+                </div>
+              </Benefit>
+              <Benefit>
+                <BenefitIcon>03</BenefitIcon>
+                <div>
+                  <strong>Ambiente simulado</strong>
+                  <span>Experiência expressa em moeda virtual T$.</span>
+                </div>
+              </Benefit>
+            </BenefitList>
+          </BrandContent>
+
+          <PanelFooter>
+            <StatusDot />
+            Plataforma em ambiente de simulação
+          </PanelFooter>
+        </BrandPanel>
+
+        <Card>
+          <MobileBrand href="/">
+            <BrandMark aria-hidden="true">
+              <span>↗</span>
+              <span>↙</span>
+            </BrandMark>
+            <BrandName>Trade<span>Sports</span></BrandName>
+          </MobileBrand>
+
+          <CardHeader>
+            <StepLabel>Crie sua conta</StepLabel>
+            <Titulo>Comece sua jornada</Titulo>
+            <Subtitulo>
+              Preencha seus dados para acessar o mercado TradeSports.
+            </Subtitulo>
+          </CardHeader>
 
         <Form onSubmit={handleSubmit}>
           <Linha2colunas>
@@ -630,7 +708,9 @@ Dúvidas sobre esta Política:
               <Label>CPF</Label>
               <Input
                 name="cpf"
-                placeholder="Somente números"
+                placeholder="00000000000"
+                inputMode="numeric"
+                maxLength={11}
                 value={form.cpf}
                 onChange={handleChange}
                 required
@@ -666,7 +746,9 @@ Dúvidas sobre esta Política:
               <Input
                 name="senha"
                 type="password"
-                placeholder="Senha"
+                placeholder="Mínimo de 8 caracteres"
+                minLength={8}
+                autoComplete="new-password"
                 value={form.senha}
                 onChange={handleChange}
                 required
@@ -678,7 +760,9 @@ Dúvidas sobre esta Política:
               <Input
                 name="confirmarSenha"
                 type="password"
-                placeholder="Confirmar Senha"
+                placeholder="Repita sua senha"
+                minLength={8}
+                autoComplete="new-password"
                 value={form.confirmarSenha}
                 onChange={handleChange}
                 required
@@ -720,16 +804,25 @@ Dúvidas sobre esta Política:
             </AceiteTexto>
           </AceiteLinha>
 
-          <Botao type="submit" disabled={!aceitouTermos || !termosLiberados}>
-            Cadastrar
+          <Botao
+            type="submit"
+            disabled={!aceitouTermos || !termosLiberados || enviando}
+          >
+            {enviando ? "Criando sua conta..." : "Criar minha conta"}
+            {!enviando && <BotaoSeta aria-hidden="true">→</BotaoSeta>}
           </Botao>
+
+          <LoginTexto>
+            Já possui uma conta? <Link href="/login">Entrar agora</Link>
+          </LoginTexto>
 
           <Nota>
             Ao criar sua conta, você declara ciência dos riscos e concorda com os Termos de Uso e as
             Políticas exibidas.
           </Nota>
         </Form>
-      </Card>
+        </Card>
+      </Shell>
 
       {/* MODAL TERMOS (scroll obrigatório) */}
       {mostrarTermos && (
@@ -820,49 +913,262 @@ Dúvidas sobre esta Política:
   );
 }
 
-/* ======= Styles (mantém padrão do layout atual) ======= */
+/* ======= Styles ======= */
 
-const Container = styled.div`
+const Container = styled.main`
+  position: relative;
   min-height: 100vh;
+  padding: 42px 24px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(3, 12, 24, 0.9), rgba(3, 12, 24, 0.97)),
+    radial-gradient(circle at 12% 12%, #12365b 0, transparent 42%),
+    #030c18;
+  color: #e5edf8;
+
+  @media (max-width: 700px) {
+    padding: 18px 12px;
+    place-items: start center;
+  }
+`;
+
+const Glow = styled.div`
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.17;
+  pointer-events: none;
+  background: ${({ $um }) => ($um ? "#1d6fff" : "#13d97c")};
+  top: ${({ $um }) => ($um ? "-180px" : "auto")};
+  left: ${({ $um }) => ($um ? "-120px" : "auto")};
+  right: ${({ $dois }) => ($dois ? "-160px" : "auto")};
+  bottom: ${({ $dois }) => ($dois ? "-180px" : "auto")};
+`;
+
+const Shell = styled.section`
+  position: relative;
+  z-index: 1;
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(520px, 1.1fr);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(8, 22, 39, 0.86);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+
+  @media (max-width: 940px) {
+    grid-template-columns: 1fr;
+    max-width: 680px;
+  }
+`;
+
+const BrandPanel = styled.aside`
+  position: relative;
+  min-height: 720px;
+  padding: 38px;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 60px 16px;
-  background: radial-gradient(1200px 600px at 50% 0%, #0b2840 0%, #071a2b 50%, #061524 100%);
+  flex-direction: column;
+  background:
+    linear-gradient(150deg, rgba(18, 55, 91, 0.62), rgba(4, 18, 33, 0.94)),
+    radial-gradient(circle at 30% 20%, rgba(31, 111, 235, 0.28), transparent 48%);
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+
+  @media (max-width: 940px) {
+    display: none;
+  }
+`;
+
+const BrandLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  width: fit-content;
+  color: #fff;
+  text-decoration: none;
+`;
+
+const MobileBrand = styled(BrandLink)`
+  display: none;
+  margin-bottom: 26px;
+
+  @media (max-width: 940px) {
+    display: inline-flex;
+  }
+`;
+
+const BrandMark = styled.span`
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #20db83, #0bad65);
+  box-shadow: 0 10px 28px rgba(19, 217, 124, 0.2);
+
+  span {
+    position: absolute;
+    color: #031423;
+    font-size: 19px;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  span:first-child {
+    transform: translate(-5px, -5px);
+  }
+
+  span:last-child {
+    transform: translate(5px, 5px);
+  }
+`;
+
+const BrandName = styled.strong`
+  color: #fff;
+  font-size: 1.24rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+
+  span {
+    color: #21dc83;
+  }
+`;
+
+const BrandContent = styled.div`
+  margin: auto 0;
+`;
+
+const Eyebrow = styled.div`
+  margin-bottom: 16px;
+  color: #6ee7b7;
+  font-size: 0.69rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+`;
+
+const BrandTitle = styled.h2`
+  margin: 0;
+  max-width: 430px;
+  color: #fff;
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+
+  em {
+    color: #21dc83;
+    font-style: normal;
+  }
+`;
+
+const BrandText = styled.p`
+  max-width: 430px;
+  margin: 20px 0 30px;
+  color: #9db0c7;
+  font-size: 0.94rem;
+  line-height: 1.7;
+`;
+
+const BenefitList = styled.div`
+  display: grid;
+  gap: 12px;
+`;
+
+const Benefit = styled.div`
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+
+  strong, span { display: block; }
+  strong { color: #e8f0fa; font-size: 0.79rem; }
+  span { margin-top: 3px; color: #72869e; font-size: 0.69rem; }
+`;
+
+const BenefitIcon = styled.span`
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: rgba(32, 219, 131, 0.1);
+  color: #4ade9d;
+  font-size: 0.66rem;
+  font-weight: 900;
+`;
+
+const PanelFooter = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #71859d;
+  font-size: 0.68rem;
+`;
+
+const StatusDot = styled.span`
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #21dc83;
+  box-shadow: 0 0 12px rgba(33, 220, 131, 0.7);
 `;
 
 const Card = styled.div`
-  width: 100%;
-  max-width: 620px;
-  background: #f6f6f6;
-  border-radius: 10px;
-  padding: 28px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  padding: 42px 48px;
+  background: rgba(6, 18, 33, 0.94);
+
+  @media (max-width: 600px) {
+    padding: 26px 20px 30px;
+  }
+`;
+
+const CardHeader = styled.header`
+  margin-bottom: 25px;
+`;
+
+const StepLabel = styled.div`
+  margin-bottom: 8px;
+  color: #4d94ff;
+  font-size: 0.69rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 `;
 
 const Titulo = styled.h1`
-  margin: 0 0 6px;
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
 `;
 
 const Subtitulo = styled.p`
-  margin: 0 0 18px;
-  color: #4b5563;
-  font-size: 14px;
+  margin: 9px 0 0;
+  color: #8295ac;
+  font-size: 0.82rem;
+  line-height: 1.55;
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 15px;
 `;
 
 const Linha2colunas = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 13px;
 
   @media (max-width: 560px) {
     grid-template-columns: 1fr;
@@ -870,213 +1176,253 @@ const Linha2colunas = styled.div`
 `;
 
 const Campo = styled.div`
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 `;
 
 const Label = styled.label`
-  font-size: 12px;
-  color: #374151;
-  font-weight: 600;
+  color: #b5c2d2;
+  font-size: 0.7rem;
+  font-weight: 750;
 `;
 
-const Input = styled.input`
-  height: 38px;
-  padding: 0 12px;
-  border-radius: 4px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+const inputBase = `
+  width: 100%;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid rgba(148, 163, 184, 0.17);
+  border-radius: 11px;
+  background: rgba(2, 10, 20, 0.72);
+  color: #eef5fc;
+  font: inherit;
+  font-size: 0.79rem;
   outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 
+  &::placeholder { color: #53657b; }
+  &:hover { border-color: rgba(148, 163, 184, 0.28); }
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    border-color: rgba(65, 133, 255, 0.75);
+    background: rgba(4, 17, 31, 0.94);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
   }
 `;
 
+const Input = styled.input`${inputBase}`;
 const Select = styled.select`
-  height: 38px;
-  padding: 0 12px;
-  border-radius: 4px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  outline: none;
-
-  &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
-  }
+  ${inputBase}
+  color-scheme: dark;
+  cursor: pointer;
 `;
 
 const ErroMsg = styled.div`
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 11px 13px;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 11px;
+  background: rgba(239, 68, 68, 0.09);
+  color: #fca5a5;
+  font-size: 0.74rem;
+  line-height: 1.45;
 `;
 
 const AceiteLinha = styled.div`
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-top: 6px;
+  margin-top: 2px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
 `;
 
 const Checkbox = styled.input`
-  margin-top: 2px;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  flex: 0 0 auto;
+  accent-color: #17c978;
 `;
 
 const AceiteTexto = styled.label`
-  font-size: 13px;
-  color: #374151;
-  line-height: 1.35;
+  color: #8fa2b8;
+  font-size: 0.7rem;
+  line-height: 1.55;
 `;
 
 const LinkLike = styled.button`
+  padding: 0;
   border: 0;
   background: transparent;
-  padding: 0;
-  color: #2563eb;
-  font-weight: 700;
+  color: #69a3ff;
+  font: inherit;
+  font-weight: 800;
   cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
+  &:hover { color: #93bdff; text-decoration: underline; }
 `;
 
 const Botao = styled.button`
-  margin-top: 6px;
-  height: 40px;
-  background: #2563eb;
+  height: 48px;
+  margin-top: 2px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
   border: 0;
-  color: #fff;
-  border-radius: 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #19d47e, #10b96c);
+  color: #03160e;
+  font-weight: 900;
   cursor: pointer;
-  font-weight: 700;
+  box-shadow: 0 12px 28px rgba(16, 185, 108, 0.17);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 15px 34px rgba(16, 185, 108, 0.25);
   }
+
+  &:disabled { opacity: 0.48; cursor: not-allowed; box-shadow: none; }
+`;
+
+const BotaoSeta = styled.span`
+  font-size: 1.1rem;
+`;
+
+const LoginTexto = styled.p`
+  margin: 0;
+  color: #6f829a;
+  font-size: 0.73rem;
+  text-align: center;
+
+  a {
+    color: #7eafff;
+    font-weight: 850;
+    text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
 `;
 
 const Nota = styled.p`
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: #6b7280;
+  margin: -3px 0 0;
+  color: #53657b;
+  font-size: 0.65rem;
+  line-height: 1.5;
+  text-align: center;
 `;
 
 /* Modal */
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+  padding: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px;
-  z-index: 9999;
+  background: rgba(1, 6, 13, 0.82);
+  backdrop-filter: blur(8px);
 `;
 
 const Modal = styled.div`
   width: 100%;
-  max-width: 760px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  max-width: 780px;
   overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+  background: #f8fafc;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
 `;
 
 const ModalHeader = styled.div`
+  padding: 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
 `;
 
 const ModalTitle = styled.h3`
   margin: 0;
-  font-size: 16px;
-  color: #111827;
+  color: #0f172a;
+  font-size: 0.95rem;
 `;
 
 const Fechar = styled.button`
+  width: 34px;
+  height: 34px;
   border: 0;
-  background: transparent;
+  border-radius: 9px;
+  background: #eaf0f6;
+  color: #334155;
   cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  color: #374151;
 `;
 
 const ModalBody = styled.div`
-  padding: 16px;
   max-height: 60vh;
+  padding: 18px;
   overflow: auto;
 `;
 
 const TermosPre = styled.pre`
   margin: 0;
+  color: #1e293b;
   white-space: pre-wrap;
   font-family: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #111827;
+  font-size: 0.76rem;
+  line-height: 1.65;
 `;
 
 const ModalFooter = styled.div`
-  padding: 12px 16px;
-  border-top: 1px solid #e5e7eb;
+  padding: 13px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  border-top: 1px solid #e2e8f0;
 
   @media (max-width: 560px) {
-    flex-direction: column;
     align-items: stretch;
+    flex-direction: column;
   }
 `;
 
 const ModalHint = styled.div`
-  font-size: 12px;
-  color: #6b7280;
+  color: #64748b;
+  font-size: 0.69rem;
 `;
 
 const ModalActions = styled.div`
   display: flex;
-  gap: 10px;
   justify-content: flex-end;
+  gap: 9px;
 `;
 
 const BotaoSec = styled.button`
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
   background: #fff;
+  color: #334155;
+  font-weight: 800;
   cursor: pointer;
-  font-weight: 700;
 `;
 
 const BotaoPrim = styled.button`
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 6px;
+  height: 38px;
+  padding: 0 15px;
   border: 0;
+  border-radius: 9px;
   background: #2563eb;
   color: #fff;
+  font-weight: 850;
   cursor: pointer;
-  font-weight: 700;
 
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
+
