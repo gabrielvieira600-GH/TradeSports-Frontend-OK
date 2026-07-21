@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import styled, { keyframes } from 'styled-components';
 import { AuthContext } from '../contexts/AuthContexts';
+import LiveMarketTable from '../components/LiveMarketTable';
 
 const DESTAQUES = [
   'Mercado esportivo em tempo real',
@@ -112,28 +113,7 @@ export default function Login() {
             </FeatureList>
           </BrandContent>
 
-          <MarketCard aria-hidden="true">
-            <MarketHeader>
-              <div>
-                <MarketLabel>VISÃO DO MERCADO</MarketLabel>
-                <MarketTitle>Clubes em destaque</MarketTitle>
-              </div>
-              <Live><StatusDot /> AO VIVO</Live>
-            </MarketHeader>
-
-            <MarketRow>
-              <Club><ClubIcon $cor="#ef4444">FLA</ClubIcon><span>Flamengo<small>1º lugar</small></span></Club>
-              <Price>T$ 10,56<Up>+5,2%</Up></Price>
-            </MarketRow>
-            <MarketRow>
-              <Club><ClubIcon $cor="#22c55e">PAL</ClubIcon><span>Palmeiras<small>2º lugar</small></span></Club>
-              <Price>T$ 10,05<Up>+2,8%</Up></Price>
-            </MarketRow>
-            <MarketRow>
-              <Club><ClubIcon $cor="#3b82f6">BAH</ClubIcon><span>Bahia<small>4º lugar</small></span></Club>
-              <Price>T$ 9,12<Down>−0,7%</Down></Price>
-            </MarketRow>
-          </MarketCard>
+          <LoginMarketTable variant="login" limit={3} />
 
           <BrandFooter>
             Informação, estratégia e futebol em uma experiência única.
@@ -292,17 +272,7 @@ const BrandText=styled.p`max-width:480px;margin:20px 0 0;color:#94a3b8;font-size
 const FeatureList=styled.div`display:grid;gap:11px;margin-top:25px`;
 const Feature=styled.div`display:flex;align-items:center;gap:10px;color:#cbd5e1;font-size:.8rem;font-weight:650`;
 const Check=styled.span`width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:rgba(34,197,94,.12);color:#4ade80;font-size:.68rem`;
-const MarketCard=styled.div`position:relative;z-index:1;padding:16px;border:1px solid rgba(96,165,250,.14);border-radius:16px;background:rgba(2,6,23,.38);backdrop-filter:blur(8px)`;
-const MarketHeader=styled.div`display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid rgba(148,163,184,.1)`;
-const MarketLabel=styled.div`color:#60a5fa;font-size:.57rem;font-weight:900;letter-spacing:.1em`;
-const MarketTitle=styled.strong`display:block;margin-top:4px;color:#e2e8f0;font-size:.78rem`;
-const Live=styled.span`display:flex;align-items:center;gap:6px;color:#86efac;font-size:.55rem;font-weight:900`;
-const MarketRow=styled.div`display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.07);&:last-child{padding-bottom:0;border-bottom:0}`;
-const Club=styled.div`display:flex;align-items:center;gap:9px;color:#e2e8f0;font-size:.7rem;font-weight:800;small{display:block;margin-top:2px;color:#64748b;font-size:.57rem;font-weight:600}`;
-const ClubIcon=styled.span`width:30px;height:30px;display:grid;place-items:center;border:1px solid ${({$cor})=>$cor}44;border-radius:9px;background:${({$cor})=>$cor}18;color:${({$cor})=>$cor};font-size:.55rem;font-weight:950`;
-const Price=styled.strong`display:grid;justify-items:end;color:#f8fafc;font-size:.7rem`;
-const Up=styled.small`margin-top:2px;color:#4ade80;font-size:.56rem`;
-const Down=styled(Up)`color:#f87171`;
+const LoginMarketTable=styled(LiveMarketTable)`position:relative;z-index:1;background:rgba(2,6,23,.38);backdrop-filter:blur(8px)`;
 const BrandFooter=styled.div`position:relative;z-index:1;margin-top:18px;color:#475569;font-size:.64rem;text-align:center`;
 const FormPanel=styled.div`display:flex;flex-direction:column;justify-content:center;padding:55px 58px;background:linear-gradient(155deg,rgba(15,23,42,.98),rgba(6,12,25,.98));@media(max-width:900px){padding:38px 55px 54px}@media(max-width:520px){padding:28px 22px 40px}`;
 const FormWrap=styled.div`width:100%;max-width:430px;margin:auto`;
