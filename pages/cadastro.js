@@ -587,11 +587,6 @@ Dúvidas sobre esta Política:
 
       <Shell>
         <BrandPanel>
-          <BrandLink href="/" aria-label="Ir para a página inicial da TradeSports">
-            <BrandMark aria-hidden="true">
-            </BrandMark>
-          </BrandLink>
-
           <BrandContent>
             <Eyebrow>Seu mercado. Sua estratégia.</Eyebrow>
             <BrandTitle>

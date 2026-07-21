@@ -78,15 +78,6 @@ export default function Login() {
       <Shell>
         <BrandPanel>
           <BrandTop>
-            <Brand href="/" aria-label="TradeSports — página inicial">
-              <BrandMark aria-hidden="true">
-                <MarkBar $small />
-                <MarkBar />
-                <MarkArrow>↗</MarkArrow>
-              </BrandMark>
-              <BrandName>TradeSports</BrandName>
-            </Brand>
-
             <SimuladoBadge>
               <StatusDot /> Ambiente simulado
             </SimuladoBadge>
