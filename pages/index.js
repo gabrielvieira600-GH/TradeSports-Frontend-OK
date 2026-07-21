@@ -1,56 +1,18 @@
 import Link from "next/link";
 import styled, { keyframes } from "styled-components";
+import LiveMarketTable from "../components/LiveMarketTable";
 import {
   FiArrowRight,
-  FiBarChart2,
   FiBookOpen,
   FiCheck,
   FiChevronRight,
-  FiClock,
   FiLayers,
   FiPieChart,
   FiShield,
   FiTarget,
-  FiTrendingUp,
   FiUsers,
   FiZap,
 } from "react-icons/fi";
-
-const CLUBES = [
-  {
-    sigla: "FLA",
-    nome: "Flamengo",
-    posicao: "1º",
-    preco: "T$ 12,38",
-    variacao: "+8,4%",
-    cor: "#e11d48",
-  },
-  {
-    sigla: "PAL",
-    nome: "Palmeiras",
-    posicao: "2º",
-    preco: "T$ 11,79",
-    variacao: "+5,2%",
-    cor: "#16a34a",
-  },
-  {
-    sigla: "BOT",
-    nome: "Botafogo",
-    posicao: "4º",
-    preco: "T$ 10,69",
-    variacao: "+2,7%",
-    cor: "#f8fafc",
-  },
-  {
-    sigla: "BAH",
-    nome: "Bahia",
-    posicao: "6º",
-    preco: "T$ 9,70",
-    variacao: "-1,1%",
-    cor: "#2563eb",
-    negativo: true,
-  },
-];
 
 const PASSOS = [
   {
@@ -160,104 +122,9 @@ export default function Home() {
           </TrustRow>
         </HeroCopy>
 
-        <MarketScene aria-label="Prévia ilustrativa do mercado TradeSports">
+        <MarketScene aria-label="Dados reais do mercado TradeSports">
           <SceneGlow />
-          <MarketCard>
-            <MarketHeader>
-              <div>
-                <MarketLabel>Mercado ao vivo</MarketLabel>
-                <MarketTitle>Campeonato Brasileiro</MarketTitle>
-              </div>
-              <MarketStatus>
-                <StatusDot /> Mercado aberto
-              </MarketStatus>
-            </MarketHeader>
-
-            <TickerHead>
-              <span>Clube</span>
-              <span>Pos.</span>
-              <span>Último preço</span>
-              <span>24h</span>
-            </TickerHead>
-
-            <TickerList>
-              {CLUBES.map((clube, index) => (
-                <TickerRow key={clube.sigla} $delay={index}>
-                  <ClubInfo>
-                    <ClubMark $cor={clube.cor}>
-                      {clube.sigla.slice(0, 1)}
-                    </ClubMark>
-                    <div>
-                      <strong>{clube.nome}</strong>
-                      <small>{clube.sigla}</small>
-                    </div>
-                  </ClubInfo>
-                  <Position>{clube.posicao}</Position>
-                  <Price>{clube.preco}</Price>
-                  <Variation $negativo={clube.negativo}>
-                    {clube.variacao}
-                  </Variation>
-                </TickerRow>
-              ))}
-            </TickerList>
-
-            <ChartArea>
-              <ChartTop>
-                <div>
-                  <span>Índice TradeSports</span>
-                  <strong>1.284,62 pts</strong>
-                </div>
-                <ChartBadge>
-                  <FiTrendingUp /> +6,42%
-                </ChartBadge>
-              </ChartTop>
-              <Chart>
-                <ChartGrid />
-                <svg
-                  viewBox="0 0 600 150"
-                  role="img"
-                  aria-label="Gráfico ilustrativo de valorização"
-                >
-                  <defs>
-                    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22c55e" stopOpacity=".35" />
-                      <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,124 C44,121 58,94 99,102 C139,111 154,83 195,89 C241,95 250,53 294,69 C339,85 354,40 397,50 C442,61 463,22 507,35 C545,45 563,13 600,18 L600,150 L0,150 Z"
-                    fill="url(#area)"
-                  />
-                  <path
-                    d="M0,124 C44,121 58,94 99,102 C139,111 154,83 195,89 C241,95 250,53 294,69 C339,85 354,40 397,50 C442,61 463,22 507,35 C545,45 563,13 600,18"
-                    fill="none"
-                    stroke="#4ade80"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </Chart>
-            </ChartArea>
-          </MarketCard>
-
-          <FloatingCard $left>
-            <FloatIcon>
-              <FiBarChart2 />
-            </FloatIcon>
-            <div>
-              <small>Melhor oportunidade</small>
-              <strong>+12,8% na rodada</strong>
-            </div>
-          </FloatingCard>
-          <FloatingCard>
-            <FloatIcon $blue>
-              <FiClock />
-            </FloatIcon>
-            <div>
-              <small>Próxima atualização</small>
-              <strong>Após o fim da rodada</strong>
-            </div>
-          </FloatingCard>
+          <LiveMarketTable variant="home" limit={4} />
         </MarketScene>
       </Hero>
 
@@ -485,7 +352,6 @@ export default function Home() {
   );
 }
 
-const float = keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}`;
 const pulse = keyframes`0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.75;box-shadow:0 0 0 7px rgba(34,197,94,0)}`;
 const rise = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
 
@@ -681,246 +547,6 @@ const SceneGlow = styled.div`
   border-radius: 50%;
   background: radial-gradient(circle, rgba(37, 99, 235, 0.25), transparent 68%);
   filter: blur(25px);
-`;
-const MarketCard = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 680px;
-  padding: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 25px;
-  background: linear-gradient(
-    145deg,
-    rgba(15, 28, 50, 0.96),
-    rgba(7, 15, 29, 0.98)
-  );
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.46),
-    inset 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  @media (max-width: 640px) {
-    padding: 14px;
-    border-radius: 19px;
-  }
-`;
-const MarketHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 3px 2px 19px;
-`;
-const MarketLabel = styled.div`
-  margin-bottom: 5px;
-  color: #64748b;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-`;
-const MarketTitle = styled.strong`
-  font-size: 1rem;
-  color: #f8fafc;
-`;
-const MarketStatus = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #86efac;
-  font-size: 0.68rem;
-  font-weight: 800;
-  white-space: nowrap;
-`;
-const StatusDot = styled.span`
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 10px #22c55e;
-`;
-const TickerHead = styled.div`
-  display: grid;
-  grid-template-columns: 1.4fr 0.42fr 0.7fr 0.45fr;
-  padding: 8px 11px;
-  color: #4f6077;
-  font-size: 0.58rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  text-align: right;
-  span:first-child {
-    text-align: left;
-  }
-  @media (max-width: 520px) {
-    grid-template-columns: 1.4fr 0.45fr 0.65fr;
-    span:nth-child(2) {
-      display: none;
-    }
-  }
-`;
-const TickerList = styled.div`
-  display: grid;
-  gap: 6px;
-`;
-const TickerRow = styled.div`
-  display: grid;
-  grid-template-columns: 1.4fr 0.42fr 0.7fr 0.45fr;
-  align-items: center;
-  padding: 9px 11px;
-  border: 1px solid rgba(148, 163, 184, 0.07);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.025);
-  animation: ${rise} 0.45s ease both;
-  animation-delay: ${({ $delay }) => $delay * 0.09}s;
-  @media (max-width: 520px) {
-    grid-template-columns: 1.4fr 0.45fr 0.65fr;
-    > *:nth-child(2) {
-      display: none;
-    }
-  }
-`;
-const ClubInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  strong,
-  small {
-    display: block;
-  }
-  strong {
-    color: #e8eef8;
-    font-size: 0.75rem;
-  }
-  small {
-    margin-top: 2px;
-    color: #4f6077;
-    font-size: 0.56rem;
-    font-weight: 800;
-  }
-`;
-const ClubMark = styled.span`
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 9px;
-  background: ${({ $cor }) => $cor};
-  color: ${({ $cor }) => ($cor === "#f8fafc" ? "#020617" : "#fff")};
-  font-size: 0.7rem;
-  font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-`;
-const Position = styled.span`
-  color: #94a3b8;
-  font-size: 0.7rem;
-  text-align: right;
-`;
-const Price = styled.strong`
-  color: #f1f5f9;
-  font-size: 0.72rem;
-  text-align: right;
-  white-space: nowrap;
-`;
-const Variation = styled.strong`
-  color: ${({ $negativo }) => ($negativo ? "#fb7185" : "#4ade80")};
-  font-size: 0.68rem;
-  text-align: right;
-`;
-const ChartArea = styled.div`
-  margin-top: 13px;
-  padding: 15px 15px 7px;
-  border: 1px solid rgba(59, 130, 246, 0.11);
-  border-radius: 15px;
-  background: rgba(2, 6, 23, 0.36);
-`;
-const ChartTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  span,
-  strong {
-    display: block;
-  }
-  span {
-    color: #64748b;
-    font-size: 0.62rem;
-  }
-  strong {
-    margin-top: 4px;
-    color: #f8fafc;
-    font-size: 0.92rem;
-  }
-`;
-const ChartBadge = styled.span`
-  display: flex !important;
-  align-items: center;
-  gap: 5px;
-  color: #4ade80 !important;
-  font-weight: 800;
-`;
-const Chart = styled.div`
-  position: relative;
-  height: 125px;
-  margin-top: 8px;
-  svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-`;
-const ChartGrid = styled.div`
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 30px,
-    rgba(148, 163, 184, 0.055) 31px
-  );
-`;
-const FloatingCard = styled.div`
-  position: absolute;
-  right: -24px;
-  bottom: 3%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 14px;
-  background: rgba(12, 23, 42, 0.93);
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
-  animation: ${float} 4s ease-in-out infinite;
-  ${({ $left }) =>
-    $left &&
-    `right:auto;left:-28px;bottom:auto;top:5%;animation-delay:-1.6s;`} small,strong {
-    display: block;
-  }
-  small {
-    color: #64748b;
-    font-size: 0.58rem;
-  }
-  strong {
-    margin-top: 3px;
-    color: #e2e8f0;
-    font-size: 0.7rem;
-  }
-  @media (max-width: 740px) {
-    display: none;
-  }
-`;
-const FloatIcon = styled.span`
-  width: 31px;
-  height: 31px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
-  ${({ $blue }) => $blue && `background:rgba(59,130,246,.13);color:#60a5fa;`}
 `;
 const ProofBar = styled.section`
   width: min(1380px, calc(100% - 48px));
