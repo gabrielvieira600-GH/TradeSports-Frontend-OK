@@ -61,6 +61,11 @@ function toIsoOrNull(value) {
 
 export default function AdminPainel() {
   const [status, setStatus] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
+  const [mesDashboard, setMesDashboard] = useState(() => {
+    const agora = new Date();
+    return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [temporadas, setTemporadas] = useState([]);
   const [temporadaSelecionadaId, setTemporadaSelecionadaId] = useState("");
   const [rodadas, setRodadas] = useState([]);
@@ -117,6 +122,33 @@ export default function AdminPainel() {
       if (!silent) notify("Status atualizado.", "success");
     } catch (error) {
       notify(`Erro: ${error.message}`, "error");
+    }
+  }
+
+  async function carregarDashboard(mes = mesDashboard) {
+    try {
+      const data = await apiFetch(
+        `/api/admin/dashboard/metricas?mes=${encodeURIComponent(mes)}`,
+      );
+      setDashboard(data);
+    } catch (error) {
+      notify(`Erro ao carregar métricas: ${error.message}`, "error");
+    }
+  }
+
+  async function recalcularDashboard() {
+    setLoading(true);
+    try {
+      await apiFetch("/api/admin/dashboard/metricas/recalcular", {
+        method: "POST",
+        body: { mes: mesDashboard },
+      });
+      await carregarDashboard(mesDashboard);
+      notify(`Métricas de ${formatMonth(mesDashboard)} recalculadas.`, "success");
+    } catch (error) {
+      notify(`Erro: ${error.message}`, "error");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -359,6 +391,7 @@ export default function AdminPainel() {
     setLoading(true);
     Promise.all([
       carregarStatus({ silent: true }),
+      carregarDashboard(),
       carregarTemporadas({ manterSelecao: false }),
       carregarClubes(),
     ])
@@ -373,6 +406,8 @@ export default function AdminPainel() {
   }, [temporadaSelecionadaId]);
 
   const counts = status?.counts || {};
+  const metricas = dashboard?.selecionado?.metricas || {};
+  const metricasAnteriores = dashboard?.anterior?.metricas || {};
 
   return (
     <div style={styles.page}>
@@ -412,6 +447,195 @@ export default function AdminPainel() {
           {msg}
         </div>
       )}
+
+      <section style={styles.card}>
+        <div style={styles.dashboardHeader}>
+          <SectionHeader
+            title="Indicadores administrativos"
+            text="Histórico mensal consolidado, comparação com o mês anterior e detalhamento semanal. Os valores financeiros são apurados a partir do ledger e das transações confirmadas."
+          />
+          <div style={styles.dashboardControls}>
+            <input
+              type="month"
+              value={mesDashboard}
+              onChange={(event) => {
+                const mes = event.target.value;
+                setMesDashboard(mes);
+                if (mes) carregarDashboard(mes);
+              }}
+              style={styles.input}
+            />
+            <button
+              type="button"
+              style={styles.secondaryButton}
+              onClick={recalcularDashboard}
+              disabled={loading || !mesDashboard}
+            >
+              Recalcular
+            </button>
+          </div>
+        </div>
+
+        {!dashboard ? (
+          <p style={styles.empty}>Carregando indicadores...</p>
+        ) : (
+          <>
+            <div style={styles.snapshotInfo}>
+              <span>{formatMonth(mesDashboard)}</span>
+              <span>
+                {dashboard.selecionado?.fechado
+                  ? "Fechamento histórico"
+                  : "Mês em andamento"}
+              </span>
+              <span>
+                Atualizado em {formatDate(dashboard.selecionado?.calculadoEm)}
+              </span>
+            </div>
+
+            <h3 style={styles.groupTitle}>Operação e mercado</h3>
+            <div style={styles.metricsGrid}>
+              <ComparisonMetric
+                title="Ordens no mês"
+                value={metricas.ordens?.criadas || 0}
+                previous={metricasAnteriores.ordens?.criadas || 0}
+              />
+              <ComparisonMetric
+                title="Ordens executadas"
+                value={metricas.ordens?.executadas || 0}
+                previous={metricasAnteriores.ordens?.executadas || 0}
+              />
+              <ComparisonMetric
+                title="Média por rodada"
+                value={metricas.ordens?.mediaPorRodada || 0}
+                previous={metricasAnteriores.ordens?.mediaPorRodada || 0}
+              />
+              <ComparisonMetric
+                title="Taxa de cancelamento"
+                value={metricas.ordens?.taxaCancelamento || 0}
+                previous={metricasAnteriores.ordens?.taxaCancelamento || 0}
+                suffix="%"
+                inverse
+              />
+              <ComparisonMetric
+                title="Negócios executados"
+                value={metricas.mercado?.negocios || 0}
+                previous={metricasAnteriores.mercado?.negocios || 0}
+              />
+              <ComparisonMetric
+                title="Volume negociado"
+                value={metricas.mercado?.volume || 0}
+                previous={metricasAnteriores.mercado?.volume || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Ticket médio"
+                value={metricas.mercado?.ticketMedio || 0}
+                previous={metricasAnteriores.mercado?.ticketMedio || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Usuários ativos"
+                value={metricas.mercado?.usuariosAtivos || 0}
+                previous={metricasAnteriores.mercado?.usuariosAtivos || 0}
+              />
+            </div>
+
+            <h3 style={styles.groupTitle}>Receita, pagamentos e crescimento</h3>
+            <div style={styles.metricsGrid}>
+              <ComparisonMetric
+                title="Taxas acumuladas"
+                value={metricas.receita?.taxasTotais || 0}
+                previous={metricasAnteriores.receita?.taxasTotais || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Taxas maker"
+                value={metricas.receita?.taxasMaker || 0}
+                previous={metricasAnteriores.receita?.taxasMaker || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Taxas taker"
+                value={metricas.receita?.taxasTaker || 0}
+                previous={metricasAnteriores.receita?.taxasTaker || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Dividendos pagos"
+                value={metricas.dividendos?.valor || 0}
+                previous={metricasAnteriores.dividendos?.valor || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Beneficiários"
+                value={metricas.dividendos?.beneficiarios || 0}
+                previous={metricasAnteriores.dividendos?.beneficiarios || 0}
+              />
+              <ComparisonMetric
+                title="Novos usuários"
+                value={metricas.crescimento?.novosUsuarios || 0}
+                previous={metricasAnteriores.crescimento?.novosUsuarios || 0}
+              />
+              <ComparisonMetric
+                title="Depósitos confirmados"
+                value={metricas.crescimento?.depositos || 0}
+                previous={metricasAnteriores.crescimento?.depositos || 0}
+                currency
+              />
+              <ComparisonMetric
+                title="Saques confirmados"
+                value={metricas.crescimento?.saques || 0}
+                previous={metricasAnteriores.crescimento?.saques || 0}
+                currency
+              />
+            </div>
+
+            <h3 style={styles.groupTitle}>Semanas do mês</h3>
+            <div style={styles.tableWrap}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Período</th>
+                    <th style={styles.th}>Ordens</th>
+                    <th style={styles.th}>Negócios</th>
+                    <th style={styles.th}>Volume</th>
+                    <th style={styles.th}>Taxas</th>
+                    <th style={styles.th}>Dividendos</th>
+                    <th style={styles.th}>Ativos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(dashboard.selecionado?.semanas || []).map((semana) => (
+                    <tr key={`${semana.numero}-${semana.inicio}`}>
+                      <td style={styles.td}>
+                        {formatShortDate(semana.inicio)}–{formatShortDate(semana.fim)}
+                      </td>
+                      <td style={styles.td}>{semana.metricas?.ordens?.criadas || 0}</td>
+                      <td style={styles.td}>{semana.metricas?.mercado?.negocios || 0}</td>
+                      <td style={styles.td}>{formatCurrency(semana.metricas?.mercado?.volume || 0)}</td>
+                      <td style={styles.td}>{formatCurrency(semana.metricas?.receita?.taxasTotais || 0)}</td>
+                      <td style={styles.td}>{formatCurrency(semana.metricas?.dividendos?.valor || 0)}</td>
+                      <td style={styles.td}>{semana.metricas?.mercado?.usuariosAtivos || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 style={styles.groupTitle}>Evolução — últimos 12 meses</h3>
+            <div style={styles.historyGrid}>
+              {(dashboard.serie || []).map((item) => (
+                <div key={item.mes} style={styles.historyCard}>
+                  <strong>{formatMonth(item.mes)}</strong>
+                  <span>{item.metricas?.ordens?.criadas || 0} ordens</span>
+                  <span>{formatCurrency(item.metricas?.mercado?.volume || 0)} em volume</span>
+                  <span>{formatCurrency(item.metricas?.receita?.taxasTotais || 0)} em taxas</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
 
       <section style={styles.currentGrid}>
         <CurrentCard
@@ -855,6 +1079,62 @@ function MetricCard({ title, value }) {
     </div>
   );
 }
+function ComparisonMetric({
+  title,
+  value,
+  previous,
+  currency = false,
+  suffix = "",
+  inverse = false,
+}) {
+  const atual = Number(value || 0);
+  const anterior = Number(previous || 0);
+  const variacao = anterior === 0 ? null : ((atual - anterior) / Math.abs(anterior)) * 100;
+  const positivo = variacao == null ? null : inverse ? variacao <= 0 : variacao >= 0;
+  return (
+    <div style={styles.metricCard}>
+      <div style={styles.metricTitle}>{title}</div>
+      <div style={styles.metricValue}>
+        {currency ? formatCurrency(atual) : `${formatNumber(atual)}${suffix}`}
+      </div>
+      <div
+        style={{
+          ...styles.comparison,
+          color: positivo == null ? "#94a3b8" : positivo ? "#86efac" : "#fca5a5",
+        }}
+      >
+        {variacao == null
+          ? "Sem base no mês anterior"
+          : `${variacao >= 0 ? "+" : ""}${variacao.toFixed(1)}% vs. mês anterior`}
+      </div>
+    </div>
+  );
+}
+
+function formatCurrency(value) {
+  return Number(value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function formatNumber(value) {
+  return Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+}
+
+function formatMonth(value) {
+  if (!value) return "";
+  const [year, month] = value.split("-").map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatShortDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
 function CurrentCard({ label, title, status, detail }) {
   return (
     <div style={styles.currentCard}>
@@ -985,6 +1265,30 @@ const styles = {
   },
   metricTitle: { fontSize: ".8rem", color: "#94a3b8", marginBottom: "8px" },
   metricValue: { fontSize: "1.65rem", fontWeight: 900 },
+  comparison: { marginTop: "8px", fontSize: ".74rem", fontWeight: 700 },
+  dashboardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "18px",
+    flexWrap: "wrap",
+  },
+  dashboardControls: { display: "flex", gap: "10px", alignItems: "center" },
+  snapshotInfo: {
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+    color: "#94a3b8",
+    fontSize: ".78rem",
+    marginBottom: "18px",
+  },
+  groupTitle: { fontSize: ".94rem", margin: "22px 0 12px", color: "#e2e8f0" },
+  tableWrap: { overflowX: "auto" },
+  table: { width: "100%", borderCollapse: "collapse", minWidth: "760px" },
+  th: { textAlign: "left", padding: "10px", color: "#94a3b8", fontSize: ".76rem", borderBottom: "1px solid rgba(148,163,184,.16)" },
+  td: { padding: "11px 10px", fontSize: ".82rem", borderBottom: "1px solid rgba(148,163,184,.08)" },
+  historyGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: "10px" },
+  historyCard: { display: "flex", flexDirection: "column", gap: "5px", padding: "13px", borderRadius: "12px", background: "rgba(255,255,255,.035)", color: "#cbd5e1", fontSize: ".78rem" },
   alert: {
     padding: "14px 16px",
     borderRadius: "14px",
