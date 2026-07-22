@@ -556,32 +556,40 @@ Dúvidas sobre esta Política:
     try {
       setEnviando(true);
       const resposta = await axios.post(`${API}/cadastro`, {
-        nome: form.nome,
-        sobrenome: form.sobrenome,
-        email: form.email,
-        dataNascimento: form.dataNascimento,
-        cpf: form.cpf,
-        genero: form.genero,
-        nomeUsuario: form.nomeUsuario,
-        senha: form.senha,
-        aceitouTermos: true,
-        versaoTermos: VERSAO_TERMOS,
-        aceites: {
-          termosUso: { versao: VERSAO_TERMOS },
-          politicaRisco: { versao: VERSAO_POLITICA_RISCO },
-          politicaPrivacidade: { versao: VERSAO_POLITICA_PRIVACIDADE },
-        },
-      });
+  nome: form.nome,
+  sobrenome: form.sobrenome,
+  email: form.email,
+  dataNascimento: form.dataNascimento,
+  cpf: form.cpf,
+  genero: form.genero,
+  nomeUsuario: form.nomeUsuario,
+  senha: form.senha,
+  aceitouTermos: true,
+  versaoTermos: VERSAO_TERMOS,
+  aceites: {
+    termosUso: {
+      versao: VERSAO_TERMOS,
+    },
+    politicaRisco: {
+      versao: VERSAO_POLITICA_RISCO,
+    },
+    politicaPrivacidade: {
+      versao: VERSAO_POLITICA_PRIVACIDADE,
+    },
+  },
+});
 
-      window.sessionStorage.setItem(
-        "emailVerificacaoPendente",
-        form.email.trim().toLowerCase()
-      );
-      adicionarToast(
-        resposta.data?.mensagem || "Cadastro realizado com sucesso!",
-        resposta.status === 202 ? "warning" : "success"
-      );
-      router.push("/verificar-email?cadastro=1");
+window.sessionStorage.setItem(
+  "emailVerificacaoPendente",
+  form.email.trim().toLowerCase()
+);
+
+adicionarToast(
+  resposta.data?.mensagem || "Cadastro realizado com sucesso!",
+  resposta.status === 202 ? "warning" : "success"
+);
+
+router.push("/verificar-email?cadastro=1");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
