@@ -23,6 +23,7 @@ export default function Login() {
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [confirmacaoPendente, setConfirmacaoPendente] = useState(false);
   const router = useRouter();
   const { login } = useContext(AuthContext);
   const API = process.env.NEXT_PUBLIC_API_URL;
@@ -31,6 +32,7 @@ export default function Login() {
     const { name, value } = event.target;
     setFormData((anterior) => ({ ...anterior, [name]: value }));
     if (erro) setErro('');
+    if (confirmacaoPendente) setConfirmacaoPendente(false);
   };
 
   const handleSubmit = async (event) => {
@@ -44,6 +46,7 @@ export default function Login() {
     }
 
     setErro('');
+    setConfirmacaoPendente(false);
     setCarregando(true);
 
     try {
@@ -60,6 +63,10 @@ export default function Login() {
       login(resposta.data.usuario, resposta.data.token);
       await router.push(rotaSegura(router.query.next));
     } catch (err) {
+      const emailNaoVerificado =
+        err.response?.data?.codigo === 'EMAIL_NAO_VERIFICADO';
+
+      setConfirmacaoPendente(emailNaoVerificado);
       setErro(
         err.response?.data?.erro ||
           err.response?.data?.mensagem ||
@@ -175,7 +182,18 @@ export default function Login() {
               {erro && (
                 <Error role="alert">
                   <ErrorIcon aria-hidden="true">!</ErrorIcon>
-                  <span>{erro}</span>
+                  <span>
+                    {erro}
+                    {confirmacaoPendente && (
+                      <VerifyLink
+                        href={`/verificar-email?emailOuUsuario=${encodeURIComponent(
+                          formData.identificador.trim()
+                        )}`}
+                      >
+                        Reenviar e-mail de confirmação
+                      </VerifyLink>
+                    )}
+                  </span>
                 </Error>
               )}
 
@@ -276,6 +294,7 @@ const Input=styled.input`width:100%;box-sizing:border-box;padding:13px ${({$comA
 const ShowPassword=styled.button`position:absolute;right:12px;top:50%;transform:translateY(-50%);padding:4px;border:0;background:transparent;color:#64748b;font-size:.63rem;font-weight:800;cursor:pointer;&:hover{color:#93c5fd}&:disabled{cursor:not-allowed}`;
 const Error=styled.div`display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border:1px solid rgba(239,68,68,.22);border-radius:10px;background:rgba(239,68,68,.07);color:#fca5a5;font-size:.71rem;line-height:1.45`;
 const ErrorIcon=styled.span`width:17px;height:17px;display:grid;place-items:center;flex:0 0 auto;border-radius:50%;background:rgba(239,68,68,.18);font-size:.62rem;font-weight:900`;
+const VerifyLink=styled(Link)`display:block;margin-top:6px;color:#fecaca;font-weight:850;text-decoration:underline;text-underline-offset:2px;&:hover{color:#fff}`;
 const Submit=styled.button`min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:2px;border:0;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-size:.78rem;font-weight:900;cursor:pointer;box-shadow:0 12px 30px rgba(37,99,235,.22);transition:.2s;&:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 15px 34px rgba(37,99,235,.32)}&:disabled{opacity:.65;cursor:not-allowed}`;
 const Arrow=styled.span`font-size:1.05rem`;
 const Spinner=styled.span`width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:${spin} .7s linear infinite`;
@@ -285,3 +304,4 @@ const RegisterLink=styled(Link)`color:#4ade80;font-weight:850;text-decoration:no
 const Notice=styled.div`display:flex;align-items:flex-start;gap:10px;margin-top:25px;padding:12px;border:1px solid rgba(34,197,94,.13);border-radius:11px;background:rgba(34,197,94,.045);color:#94a3b8;font-size:.65rem;line-height:1.5`;
 const NoticeIcon=styled.span`width:18px;height:18px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(74,222,128,.28);border-radius:50%;color:#4ade80;font-size:.62rem;font-weight:900`;
 const Legal=styled.p`margin:16px 0 0;color:#475569;font-size:.61rem;line-height:1.5;text-align:center;a{color:#64748b;text-decoration:underline;text-underline-offset:2px;&:hover{color:#94a3b8}}`;
+

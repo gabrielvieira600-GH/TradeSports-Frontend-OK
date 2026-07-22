@@ -75,12 +75,12 @@ Caso não concorde com qualquer disposição, o usuário não deverá utilizar a
 2. DEFINIÇÕES
 
 Para fins destes Termos:
-	•	Plataforma: sistema digital operado pela TradeSports que permite a negociação de cotas virtuais entre usuários.
-	•	Usuário: pessoa física cadastrada na Plataforma.
-	•	Cotas Virtuais: unidades digitais representativas de ativos simulados vinculados ao desempenho esportivo de clubes.
-	•	Saldo: registro contábil interno representando os valores disponíveis do usuário na Plataforma.
-	•	Ordem: instrução de compra ou venda de cotas virtuais.
-	•	Mercado: ambiente de negociação entre usuários baseado em oferta e demanda.
+  •	Plataforma: sistema digital operado pela TradeSports que permite a negociação de cotas virtuais entre usuários.
+  •	Usuário: pessoa física cadastrada na Plataforma.
+  •	Cotas Virtuais: unidades digitais representativas de ativos simulados vinculados ao desempenho esportivo de clubes.
+  •	Saldo: registro contábil interno representando os valores disponíveis do usuário na Plataforma.
+  •	Ordem: instrução de compra ou venda de cotas virtuais.
+  •	Mercado: ambiente de negociação entre usuários baseado em oferta e demanda.
 
 ⸻
 
@@ -91,20 +91,20 @@ A TradeSports é:
 uma plataforma digital de negociação de cotas virtuais em ambiente próprio, com dinâmica econômica interna baseada na interação entre usuários, podendo integrar terceiros para determinadas etapas operacionais e financeiras.
 
 A TradeSports:
-	•	não se apresenta como banco, instituição financeira, corretora de valores mobiliários ou operadora de apostas de quota fixa;
-	•	não garante rentabilidade, lucro ou valorização;
-	•	não administra investimentos ou presta consultoria financeira.
+  •	não se apresenta como banco, instituição financeira, corretora de valores mobiliários ou operadora de apostas de quota fixa;
+  •	não garante rentabilidade, lucro ou valorização;
+  •	não administra investimentos ou presta consultoria financeira.
 
 ⸻
 
 4. NATUREZA DAS COTAS VIRTUAIS
 
 As cotas virtuais:
-	•	não representam participação societária;
-	•	não constituem valores mobiliários;
-	•	não representam crédito contra clubes;
-	•	não conferem direitos esportivos, econômicos ou federativos;
-	•	não são ativos financeiros regulados.
+  •	não representam participação societária;
+  •	não constituem valores mobiliários;
+  •	não representam crédito contra clubes;
+  •	não conferem direitos esportivos, econômicos ou federativos;
+  •	não são ativos financeiros regulados.
 
 Tratam-se exclusivamente de:
 
@@ -115,14 +115,14 @@ ativos digitais simulados para fins de negociação dentro da Plataforma.
 5. CADASTRO E CONTA
 
 O usuário declara que:
-	•	possui capacidade civil plena;
-	•	fornece informações verdadeiras e atualizadas;
-	•	é titular dos meios de pagamento utilizados.
+  •	possui capacidade civil plena;
+  •	fornece informações verdadeiras e atualizadas;
+  •	é titular dos meios de pagamento utilizados.
 
 A TradeSports poderá:
-	•	solicitar verificação de identidade (KYC);
-	•	suspender ou encerrar contas em caso de irregularidade;
-	•	recusar cadastro sem obrigação de justificativa.
+  •	solicitar verificação de identidade (KYC);
+  •	suspender ou encerrar contas em caso de irregularidade;
+  •	recusar cadastro sem obrigação de justificativa.
 
 ⸻
 
@@ -133,73 +133,73 @@ A negociação ocorre exclusivamente entre usuários.
 6.1 Formação de preço
 
 Os preços das cotas:
-	•	são definidos por oferta e demanda;
-	•	podem sofrer alta volatilidade;
-	•	podem apresentar baixa liquidez;
-	•	podem não refletir qualquer valor econômico real.
+  •	são definidos por oferta e demanda;
+  •	podem sofrer alta volatilidade;
+  •	podem apresentar baixa liquidez;
+  •	podem não refletir qualquer valor econômico real.
 
 ⸻
 
 6.2 Ordens
-	•	ordens podem ser executadas total ou parcialmente;
-	•	ordens podem permanecer abertas sem execução;
-	•	cancelamentos podem estar sujeitos a regras operacionais e antifraude.
+  •	ordens podem ser executadas total ou parcialmente;
+  •	ordens podem permanecer abertas sem execução;
+  •	cancelamentos podem estar sujeitos a regras operacionais e antifraude.
 
 ⸻
 
 7. TAXAS
 
 A TradeSports poderá cobrar:
-	•	taxa de negociação (maker/taker);
-	•	taxa de saque;
-	•	outras taxas operacionais previamente informadas.
+  •	taxa de negociação (maker/taker);
+  •	taxa de saque;
+  •	outras taxas operacionais previamente informadas.
 
 ⸻
 
 8. DEPÓSITOS E SAQUES
 
 8.1 Depósitos
-	•	realizados por meios de pagamento integrados;
-	•	podem depender de parceiros terceiros;
-	•	estão sujeitos a validação e aprovação.
+  •	realizados por meios de pagamento integrados;
+  •	podem depender de parceiros terceiros;
+  •	estão sujeitos a validação e aprovação.
 
 ⸻
 
 8.2 Saques
-	•	somente para contas de mesma titularidade;
-	•	sujeitos a análise de segurança e antifraude;
-	•	podem sofrer retenção temporária em caso de suspeita;
-	•	prazos podem variar conforme o meio de pagamento.
+  •	somente para contas de mesma titularidade;
+  •	sujeitos a análise de segurança e antifraude;
+  •	podem sofrer retenção temporária em caso de suspeita;
+  •	prazos podem variar conforme o meio de pagamento.
 
 ⸻
 
 8.3 Restrições
 
 A TradeSports poderá:
-	•	recusar depósitos ou saques;
-	•	bloquear valores temporariamente;
-	•	solicitar documentação adicional.
+  •	recusar depósitos ou saques;
+  •	bloquear valores temporariamente;
+  •	solicitar documentação adicional.
 
 ⸻
 
 9. RISCOS
 
 O usuário declara ciência de que:
-	•	pode perder integralmente os valores utilizados;
-	•	não há garantia de liquidez;
-	•	o mercado pode ser volátil;
-	•	eventos esportivos influenciam preços;
-	•	falhas técnicas podem ocorrer.
+  •	pode perder integralmente os valores utilizados;
+  •	não há garantia de liquidez;
+  •	o mercado pode ser volátil;
+  •	eventos esportivos influenciam preços;
+  •	falhas técnicas podem ocorrer.
 
 ⸻
 
 10. NÃO RECOMENDAÇÃO (NO SUITABILITY)
 
 A TradeSports:
-	•	não presta consultoria;
-	•	não realiza recomendações;
-	•	não avalia perfil de risco do usuário;
-	•	não garante adequação das operações.
+  •	não presta consultoria;
+  •	não realiza recomendações;
+  •	não avalia perfil de risco do usuário;
+  •	não garante adequação das operações.
 
 O usuário é o único responsável por suas decisões.
 
@@ -208,48 +208,48 @@ O usuário é o único responsável por suas decisões.
 11. CONDUTAS PROIBIDAS
 
 É vedado ao usuário:
-	•	fraudar ou manipular o mercado;
-	•	utilizar contas de terceiros;
-	•	explorar falhas do sistema;
-	•	praticar lavagem de dinheiro;
-	•	realizar auto-negociação (self-trade);
-	•	manipular preços artificialmente.
+  •	fraudar ou manipular o mercado;
+  •	utilizar contas de terceiros;
+  •	explorar falhas do sistema;
+  •	praticar lavagem de dinheiro;
+  •	realizar auto-negociação (self-trade);
+  •	manipular preços artificialmente.
 
 ⸻
 
 12. MONITORAMENTO E COMPLIANCE
 
 A TradeSports poderá:
-	•	monitorar atividades;
-	•	bloquear contas preventivamente;
-	•	cancelar operações suspeitas;
-	•	reportar atividades a autoridades competentes.
+  •	monitorar atividades;
+  •	bloquear contas preventivamente;
+  •	cancelar operações suspeitas;
+  •	reportar atividades a autoridades competentes.
 
 ⸻
 
 13. SUSPENSÃO E ENCERRAMENTO
 
 A conta poderá ser:
-	•	suspensa;
-	•	limitada;
-	•	encerrada;
+  •	suspensa;
+  •	limitada;
+  •	encerrada;
 
 em caso de:
-	•	violação destes Termos;
-	•	suspeita de fraude;
-	•	exigência legal ou regulatória.
+  •	violação destes Termos;
+  •	suspeita de fraude;
+  •	exigência legal ou regulatória.
 
 ⸻
 
 14. LIMITAÇÃO DE RESPONSABILIDADE
 
 A TradeSports não se responsabiliza por:
-	•	perdas financeiras do usuário;
-	•	decisões de negociação;
-	•	falta de liquidez;
-	•	oscilações de preço;
-	•	indisponibilidade temporária;
-	•	falhas de terceiros (pagamentos, APIs, etc.).
+  •	perdas financeiras do usuário;
+  •	decisões de negociação;
+  •	falta de liquidez;
+  •	oscilações de preço;
+  •	indisponibilidade temporária;
+  •	falhas de terceiros (pagamentos, APIs, etc.).
 
 A responsabilidade da TradeSports é limitada ao funcionamento da Plataforma conforme estes Termos.
 
@@ -258,10 +258,10 @@ A responsabilidade da TradeSports é limitada ao funcionamento da Plataforma con
 15. PROPRIEDADE INTELECTUAL
 
 Todos os elementos da Plataforma são de propriedade da TradeSports, incluindo:
-	•	marca;
-	•	software;
-	•	layout;
-	•	funcionalidades.
+  •	marca;
+  •	software;
+  •	layout;
+  •	funcionalidades.
 
 É proibida reprodução sem autorização.
 
@@ -270,8 +270,8 @@ Todos os elementos da Plataforma são de propriedade da TradeSports, incluindo:
 16. COMUNICAÇÃO
 
 As comunicações oficiais serão realizadas por:
-	•	e-mail cadastrado;
-	•	notificações na Plataforma.
+  •	e-mail cadastrado;
+  •	notificações na Plataforma.
 
 O usuário é responsável por manter seus dados atualizados.
 
@@ -316,48 +316,48 @@ A TradeSports é:
 uma plataforma digital de negociação de cotas virtuais em ambiente próprio, cuja dinâmica econômica depende da interação entre usuários e de fatores externos, especialmente o desempenho esportivo real.
 
 A Plataforma:
-	•	não garante lucro ou rentabilidade;
-	•	não presta consultoria financeira;
-	•	não assegura liquidez;
-	•	não controla o comportamento do mercado.
+  •	não garante lucro ou rentabilidade;
+  •	não presta consultoria financeira;
+  •	não assegura liquidez;
+  •	não controla o comportamento do mercado.
 
 ⸻
 
 3. RISCO DE PERDA FINANCEIRA
 
 O usuário reconhece que:
-	•	poderá perder total ou parcialmente os valores utilizados;
-	•	não há garantia de recuperação de capital;
-	•	decisões de compra e venda são de responsabilidade exclusiva do usuário.
+  •	poderá perder total ou parcialmente os valores utilizados;
+  •	não há garantia de recuperação de capital;
+  •	decisões de compra e venda são de responsabilidade exclusiva do usuário.
 
 ⸻
 
 4. RISCO DE MERCADO
 
 Os preços das cotas podem:
-	•	variar significativamente em curtos períodos;
-	•	sofrer oscilações abruptas;
-	•	refletir comportamento coletivo e especulativo dos usuários.
+  •	variar significativamente em curtos períodos;
+  •	sofrer oscilações abruptas;
+  •	refletir comportamento coletivo e especulativo dos usuários.
 
 ⸻
 
 5. RISCO DE LIQUIDEZ
 
 O usuário poderá enfrentar situações em que:
-	•	não haja compradores ou vendedores disponíveis;
-	•	ordens não sejam executadas;
-	•	seja necessário negociar a preços desfavoráveis;
-	•	não seja possível sair de uma posição no momento desejado.
+  •	não haja compradores ou vendedores disponíveis;
+  •	ordens não sejam executadas;
+  •	seja necessário negociar a preços desfavoráveis;
+  •	não seja possível sair de uma posição no momento desejado.
 
 ⸻
 
 6. RISCO OPERACIONAL
 
 A Plataforma pode estar sujeita a:
-	•	indisponibilidade temporária;
-	•	falhas técnicas;
-	•	atrasos na execução de ordens;
-	•	erros sistêmicos ou de integração com terceiros.
+  •	indisponibilidade temporária;
+  •	falhas técnicas;
+  •	atrasos na execução de ordens;
+  •	erros sistêmicos ou de integração com terceiros.
 
 ⸻
 
@@ -368,80 +368,80 @@ A TradeSports:
 não se apresenta como banco, instituição financeira, corretora de valores mobiliários ou operadora de apostas de quota fixa;
 
 No entanto:
-	•	determinadas atividades relacionadas a pagamentos, verificação de identidade, prevenção a fraudes e movimentação de recursos podem depender de terceiros regulados;
-	•	o ambiente regulatório pode evoluir ou ser interpretado de forma diversa por autoridades competentes;
-	•	alterações legais ou regulatórias podem impactar a operação da Plataforma.
+  •	determinadas atividades relacionadas a pagamentos, verificação de identidade, prevenção a fraudes e movimentação de recursos podem depender de terceiros regulados;
+  •	o ambiente regulatório pode evoluir ou ser interpretado de forma diversa por autoridades competentes;
+  •	alterações legais ou regulatórias podem impactar a operação da Plataforma.
 
 ⸻
 
 8. RISCO DE PARCEIROS E TERCEIROS
 
 A operação depende de terceiros, incluindo:
-	•	provedores de pagamento;
-	•	APIs de dados esportivos;
-	•	serviços de hospedagem e infraestrutura.
+  •	provedores de pagamento;
+  •	APIs de dados esportivos;
+  •	serviços de hospedagem e infraestrutura.
 
 Eventuais falhas nesses serviços podem impactar:
-	•	depósitos e saques;
-	•	atualização de dados;
-	•	funcionamento da Plataforma.
+  •	depósitos e saques;
+  •	atualização de dados;
+  •	funcionamento da Plataforma.
 
 ⸻
 
 9. RISCO DE DEPÓSITOS E SAQUES
 
 Operações financeiras podem estar sujeitas a:
-	•	atrasos no processamento;
-	•	bloqueios temporários;
-	•	necessidade de verificação adicional;
-	•	cancelamentos ou estornos, especialmente em meios como cartão de crédito.
+  •	atrasos no processamento;
+  •	bloqueios temporários;
+  •	necessidade de verificação adicional;
+  •	cancelamentos ou estornos, especialmente em meios como cartão de crédito.
 
 ⸻
 
 10. RISCO DE CONTRAPARTE (PLATAFORMA)
 
 A TradeSports poderá:
-	•	suspender ou bloquear contas;
-	•	reter valores temporariamente;
-	•	revisar ou cancelar operações;
+  •	suspender ou bloquear contas;
+  •	reter valores temporariamente;
+  •	revisar ou cancelar operações;
 
 em casos de:
-	•	suspeita de fraude;
-	•	exigência legal;
-	•	necessidade operacional.
+  •	suspeita de fraude;
+  •	exigência legal;
+  •	necessidade operacional.
 
 ⸻
 
 11. RISCO DE ABUSO DE MERCADO
 
 A Plataforma pode ser impactada por comportamentos como:
-	•	manipulação de preços;
-	•	operações artificiais;
-	•	uso de múltiplas contas;
-	•	estratégias abusivas de negociação.
+  •	manipulação de preços;
+  •	operações artificiais;
+  •	uso de múltiplas contas;
+  •	estratégias abusivas de negociação.
 
 Embora existam mecanismos de controle, tais práticas podem afetar:
-	•	preços;
-	•	liquidez;
-	•	estabilidade do mercado.
+  •	preços;
+  •	liquidez;
+  •	estabilidade do mercado.
 
 ⸻
 
 12. RISCO DE CONCENTRAÇÃO
 
 O mercado pode apresentar:
-	•	baixa diversificação de participantes;
-	•	concentração de cotas em poucos usuários;
-	•	influência desproporcional de determinados agentes.
+  •	baixa diversificação de participantes;
+  •	concentração de cotas em poucos usuários;
+  •	influência desproporcional de determinados agentes.
 
 ⸻
 
 13. RISCO RELACIONADO AO DESEMPENHO ESPORTIVO
 
 Os preços das cotas são influenciados por:
-	•	resultados de partidas;
-	•	classificação dos clubes;
-	•	eventos esportivos imprevistos.
+  •	resultados de partidas;
+  •	classificação dos clubes;
+  •	eventos esportivos imprevistos.
 
 Fatores externos podem impactar significativamente o valor das cotas.
 
@@ -450,19 +450,19 @@ Fatores externos podem impactar significativamente o valor das cotas.
 14. RISCO DE INTERRUPÇÃO DE SERVIÇO
 
 Eventos extraordinários podem afetar a operação, incluindo:
-	•	falhas técnicas;
-	•	indisponibilidade de serviços externos;
-	•	eventos de força maior;
-	•	mudanças estruturais no campeonato.
+  •	falhas técnicas;
+  •	indisponibilidade de serviços externos;
+  •	eventos de força maior;
+  •	mudanças estruturais no campeonato.
 
 ⸻
 
 15. RISCO DE SEGURANÇA DA CONTA
 
 O usuário é responsável por:
-	•	manter suas credenciais seguras;
-	•	não compartilhar acesso;
-	•	adotar medidas de proteção.
+  •	manter suas credenciais seguras;
+  •	não compartilhar acesso;
+  •	adotar medidas de proteção.
 
 A TradeSports não se responsabiliza por acessos indevidos decorrentes de negligência do usuário.
 
@@ -471,19 +471,19 @@ A TradeSports não se responsabiliza por acessos indevidos decorrentes de neglig
 16. RISCO DE DECISÃO DO USUÁRIO
 
 O usuário reconhece que:
-	•	todas as decisões são de sua responsabilidade;
-	•	não há orientação personalizada;
-	•	a Plataforma não garante adequação das operações ao seu perfil.
+  •	todas as decisões são de sua responsabilidade;
+  •	não há orientação personalizada;
+  •	a Plataforma não garante adequação das operações ao seu perfil.
 
 ⸻
 
 17. AUSÊNCIA DE GARANTIAS
 
 A TradeSports não garante:
-	•	lucro;
-	•	liquidez;
-	•	estabilidade de preços;
-	•	continuidade ininterrupta da operação.
+  •	lucro;
+  •	liquidez;
+  •	estabilidade de preços;
+  •	continuidade ininterrupta da operação.
 
 ⸻
 
@@ -555,7 +555,7 @@ Dúvidas sobre esta Política:
 
     try {
       setEnviando(true);
-      await axios.post(`${API}/cadastro`, {
+      const resposta = await axios.post(`${API}/cadastro`, {
         nome: form.nome,
         sobrenome: form.sobrenome,
         email: form.email,
@@ -564,10 +564,24 @@ Dúvidas sobre esta Política:
         genero: form.genero,
         nomeUsuario: form.nomeUsuario,
         senha: form.senha,
+        aceitouTermos: true,
+        versaoTermos: VERSAO_TERMOS,
+        aceites: {
+          termosUso: { versao: VERSAO_TERMOS },
+          politicaRisco: { versao: VERSAO_POLITICA_RISCO },
+          politicaPrivacidade: { versao: VERSAO_POLITICA_PRIVACIDADE },
+        },
       });
 
-      adicionarToast("Cadastro realizado com sucesso!", "success");
-      router.push("/login");
+      window.sessionStorage.setItem(
+        "emailVerificacaoPendente",
+        form.email.trim().toLowerCase()
+      );
+      adicionarToast(
+        resposta.data?.mensagem || "Cadastro realizado com sucesso!",
+        resposta.status === 202 ? "warning" : "success"
+      );
+      router.push("/verificar-email?cadastro=1");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1406,4 +1420,5 @@ const BotaoPrim = styled.button`
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
+
 
