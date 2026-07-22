@@ -5,7 +5,7 @@ import api from '../lib/api';
 import NegociacaoModal from '../components/NegociacaoModal';
 import withAuth from '../components/withAuth';
 import ClubBadge from '../components/ClubBadge';
-import MarketStatusCard from '../components/MarketStatusCard';
+
 
 const PALETA_CORES = [
   '#3b82f6',
