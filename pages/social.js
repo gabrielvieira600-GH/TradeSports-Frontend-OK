@@ -276,7 +276,7 @@ function SocialPage() {
     <Container>
       <Cabecalho>
         <CabecalhoTexto>
-          <Eyebrow>Comunidade</Eyebrow>
+          <Eyebrow>Feed</Eyebrow>
 
           <Titulo>
             Acompanhe os principais movimentos da TradeSports
@@ -289,7 +289,7 @@ function SocialPage() {
         </CabecalhoTexto>
 
         <ResumoCard>
-          <ResumoLabel>Seu plano</ResumoLabel>
+          
 
           <ResumoValor $premium={usuarioLogadoPremium}>
             {usuarioLogadoPremium ? 'Premium' : 'Lite'}
@@ -298,40 +298,6 @@ function SocialPage() {
       </Cabecalho>
 
       <FeedToolbar>
-        <Filtros>
-          <FiltroBotao
-            type="button"
-            $ativo={filtro === 'todos'}
-            onClick={() => setFiltro('todos')}
-          >
-            Todos
-          </FiltroBotao>
-
-          <FiltroBotao
-            type="button"
-            $ativo={filtro === 'social'}
-            onClick={() => setFiltro('social')}
-          >
-            Social
-          </FiltroBotao>
-
-          <FiltroBotao
-            type="button"
-            $ativo={filtro === 'rankings'}
-            onClick={() => setFiltro('rankings')}
-          >
-            Rankings
-          </FiltroBotao>
-
-          <FiltroBotao
-            type="button"
-            $ativo={filtro === 'mercado'}
-            onClick={() => setFiltro('mercado')}
-          >
-            Mercado
-          </FiltroBotao>
-        </Filtros>
-
         <BotaoAtualizar
           type="button"
           disabled={carregandoFeed}
@@ -363,10 +329,6 @@ function SocialPage() {
                 O feed ainda está vazio
               </FeedVazioTitulo>
 
-              <FeedVazioTexto>
-                Assim que os eventos sociais forem conectados no backend, as
-                atividades da comunidade aparecerão aqui automaticamente.
-              </FeedVazioTexto>
             </FeedVazio>
           ) : (
             <FeedLista>
@@ -430,45 +392,6 @@ function SocialPage() {
             </FeedLista>
           )}
         </FeedColuna>
-
-        <LateralColuna>
-          <LateralCard>
-            <LateralTitulo>
-              O que aparece aqui?
-            </LateralTitulo>
-
-            <LateralTexto>
-              O feed da comunidade será alimentado automaticamente com ações
-              relevantes dos usuários dentro da TradeSports.
-            </LateralTexto>
-
-            <ListaInfo>
-              <li>Novos seguidores</li>
-              <li>Criação de rankings privados</li>
-              <li>Entrada em rankings privados</li>
-              <li>Mudanças relevantes no ranking</li>
-              <li>Marcos de rentabilidade</li>
-            </ListaInfo>
-          </LateralCard>
-
-          <LateralCard>
-            <LateralTitulo>
-              Busca de perfis
-            </LateralTitulo>
-
-            <LateralTexto>
-              A busca por clubes, mercados e usuários agora fica no Topbar para
-              estar disponível em toda a plataforma.
-            </LateralTexto>
-
-            <BotaoSecundario
-              type="button"
-              onClick={() => router.push('/ranking')}
-            >
-              Ver ranking
-            </BotaoSecundario>
-          </LateralCard>
-        </LateralColuna>
       </GridPrincipal>
     </Container>
   );

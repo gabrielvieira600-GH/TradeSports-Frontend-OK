@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
-import MarketStatusCard from '../components/MarketStatusCard';
 
 const ITENS_POR_PAGINA = 50;
 
@@ -632,7 +631,6 @@ const voltarParaListaPrivados = () => {
 };
   return (
   <Container>
-    <MarketStatusCard compacto />
     <Cabecalho>
       <CabecalhoTexto>
         <Eyebrow>Mercado simulado</Eyebrow>
