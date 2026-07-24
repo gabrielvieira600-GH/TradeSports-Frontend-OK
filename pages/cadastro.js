@@ -18,9 +18,8 @@ import PoliticaPrivacidadeModal from "../components/PoliticaPrivacidadeModal";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 const VERSAO_TERMOS = "1.0";
-const VERSAO_POLITICA_RISCO = 'v1.0';
-const VERSAO_POLITICA_PRIVACIDADE = 'v1.0';
-
+const VERSAO_POLITICA_RISCO = "1.0";
+const VERSAO_POLITICA_PRIVACIDADE = "1.0";
 
 export default function Cadastro() {
   const router = useRouter();
@@ -44,14 +43,16 @@ export default function Cadastro() {
   // Aceites
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [aceitouPoliticaRisco, setAceitouPoliticaRisco] = useState(false);
-  const [aceitouPoliticaPrivacidade, setAceitouPoliticaPrivacidade] = useState(false);
+  const [aceitouPoliticaPrivacidade, setAceitouPoliticaPrivacidade] =
+    useState(false);
 
   const [termosLiberados, setTermosLiberados] = useState(false);
 
   // Modais
   const [mostrarTermos, setMostrarTermos] = useState(false);
   const [mostrarPoliticaRisco, setMostrarPoliticaRisco] = useState(false);
-  const [mostrarPoliticaPrivacidade, setMostrarPoliticaPrivacidade] = useState(false);
+  const [mostrarPoliticaPrivacidade, setMostrarPoliticaPrivacidade] =
+    useState(false);
 
   // Controle de scroll do Termos
   const [termosScrollNoFim, setTermosScrollNoFim] = useState(false);
@@ -540,7 +541,7 @@ Esta minuta foi estruturada considerando, entre outras normas aplicáveis confor
 |---|---|---|---|---|
 | 1.0 | 22/07/2026 | Minuta para validação jurídica | Criação integral dos Termos de Uso | TradeSports — Jurídico e Compliance |`;
   }, []);
-  
+
   const politicaRiscoTexto = useMemo(() => {
     return `AVISO DE RISCOS DA TRADESPORTS
 
@@ -919,8 +920,15 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
     e.preventDefault();
     setErro("");
 
-    if (!aceitouTermos || !termosLiberados) {
-      setErro("Você precisa aceitar os Termos de Uso para finalizar o cadastro.");
+    if (
+      !aceitouTermos ||
+      !termosLiberados ||
+      !aceitouPoliticaRisco ||
+      !aceitouPoliticaPrivacidade
+    ) {
+      setErro(
+        "Confirme os Termos de Uso, a Política de Risco e a ciência da Política de Privacidade.",
+      );
       return;
     }
 
@@ -942,40 +950,43 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
     try {
       setEnviando(true);
       const resposta = await axios.post(`${API}/cadastro`, {
-  nome: form.nome,
-  sobrenome: form.sobrenome,
-  email: form.email,
-  dataNascimento: form.dataNascimento,
-  cpf: form.cpf,
-  genero: form.genero,
-  nomeUsuario: form.nomeUsuario,
-  senha: form.senha,
-  aceitouTermos: true,
-  versaoTermos: VERSAO_TERMOS,
-  aceites: {
-    termosUso: {
-      versao: VERSAO_TERMOS,
-    },
-    politicaRisco: {
-      versao: VERSAO_POLITICA_RISCO,
-    },
-    politicaPrivacidade: {
-      versao: VERSAO_POLITICA_PRIVACIDADE,
-    },
-  },
-});
+        nome: form.nome,
+        sobrenome: form.sobrenome,
+        email: form.email,
+        dataNascimento: form.dataNascimento,
+        cpf: form.cpf,
+        genero: form.genero,
+        nomeUsuario: form.nomeUsuario,
+        senha: form.senha,
+        aceitouTermos: true,
+        versaoTermos: VERSAO_TERMOS,
+        aceites: {
+          termosUso: {
+            versao: VERSAO_TERMOS,
+            aceitou: aceitouTermos,
+          },
+          politicaRisco: {
+            versao: VERSAO_POLITICA_RISCO,
+            aceitou: aceitouPoliticaRisco,
+          },
+          politicaPrivacidade: {
+            versao: VERSAO_POLITICA_PRIVACIDADE,
+            aceitou: aceitouPoliticaPrivacidade,
+          },
+        },
+      });
 
-window.sessionStorage.setItem(
-  "emailVerificacaoPendente",
-  form.email.trim().toLowerCase()
-);
+      window.sessionStorage.setItem(
+        "emailVerificacaoPendente",
+        form.email.trim().toLowerCase(),
+      );
 
-adicionarToast(
-  resposta.data?.mensagem || "Cadastro realizado com sucesso!",
-  resposta.status === 202 ? "warning" : "success"
-);
+      adicionarToast(
+        resposta.data?.mensagem || "Cadastro realizado com sucesso!",
+        resposta.status === 202 ? "warning" : "success",
+      );
 
-router.push("/verificar-email?cadastro=1");
+      router.push("/verificar-email?cadastro=1");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1014,7 +1025,9 @@ router.push("/verificar-email?cadastro=1");
                 <BenefitIcon>02</BenefitIcon>
                 <div>
                   <strong>Estratégia esportiva</strong>
-                  <span>Informação e visão de jogo orientam suas escolhas.</span>
+                  <span>
+                    Informação e visão de jogo orientam suas escolhas.
+                  </span>
                 </div>
               </Benefit>
               <Benefit>
@@ -1042,174 +1055,217 @@ router.push("/verificar-email?cadastro=1");
             </Subtitulo>
           </CardHeader>
 
-        <Form onSubmit={handleSubmit}>
-          <Linha2colunas>
+          <Form onSubmit={handleSubmit}>
+            <Linha2colunas>
+              <Campo>
+                <Label>Nome</Label>
+                <Input
+                  name="nome"
+                  placeholder="Nome"
+                  value={form.nome}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+
+              <Campo>
+                <Label>Sobrenome completo</Label>
+                <Input
+                  name="sobrenome"
+                  placeholder="Sobrenome completo"
+                  value={form.sobrenome}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+            </Linha2colunas>
+
+            <Linha2colunas>
+              <Campo>
+                <Label>E-mail</Label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="seuemail@exemplo.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+
+              <Campo>
+                <Label>Data de Nascimento</Label>
+                <Input
+                  name="dataNascimento"
+                  type="date"
+                  value={form.dataNascimento}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+            </Linha2colunas>
+
+            <Linha2colunas>
+              <Campo>
+                <Label>CPF</Label>
+                <Input
+                  name="cpf"
+                  placeholder="00000000000"
+                  inputMode="numeric"
+                  maxLength={11}
+                  value={form.cpf}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+
+              <Campo>
+                <Label>Gênero</Label>
+                <Select
+                  name="genero"
+                  value={form.genero}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Selecione o gênero</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Feminino">Feminino</option>
+                  <option value="Outro">Outro</option>
+                  <option value="Prefiro não informar">
+                    Prefiro não informar
+                  </option>
+                </Select>
+              </Campo>
+            </Linha2colunas>
+
             <Campo>
-              <Label>Nome</Label>
+              <Label>Nome de Usuário</Label>
               <Input
-                name="nome"
-                placeholder="Nome"
-                value={form.nome}
+                name="nomeUsuario"
+                placeholder="Ex: gvinvest"
+                value={form.nomeUsuario}
                 onChange={handleChange}
                 required
               />
             </Campo>
 
-            <Campo>
-              <Label>Sobrenome completo</Label>
-              <Input
-                name="sobrenome"
-                placeholder="Sobrenome completo"
-                value={form.sobrenome}
-                onChange={handleChange}
-                required
+            <Linha2colunas>
+              <Campo>
+                <Label>Senha</Label>
+                <Input
+                  name="senha"
+                  type="password"
+                  placeholder="Mínimo de 8 caracteres"
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={form.senha}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+
+              <Campo>
+                <Label>Confirmar Senha</Label>
+                <Input
+                  name="confirmarSenha"
+                  type="password"
+                  placeholder="Repita sua senha"
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={form.confirmarSenha}
+                  onChange={handleChange}
+                  required
+                />
+              </Campo>
+            </Linha2colunas>
+
+            {erro && <ErroMsg>{erro}</ErroMsg>}
+
+            <AceiteLinha>
+              <Checkbox
+                type="checkbox"
+                checked={aceitouTermos}
+                disabled={!termosLiberados}
+                onChange={(e) => setAceitouTermos(e.target.checked)}
+                id="aceite-termos"
               />
-            </Campo>
-          </Linha2colunas>
 
-          <Linha2colunas>
-            <Campo>
-              <Label>E-mail</Label>
-              <Input
-                name="email"
-                type="email"
-                placeholder="seuemail@exemplo.com"
-                value={form.email}
-                onChange={handleChange}
-                required
+              <AceiteTexto htmlFor="aceite-termos">
+                Li e aceito os{" "}
+                <LinkLike
+                  type="button"
+                  onClick={() => {
+                    setMostrarTermos(true);
+                    setTermosScrollNoFim(false);
+                  }}
+                >
+                  Termos de Uso
+                </LinkLike>
+                .
+              </AceiteTexto>
+            </AceiteLinha>
+
+            <AceiteLinha>
+              <Checkbox
+                type="checkbox"
+                checked={aceitouPoliticaRisco}
+                readOnly
+                id="aceite-risco"
               />
-            </Campo>
+              <AceiteTexto htmlFor="aceite-risco">
+                Li e estou ciente da{" "}
+                <LinkLike
+                  type="button"
+                  onClick={() => setMostrarPoliticaRisco(true)}
+                >
+                  Política de Risco
+                </LinkLike>
+                .
+              </AceiteTexto>
+            </AceiteLinha>
 
-            <Campo>
-              <Label>Data de Nascimento</Label>
-              <Input
-                name="dataNascimento"
-                type="date"
-                value={form.dataNascimento}
-                onChange={handleChange}
-                required
+            <AceiteLinha>
+              <Checkbox
+                type="checkbox"
+                checked={aceitouPoliticaPrivacidade}
+                readOnly
+                id="aceite-privacidade"
               />
-            </Campo>
-          </Linha2colunas>
+              <AceiteTexto htmlFor="aceite-privacidade">
+                Declaro que tive acesso e estou ciente da{" "}
+                <LinkLike
+                  type="button"
+                  onClick={() => setMostrarPoliticaPrivacidade(true)}
+                >
+                  Política de Privacidade
+                </LinkLike>
+                .
+              </AceiteTexto>
+            </AceiteLinha>
 
-          <Linha2colunas>
-            <Campo>
-              <Label>CPF</Label>
-              <Input
-                name="cpf"
-                placeholder="00000000000"
-                inputMode="numeric"
-                maxLength={11}
-                value={form.cpf}
-                onChange={handleChange}
-                required
-              />
-            </Campo>
+            <Botao
+              type="submit"
+              disabled={
+                !aceitouTermos ||
+                !termosLiberados ||
+                !aceitouPoliticaRisco ||
+                !aceitouPoliticaPrivacidade ||
+                enviando
+              }
+            >
+              {enviando ? "Criando sua conta..." : "Criar minha conta"}
+              {!enviando && <BotaoSeta aria-hidden="true">→</BotaoSeta>}
+            </Botao>
 
-            <Campo>
-              <Label>Gênero</Label>
-              <Select name="genero" value={form.genero} onChange={handleChange} required>
-                <option value="">Selecione o gênero</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Feminino">Feminino</option>
-                <option value="Outro">Outro</option>
-                <option value="Prefiro não informar">Prefiro não informar</option>
-              </Select>
-            </Campo>
-          </Linha2colunas>
+            <LoginTexto>
+              Já possui uma conta? <Link href="/login">Entrar agora</Link>
+            </LoginTexto>
 
-          <Campo>
-            <Label>Nome de Usuário</Label>
-            <Input
-              name="nomeUsuario"
-              placeholder="Ex: gvinvest"
-              value={form.nomeUsuario}
-              onChange={handleChange}
-              required
-            />
-          </Campo>
-
-          <Linha2colunas>
-            <Campo>
-              <Label>Senha</Label>
-              <Input
-                name="senha"
-                type="password"
-                placeholder="Mínimo de 8 caracteres"
-                minLength={8}
-                autoComplete="new-password"
-                value={form.senha}
-                onChange={handleChange}
-                required
-              />
-            </Campo>
-
-            <Campo>
-              <Label>Confirmar Senha</Label>
-              <Input
-                name="confirmarSenha"
-                type="password"
-                placeholder="Repita sua senha"
-                minLength={8}
-                autoComplete="new-password"
-                value={form.confirmarSenha}
-                onChange={handleChange}
-                required
-              />
-            </Campo>
-          </Linha2colunas>
-
-          {erro && <ErroMsg>{erro}</ErroMsg>}
-
-          <AceiteLinha>
-            <Checkbox
-              type="checkbox"
-              checked={aceitouTermos}
-              disabled={!termosLiberados}
-              onChange={(e) => setAceitouTermos(e.target.checked)}
-              id="aceite-termos"
-            />
-
-            <AceiteTexto htmlFor="aceite-termos">
-              Li e aceito os{" "}
-              <LinkLike
-                type="button"
-                onClick={() => {
-                  setMostrarTermos(true);
-                  setTermosScrollNoFim(false);
-                }}
-              >
-                Termos de Uso
-              </LinkLike>{" "}
-              , a{" "}
-              <LinkLike type="button" onClick={() => setMostrarPoliticaRisco(true)}>
-                Política de Risco
-              </LinkLike>{" "}
-              e a{" "}
-              <LinkLike type="button" onClick={() => setMostrarPoliticaPrivacidade(true)}>
-                Política de Privacidade
-              </LinkLike>
-              .
-            </AceiteTexto>
-          </AceiteLinha>
-
-          <Botao
-            type="submit"
-            disabled={!aceitouTermos || !termosLiberados || enviando}
-          >
-            {enviando ? "Criando sua conta..." : "Criar minha conta"}
-            {!enviando && <BotaoSeta aria-hidden="true">→</BotaoSeta>}
-          </Botao>
-
-          <LoginTexto>
-            Já possui uma conta? <Link href="/login">Entrar agora</Link>
-          </LoginTexto>
-
-          <Nota>
-            Ao criar sua conta, você declara ciência dos riscos e concorda com os Termos de Uso e as
-            Políticas exibidas.
-          </Nota>
-        </Form>
+            <Nota>
+              Ao criar sua conta, você declara ciência dos riscos e concorda com
+              os Termos de Uso e as Políticas exibidas.
+            </Nota>
+          </Form>
         </Card>
       </Shell>
 
@@ -1219,7 +1275,11 @@ router.push("/verificar-email?cadastro=1");
           <Modal onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>Termos de Uso (TradeSports)</ModalTitle>
-              <Fechar type="button" onClick={() => setMostrarTermos(false)} aria-label="Fechar">
+              <Fechar
+                type="button"
+                onClick={() => setMostrarTermos(false)}
+                aria-label="Fechar"
+              >
                 ✕
               </Fechar>
             </ModalHeader>
@@ -1239,7 +1299,7 @@ router.push("/verificar-email?cadastro=1");
             <ModalFooter>
               <ModalHint>
                 {!termosScrollNoFim
-                  ? 'Role até o final dos Termos para habilitar o botão “Aceitar”.'
+                  ? "Role até o final dos Termos para habilitar o botão “Aceitar”."
                   : `Ao aceitar, você concorda com esta versão (${VERSAO_TERMOS}).`}
               </ModalHint>
 
@@ -1266,13 +1326,13 @@ router.push("/verificar-email?cadastro=1");
 
       {/* MODAL POLÍTICA DE RISCO */}
       {mostrarPoliticaRisco && (
-        <Overlay onClick={() => { setAceitouPoliticaRisco(true); setMostrarPoliticaRisco(false); }}>
+        <Overlay onClick={() => setMostrarPoliticaRisco(false)}>
           <Modal onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>Política de Risco (TradeSports)</ModalTitle>
               <Fechar
                 type="button"
-                onClick={() => { setAceitouPoliticaRisco(true); setMostrarPoliticaRisco(false); }}
+                onClick={() => setMostrarPoliticaRisco(false)}
                 aria-label="Fechar"
               >
                 ✕
@@ -1285,8 +1345,14 @@ router.push("/verificar-email?cadastro=1");
 
             <ModalFooter>
               <ModalActions>
-                <BotaoPrim type="button" onClick={() => { setAceitouPoliticaRisco(true); setMostrarPoliticaRisco(false); }}>
-                  Entendi
+                <BotaoPrim
+                  type="button"
+                  onClick={() => {
+                    setAceitouPoliticaRisco(true);
+                    setMostrarPoliticaRisco(false);
+                  }}
+                >
+                  Li e estou ciente
                 </BotaoPrim>
               </ModalActions>
             </ModalFooter>
@@ -1296,7 +1362,10 @@ router.push("/verificar-email?cadastro=1");
 
       {/* MODAL POLÍTICA DE PRIVACIDADE (componente separado) */}
       {mostrarPoliticaPrivacidade && (
-        <PoliticaPrivacidadeModal onClose={() => setMostrarPoliticaPrivacidade(false)} onAceitar={() => setAceitouPoliticaPrivacidade(true)} />
+        <PoliticaPrivacidadeModal
+          onClose={() => setMostrarPoliticaPrivacidade(false)}
+          onAceitar={() => setAceitouPoliticaPrivacidade(true)}
+        />
       )}
     </Container>
   );
@@ -1313,8 +1382,7 @@ const Container = styled.main`
   overflow: hidden;
   background:
     linear-gradient(rgba(3, 12, 24, 0.9), rgba(3, 12, 24, 0.97)),
-    radial-gradient(circle at 12% 12%, #12365b 0, transparent 42%),
-    #030c18;
+    radial-gradient(circle at 12% 12%, #12365b 0, transparent 42%), #030c18;
   color: #e5edf8;
 
   @media (max-width: 700px) {
@@ -1364,7 +1432,11 @@ const BrandPanel = styled.aside`
   flex-direction: column;
   background:
     linear-gradient(150deg, rgba(18, 55, 91, 0.62), rgba(4, 18, 33, 0.94)),
-    radial-gradient(circle at 30% 20%, rgba(31, 111, 235, 0.28), transparent 48%);
+    radial-gradient(
+      circle at 30% 20%,
+      rgba(31, 111, 235, 0.28),
+      transparent 48%
+    );
   border-right: 1px solid rgba(148, 163, 184, 0.12);
 
   @media (max-width: 940px) {
@@ -1477,9 +1549,19 @@ const Benefit = styled.div`
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.035);
 
-  strong, span { display: block; }
-  strong { color: #e8f0fa; font-size: 0.79rem; }
-  span { margin-top: 3px; color: #72869e; font-size: 0.69rem; }
+  strong,
+  span {
+    display: block;
+  }
+  strong {
+    color: #e8f0fa;
+    font-size: 0.79rem;
+  }
+  span {
+    margin-top: 3px;
+    color: #72869e;
+    font-size: 0.69rem;
+  }
 `;
 
 const BenefitIcon = styled.span`
@@ -1600,7 +1682,9 @@ const inputBase = `
   }
 `;
 
-const Input = styled.input`${inputBase}`;
+const Input = styled.input`
+  ${inputBase}
+`;
 const Select = styled.select`
   ${inputBase}
   color-scheme: dark;
@@ -1650,7 +1734,10 @@ const LinkLike = styled.button`
   font: inherit;
   font-weight: 800;
   cursor: pointer;
-  &:hover { color: #93bdff; text-decoration: underline; }
+  &:hover {
+    color: #93bdff;
+    text-decoration: underline;
+  }
 `;
 
 const Botao = styled.button`
@@ -1668,14 +1755,20 @@ const Botao = styled.button`
   font-weight: 900;
   cursor: pointer;
   box-shadow: 0 12px 28px rgba(16, 185, 108, 0.17);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 15px 34px rgba(16, 185, 108, 0.25);
   }
 
-  &:disabled { opacity: 0.48; cursor: not-allowed; box-shadow: none; }
+  &:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 `;
 
 const BotaoSeta = styled.span`
@@ -1693,7 +1786,9 @@ const LoginTexto = styled.p`
     font-weight: 850;
     text-decoration: none;
   }
-  a:hover { text-decoration: underline; }
+  a:hover {
+    text-decoration: underline;
+  }
 `;
 
 const Nota = styled.p`
@@ -1812,7 +1907,8 @@ const BotaoPrim = styled.button`
   font-weight: 850;
   cursor: pointer;
 
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
-
-

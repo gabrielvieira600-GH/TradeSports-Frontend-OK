@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import styled from 'styled-components';
+import React, { useMemo } from "react";
+import styled from "styled-components";
 
 // Modal 100% self-contained (sem dependências externas)
 
@@ -21,7 +21,7 @@ const Modal = styled.div`
   background: #f7f7f9;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
 `;
@@ -31,7 +31,7 @@ const ModalHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 `;
 
 const ModalTitle = styled.h3`
@@ -69,7 +69,7 @@ const TextoPre = styled.pre`
 
 const ModalFooter = styled.div`
   padding: 12px 16px;
-  border-top: 1px solid rgba(0,0,0,0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -86,7 +86,7 @@ const BotaoPrim = styled.button`
 `;
 
 const BotaoSec = styled.button`
-  border: 1px solid rgba(0,0,0,0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   padding: 10px 14px;
   cursor: pointer;
@@ -491,15 +491,15 @@ Este anexo é interno e deve ser removido da versão pública.
 - Resolução CD/ANPD nº 18/2024, com alterações vigentes — Atuação do Encarregado.
 - Resolução CD/ANPD nº 19/2024 — Transferência Internacional de Dados.
 `,
-    []
+    [],
   );
 
   return (
-    <Overlay onClick={async () => { if (onAceitar) await onAceitar(); onClose(); }}>
+    <Overlay onClick={onClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <ModalTitle>Política de Privacidade (TradeSports)</ModalTitle>
-          <Fechar type="button" onClick={async () => { if (onAceitar) await onAceitar(); onClose(); }} aria-label="Fechar">
+          <Fechar type="button" onClick={onClose} aria-label="Fechar">
             ✕
           </Fechar>
         </ModalHeader>
@@ -509,11 +509,17 @@ Este anexo é interno e deve ser removido da versão pública.
         </ModalBody>
 
         <ModalFooter>
-          <BotaoSec type="button" onClick={async () => { if (onAceitar) await onAceitar(); onClose(); }}>
+          <BotaoSec type="button" onClick={onClose}>
             Fechar
           </BotaoSec>
-          <BotaoPrim type="button" onClick={async () => { if (onAceitar) await onAceitar(); onClose(); }}>
-            Entendi
+          <BotaoPrim
+            type="button"
+            onClick={async () => {
+              if (onAceitar) await onAceitar();
+              onClose();
+            }}
+          >
+            Li e estou ciente
           </BotaoPrim>
         </ModalFooter>
       </Modal>
