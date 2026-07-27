@@ -50,6 +50,7 @@ export default function Cadastro() {
     useState(false);
   const [aceitouPoliticaComunidade, setAceitouPoliticaComunidade] =
     useState(false);
+  const [aceitouDocumentos, setAceitouDocumentos] = useState(false);
 
   const [termosLiberados, setTermosLiberados] = useState(false);
 
@@ -64,6 +65,20 @@ export default function Cadastro() {
   // Controle de scroll do Termos
   const [termosScrollNoFim, setTermosScrollNoFim] = useState(false);
   const termosScrollRef = useRef(null);
+  const [riscoScrollNoFim, setRiscoScrollNoFim] = useState(false);
+  const riscoScrollRef = useRef(null);
+
+  const documentosLidos =
+    aceitouTermos &&
+    aceitouPoliticaPrivacidade &&
+    aceitouPoliticaRisco &&
+    aceitouPoliticaComunidade;
+
+  const iniciarFluxoDocumentos = () => {
+    setAceitouDocumentos(false);
+    setMostrarTermos(true);
+    setTermosScrollNoFim(false);
+  };
 
   const termosTexto = useMemo(() => {
     return `# TERMOS DE USO DA TRADESPORTS
@@ -909,6 +924,17 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
     }
   }, [mostrarTermos]);
 
+  useEffect(() => {
+    if (mostrarPoliticaRisco) {
+      setRiscoScrollNoFim(false);
+      setTimeout(() => {
+        if (riscoScrollRef.current) {
+          riscoScrollRef.current.scrollTop = 0;
+        }
+      }, 0);
+    }
+  }, [mostrarPoliticaRisco]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setErro("");
@@ -932,10 +958,11 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
       !termosLiberados ||
       !aceitouPoliticaRisco ||
       !aceitouPoliticaPrivacidade ||
-      !aceitouPoliticaComunidade
+      !aceitouPoliticaComunidade ||
+      !aceitouDocumentos
     ) {
       setErro(
-        "Confirme os Termos de Uso, a Política de Risco, a ciência da Política de Privacidade e a Política da Comunidade.",
+        "Leia os quatro documentos e marque a confirmação de concordância para continuar.",
       );
       return;
     }
@@ -1196,77 +1223,53 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
             <AceiteLinha>
               <Checkbox
                 type="checkbox"
-                checked={aceitouTermos}
-                disabled={!termosLiberados}
-                onChange={(e) => setAceitouTermos(e.target.checked)}
-                id="aceite-termos"
+                checked={aceitouDocumentos}
+                disabled={!documentosLidos}
+                onChange={(e) => setAceitouDocumentos(e.target.checked)}
+                id="aceite-documentos"
               />
-
-              <AceiteTexto htmlFor="aceite-termos">
-                Li e aceito os{" "}
+              <AceiteTexto htmlFor="aceite-documentos">
+                Li e concordo com os{" "}
                 <LinkLike
                   type="button"
-                  onClick={() => {
-                    setMostrarTermos(true);
-                    setTermosScrollNoFim(false);
-                  }}
+                  onClick={
+                    documentosLidos
+                      ? () => setMostrarTermos(true)
+                      : iniciarFluxoDocumentos
+                  }
                 >
                   Termos de Uso
                 </LinkLike>
-                .
-              </AceiteTexto>
-            </AceiteLinha>
-
-            <AceiteLinha>
-              <Checkbox
-                type="checkbox"
-                checked={aceitouPoliticaRisco}
-                readOnly
-                id="aceite-risco"
-              />
-              <AceiteTexto htmlFor="aceite-risco">
-                Li e estou ciente da{" "}
+                ,{" "}
                 <LinkLike
                   type="button"
-                  onClick={() => setMostrarPoliticaRisco(true)}
-                >
-                  Política de Risco
-                </LinkLike>
-                .
-              </AceiteTexto>
-            </AceiteLinha>
-
-            <AceiteLinha>
-              <Checkbox
-                type="checkbox"
-                checked={aceitouPoliticaPrivacidade}
-                readOnly
-                id="aceite-privacidade"
-              />
-              <AceiteTexto htmlFor="aceite-privacidade">
-                Declaro que tive acesso e estou ciente da{" "}
-                <LinkLike
-                  type="button"
-                  onClick={() => setMostrarPoliticaPrivacidade(true)}
+                  onClick={
+                    documentosLidos
+                      ? () => setMostrarPoliticaPrivacidade(true)
+                      : iniciarFluxoDocumentos
+                  }
                 >
                   Política de Privacidade
                 </LinkLike>
-                .
-              </AceiteTexto>
-            </AceiteLinha>
-
-            <AceiteLinha>
-              <Checkbox
-                type="checkbox"
-                checked={aceitouPoliticaComunidade}
-                readOnly
-                id="aceite-comunidade"
-              />
-              <AceiteTexto htmlFor="aceite-comunidade">
-                Li e concordo com a{" "}
+                ,{" "}
                 <LinkLike
                   type="button"
-                  onClick={() => setMostrarPoliticaComunidade(true)}
+                  onClick={
+                    documentosLidos
+                      ? () => setMostrarPoliticaRisco(true)
+                      : iniciarFluxoDocumentos
+                  }
+                >
+                  Política de Risco
+                </LinkLike>{" "}
+                e{" "}
+                <LinkLike
+                  type="button"
+                  onClick={
+                    documentosLidos
+                      ? () => setMostrarPoliticaComunidade(true)
+                      : iniciarFluxoDocumentos
+                  }
                 >
                   Política da Comunidade
                 </LinkLike>
@@ -1282,6 +1285,7 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
                 !aceitouPoliticaRisco ||
                 !aceitouPoliticaPrivacidade ||
                 !aceitouPoliticaComunidade ||
+                !aceitouDocumentos ||
                 enviando
               }
             >
@@ -1346,6 +1350,7 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
                     setAceitouTermos(true);
                     setTermosLiberados(true);
                     setMostrarTermos(false);
+                    setMostrarPoliticaPrivacidade(true);
                   }}
                 >
                   Aceitar e continuar
@@ -1371,20 +1376,35 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
               </Fechar>
             </ModalHeader>
 
-            <ModalBody>
+            <ModalBody
+              ref={riscoScrollRef}
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+                  setRiscoScrollNoFim(true);
+                }
+              }}
+            >
               <TermosPre>{politicaRiscoTexto}</TermosPre>
             </ModalBody>
 
             <ModalFooter>
+              <ModalHint>
+                {!riscoScrollNoFim
+                  ? "Role até o final da Política de Risco para continuar."
+                  : `Documento lido — versão ${VERSAO_POLITICA_RISCO}.`}
+              </ModalHint>
               <ModalActions>
                 <BotaoPrim
                   type="button"
+                  disabled={!riscoScrollNoFim}
                   onClick={() => {
                     setAceitouPoliticaRisco(true);
                     setMostrarPoliticaRisco(false);
+                    setMostrarPoliticaComunidade(true);
                   }}
                 >
-                  Li e estou ciente
+                  Aceitar e continuar
                 </BotaoPrim>
               </ModalActions>
             </ModalFooter>
@@ -1396,7 +1416,13 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
       {mostrarPoliticaPrivacidade && (
         <PoliticaPrivacidadeModal
           onClose={() => setMostrarPoliticaPrivacidade(false)}
-          onAceitar={() => setAceitouPoliticaPrivacidade(true)}
+          exigirLeitura
+          textoBotao="Aceitar e continuar"
+          onAceitar={() => {
+            setAceitouPoliticaPrivacidade(true);
+            setMostrarPoliticaPrivacidade(false);
+            setMostrarPoliticaRisco(true);
+          }}
         />
       )}
 
@@ -1404,7 +1430,12 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
       {mostrarPoliticaComunidade && (
         <PoliticaComunidadeModal
           onClose={() => setMostrarPoliticaComunidade(false)}
-          onAceitar={() => setAceitouPoliticaComunidade(true)}
+          exigirLeitura
+          textoBotao="Aceitar e continuar"
+          onAceitar={() => {
+            setAceitouPoliticaComunidade(true);
+            setMostrarPoliticaComunidade(false);
+          }}
         />
       )}
     </Container>
@@ -1952,4 +1983,3 @@ const BotaoPrim = styled.button`
     cursor: not-allowed;
   }
 `;
-

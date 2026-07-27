@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 // Modal 100% self-contained (sem dependências externas)
@@ -83,6 +83,11 @@ const BotaoPrim = styled.button`
   font-weight: 700;
   background: #2563eb;
   color: #fff;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const BotaoSec = styled.button`
@@ -95,7 +100,14 @@ const BotaoSec = styled.button`
   color: #111827;
 `;
 
-export default function PoliticaComunidadeModal({ onClose, onAceitar }) {
+export default function PoliticaComunidadeModal({
+  onClose,
+  onAceitar,
+  exigirLeitura = false,
+  textoBotao = "Li e concordo",
+}) {
+  const [scrollNoFim, setScrollNoFim] = useState(!exigirLeitura);
+  const bodyRef = useRef(null);
   const texto = useMemo(
     () =>
       `# POLÍTICA DA COMUNIDADE DA TRADESPORTS
@@ -665,6 +677,13 @@ Esta Política considera, entre outras normas e referências:
     [],
   );
 
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!exigirLeitura || !body) return;
+    body.scrollTop = 0;
+    setScrollNoFim(body.scrollHeight <= body.clientHeight + 10);
+  }, [exigirLeitura]);
+
   return (
     <Overlay onClick={onClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
@@ -675,7 +694,16 @@ Esta Política considera, entre outras normas e referências:
           </Fechar>
         </ModalHeader>
 
-        <ModalBody>
+        <ModalBody
+          ref={bodyRef}
+          onScroll={(e) => {
+            if (!exigirLeitura) return;
+            const el = e.currentTarget;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+              setScrollNoFim(true);
+            }
+          }}
+        >
           <TextoPre>{texto}</TextoPre>
         </ModalBody>
 
@@ -685,16 +713,16 @@ Esta Política considera, entre outras normas e referências:
           </BotaoSec>
           <BotaoPrim
             type="button"
+            disabled={exigirLeitura && !scrollNoFim}
             onClick={async () => {
               if (onAceitar) await onAceitar();
-              onClose();
+              else onClose();
             }}
           >
-            Li e concordo
+            {textoBotao}
           </BotaoPrim>
         </ModalFooter>
       </Modal>
     </Overlay>
   );
 }
-

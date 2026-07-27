@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 // Modal 100% self-contained (sem dependências externas)
@@ -83,6 +83,11 @@ const BotaoPrim = styled.button`
   font-weight: 700;
   background: #2563eb;
   color: #fff;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const BotaoSec = styled.button`
@@ -95,7 +100,14 @@ const BotaoSec = styled.button`
   color: #111827;
 `;
 
-export default function PoliticaPrivacidadeModal({ onClose, onAceitar }) {
+export default function PoliticaPrivacidadeModal({
+  onClose,
+  onAceitar,
+  exigirLeitura = false,
+  textoBotao = "Li e estou ciente",
+}) {
+  const [scrollNoFim, setScrollNoFim] = useState(!exigirLeitura);
+  const bodyRef = useRef(null);
   const texto = useMemo(
     () =>
       `# POLÍTICA DE PRIVACIDADE DA TRADESPORTS
@@ -494,6 +506,13 @@ Este anexo é interno e deve ser removido da versão pública.
     [],
   );
 
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!exigirLeitura || !body) return;
+    body.scrollTop = 0;
+    setScrollNoFim(body.scrollHeight <= body.clientHeight + 10);
+  }, [exigirLeitura]);
+
   return (
     <Overlay onClick={onClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
@@ -504,7 +523,16 @@ Este anexo é interno e deve ser removido da versão pública.
           </Fechar>
         </ModalHeader>
 
-        <ModalBody>
+        <ModalBody
+          ref={bodyRef}
+          onScroll={(e) => {
+            if (!exigirLeitura) return;
+            const el = e.currentTarget;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+              setScrollNoFim(true);
+            }
+          }}
+        >
           <TextoPre>{texto}</TextoPre>
         </ModalBody>
 
@@ -514,12 +542,13 @@ Este anexo é interno e deve ser removido da versão pública.
           </BotaoSec>
           <BotaoPrim
             type="button"
+            disabled={exigirLeitura && !scrollNoFim}
             onClick={async () => {
               if (onAceitar) await onAceitar();
-              onClose();
+              else onClose();
             }}
           >
-            Li e estou ciente
+            {textoBotao}
           </BotaoPrim>
         </ModalFooter>
       </Modal>

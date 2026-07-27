@@ -1,444 +1,358 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import PoliticaPrivacidadeModal from "./PoliticaPrivacidadeModal";
+import PoliticaComunidadeModal from "./PoliticaComunidadeModal";
 
 export default function Footer() {
-  const [modalAberto, setModalAberto] = useState(null); // "risco" | "privacidade" | "uso" | null
+  const [modalAberto, setModalAberto] = useState(null); // "risco" | "privacidade" | "comunidade" | "uso" | null
 
   const ANO_ATUAL = new Date().getFullYear();
 
-  const serverTimeBR = useMemo(() => {
-    try {
-      return new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-    } catch {
-      return new Date().toLocaleString("pt-BR");
-    }
-  }, []);
 
-  const POLITICA_RISCO_TEXTO = `POLÍTICA DE RISCO — TRADESPORTS
+  const POLITICA_RISCO_TEXTO = `AVISO DE RISCOS DA TRADESPORTS
 
-Última atualização: [DATA]
+Documento: Política de Riscos da Plataforma TradeSports: 1.0 — 
+AVISO EM DESTAQUE
 
-⸻
+A utilização da TradeSports envolve risco de perda parcial ou total dos valores alocados. Os preços podem subir ou cair, ordens podem não ser executadas e não existe garantia de lucro, rentabilidade, liquidez ou recuperação do valor utilizado. Não utilize recursos necessários para despesas essenciais, pagamento de dívidas ou reserva de emergência.
 
-1. OBJETIVO
+Este Aviso apresenta os principais riscos conhecidos, mas não esgota todas as situações possíveis. Leia também os Termos de Uso, as regras da competição, a Tabela de Liquidação e a tabela de taxas antes de operar.
 
-Esta Política de Risco tem como objetivo informar os usuários da TradeSports (“Plataforma”) sobre os principais riscos envolvidos na utilização do ambiente de negociação de cotas virtuais.
+QUADRO-RESUMO DOS PRINCIPAIS RISCOS
 
-Ao utilizar a Plataforma, o usuário declara ciência e aceitação integral dos riscos descritos neste documento.
+Risco
 
-⸻
+O que pode acontecer
 
-2. NATUREZA DA PLATAFORMA
+Perda financeira
 
-A TradeSports é:
+O usuário pode perder parte ou a totalidade do valor alocado
 
-uma plataforma digital de negociação de cotas virtuais em ambiente próprio, cuja dinâmica econômica depende da interação entre usuários e de fatores externos, especialmente o desempenho esportivo real.
+Oscilação de preço
 
-A Plataforma:
-	•	não garante lucro ou rentabilidade;
-	•	não presta consultoria financeira;
-	•	não assegura liquidez;
-	•	não controla o comportamento do mercado.
+O preço de mercado pode variar rápida e significativamente
 
-⸻
+Liquidez
+
+Pode não haver contraparte para comprar ou vender no preço desejado
+
+Execução
+
+Uma ordem pode não ser executada ou ser executada apenas parcialmente
+
+Liquidação final
+
+O valor final pode ser diferente do último preço negociado
+
+Desempenho esportivo
+
+Resultados, punições, lesões e mudanças de classificação podem afetar posições e preços
+
+Dados externos
+
+Informações esportivas podem sofrer atraso, erro ou retificação
+
+Dividendos contratuais
+
+O benefício depende do cumprimento integral das regras e não é garantido
+
+Taxas
+
+Custos podem reduzir ou eliminar eventual resultado positivo
+
+Tecnologia
+
+Falhas, indisponibilidade ou atraso podem impedir ou postergar operações
+
+Pagamentos
+
+Depósitos e saques podem depender de terceiros e verificações adicionais
+
+Fraude e segurança
+
+Invasão de conta, engenharia social e manipulação podem causar prejuízos
+
+Regulação
+
+Mudanças legais ou decisões de autoridades podem alterar ou suspender funcionalidades
+
+1. OBJETIVO E ABRANGÊNCIA
+
+1.1. Este Aviso de Riscos informa, em linguagem clara, os principais riscos relacionados ao acesso e ao uso das funcionalidades da TradeSports, especialmente aquisição, manutenção, negociação e liquidação de cotas digitais vinculadas a clubes e competições esportivas.
+
+1.2. Este documento integra os Termos de Uso e deve ser lido em conjunto com:
+
+a) as regras específicas de cada competição;b) a Tabela de Liquidação;c) a tabela de taxas vigente;d) a Política de Privacidade; ee) os avisos exibidos antes da confirmação de cada operação.
+
+1.3. A ciência deste Aviso não representa renúncia do usuário a direitos assegurados por lei nem exclui responsabilidades legalmente atribuídas à TradeSports.
+
+2. NATUREZA DA EXPERIÊNCIA E AUSÊNCIA DE GARANTIAS
+
+2.1. A TradeSports disponibiliza uma experiência digital regida por regras contratuais, na qual preços, posições e resultados podem ser influenciados pela interação entre usuários, pelo desempenho esportivo e por outros fatores externos.
+
+2.2. As cotas:
+
+a) não conferem participação societária na TradeSports, em clubes, ligas ou federações;b) não atribuem direito de voto, gestão, propriedade, imagem ou crédito perante entidades esportivas; ec) não asseguram retorno, rendimento mínimo ou preservação do valor alocado.
+
+2.3. As expressões “mercado”, “bolsa”, “ativo”, “cota”, “carteira”, “IPO” e “dividendos” descrevem funcionalidades da Plataforma. Essas expressões não determinam, por si só, a classificação jurídica ou regulatória do produto.
+
+2.4. A qualificação jurídica da operação depende da legislação aplicável e de seu funcionamento efetivo. Este Aviso não declara nem garante que o produto seja ou deixe de ser investimento, valor mobiliário, ativo virtual, produto financeiro, jogo ou aposta.
+
+2.5. A TradeSports não presta consultoria financeira, gestão de patrimônio, análise individual ou recomendação personalizada. Rankings, gráficos, estatísticas, notícias e conteúdos têm finalidade informativa e funcional.
 
 3. RISCO DE PERDA FINANCEIRA
 
-O usuário reconhece que:
-	•	poderá perder total ou parcialmente os valores utilizados;
-	•	não há garantia de recuperação de capital;
-	•	decisões de compra e venda são de responsabilidade exclusiva do usuário.
+3.1. O usuário poderá perder parte ou a totalidade do valor alocado, inclusive em razão de:
 
-⸻
+a) queda do preço de mercado;b) baixa liquidez;c) diferença entre preço de aquisição e valor de liquidação;d) taxas e demais custos;e) eventos esportivos adversos;f) fraude ou uso indevido da conta; oug) eventos operacionais, legais ou regulatórios.
 
-4. RISCO DE MERCADO
+3.2. Resultados anteriores, simulações, rankings, desempenho histórico ou valorização de determinada cota não garantem resultados futuros.
 
-Os preços das cotas podem:
-	•	variar significativamente em curtos períodos;
-	•	sofrer oscilações abruptas;
-	•	refletir comportamento coletivo e especulativo dos usuários.
+3.3. O usuário não deve operar com valores destinados a alimentação, moradia, saúde, educação, impostos, pagamento de dívidas, reserva de emergência ou qualquer outra necessidade essencial.
 
-⸻
+3.4. Tomar empréstimos, usar cheque especial, atrasar obrigações ou aumentar endividamento para operar pode ampliar substancialmente o prejuízo.
+
+4. RISCO DE MERCADO E OSCILAÇÃO DE PREÇOS
+
+4.1. Os preços podem variar de forma rápida, intensa e imprevisível em razão de oferta e demanda, expectativas, notícias, resultados esportivos, concentração de participantes e comportamento coletivo.
+
+4.2. O preço exibido em determinado momento:
+
+a) não representa garantia de execução;b) pode mudar antes da confirmação da ordem;c) pode decorrer de volume reduzido; ed) pode divergir do preço inicial e do valor de liquidação final.
+
+4.3. Em mercados com poucos participantes, uma única ordem ou um pequeno conjunto de operações pode produzir oscilação relevante.
+
+4.4. Gráficos, médias e indicadores podem conter arredondamentos ou atraso de atualização e não substituem a conferência dos dados da ordem.
 
 5. RISCO DE LIQUIDEZ
 
-O usuário poderá enfrentar situações em que:
-	•	não haja compradores ou vendedores disponíveis;
-	•	ordens não sejam executadas;
-	•	seja necessário negociar a preços desfavoráveis;
-	•	não seja possível sair de uma posição no momento desejado.
+5.1. Não há garantia de que existirão compradores ou vendedores disponíveis.
 
-⸻
+5.2. O usuário poderá:
 
-6. RISCO OPERACIONAL
+a) não conseguir encerrar uma posição quando desejar;b) precisar aguardar por contraparte;c) executar a ordem apenas parcialmente; oud) aceitar preço menos favorável para aumentar a possibilidade de execução.
 
-A Plataforma pode estar sujeita a:
-	•	indisponibilidade temporária;
-	•	falhas técnicas;
-	•	atrasos na execução de ordens;
-	•	erros sistêmicos ou de integração com terceiros.
+5.3. A presença de ordens no livro não assegura que elas permanecerão ativas ou serão executadas, pois podem ser canceladas, expiradas, consumidas por outras ordens ou removidas por motivo de segurança.
 
-⸻
+6. RISCO DE ORDENS E EXECUÇÃO
 
-7. RISCO REGULATÓRIO E JURÍDICO
+6.1. Ordens podem permanecer abertas, ser executadas parcialmente, não ser executadas, expirar ou ser canceladas nas hipóteses previstas nos Termos de Uso.
 
-A TradeSports:
+6.2. Uma mesma ordem poderá gerar múltiplas execuções, inclusive a preços distintos dentro do limite autorizado.
 
-não se apresenta como banco, instituição financeira, corretora de valores mobiliários ou operadora de apostas de quota fixa;
+6.3. O cancelamento solicitado pelo usuário:
 
-No entanto:
-	•	determinadas atividades relacionadas a pagamentos, verificação de identidade, prevenção a fraudes e movimentação de recursos podem depender de terceiros regulados;
-	•	o ambiente regulatório pode evoluir ou ser interpretado de forma diversa por autoridades competentes;
-	•	alterações legais ou regulatórias podem impactar a operação da Plataforma.
+a) não desfaz parcela já executada; eb) somente produz efeito depois da confirmação pelo sistema.
 
-⸻
+6.4. Atrasos de rede, alta demanda, indisponibilidade, diferença entre o relógio do dispositivo e o servidor ou atualização simultânea do livro podem fazer com que a situação final seja diferente daquela inicialmente visualizada.
 
-8. RISCO DE PARCEIROS E TERCEIROS
+6.5. O limite semanal do Plano Lite restringe a quantidade de ordens conforme a regra vigente. A abertura ou o encerramento de rodada não renova esse limite.
 
-A operação depende de terceiros, incluindo:
-	•	provedores de pagamento;
-	•	APIs de dados esportivos;
-	•	serviços de hospedagem e infraestrutura.
+7. RISCO RELACIONADO AO DESEMPENHO ESPORTIVO
 
-Eventuais falhas nesses serviços podem impactar:
-	•	depósitos e saques;
-	•	atualização de dados;
-	•	funcionamento da Plataforma.
+7.1. Resultados e expectativas esportivas podem alterar significativamente preços e liquidez.
 
-⸻
+7.2. Entre os eventos capazes de afetar as cotas estão:
 
-9. RISCO DE DEPÓSITOS E SAQUES
+a) vitórias, derrotas, empates e alterações de classificação;b) lesões, suspensões, escalações e transferências;c) perda ou restituição de pontos;d) decisões disciplinares, administrativas ou judiciais;e) adiamento, abandono ou anulação de partidas;f) mudanças de regulamento, calendário ou formato; eg) desistência, exclusão, rebaixamento ou substituição de participantes.
 
-Operações financeiras podem estar sujeitas a:
-	•	atrasos no processamento;
-	•	bloqueios temporários;
-	•	necessidade de verificação adicional;
-	•	cancelamentos ou estornos, especialmente em meios como cartão de crédito.
+7.3. A TradeSports não controla clubes, atletas, árbitros, organizadores, federações ou autoridades esportivas.
 
-⸻
+8. RISCO DE DADOS ESPORTIVOS E RETIFICAÇÕES
 
-10. RISCO DE CONTRAPARTE (PLATAFORMA)
+8.1. A Plataforma depende de provedores, organizadores e fontes externas para classificações, resultados, calendários e estatísticas.
 
-A TradeSports poderá:
-	•	suspender ou bloquear contas;
-	•	reter valores temporariamente;
-	•	revisar ou cancelar operações;
+8.2. Esses dados podem apresentar atraso, indisponibilidade, divergência ou erro e podem ser retificados posteriormente.
 
-em casos de:
-	•	suspeita de fraude;
-	•	exigência legal;
-	•	necessidade operacional.
+8.3. Correções oficiais podem produzir atualização de classificação, elegibilidade, dividendos contratuais ou liquidação, conforme as regras da competição e os Termos de Uso.
 
-⸻
+8.4. Havendo dúvida relevante sobre a integridade dos dados, a TradeSports poderá suspender temporariamente negociações ou aguardar a estabilização da informação, sem afastar os direitos do usuário previstos em lei.
 
-11. RISCO DE ABUSO DE MERCADO
+9. RISCO DE LIQUIDAÇÃO FINAL
 
-A Plataforma pode ser impactada por comportamentos como:
-	•	manipulação de preços;
-	•	operações artificiais;
-	•	uso de múltiplas contas;
-	•	estratégias abusivas de negociação.
+9.1. Ao final da competição, as cotas serão liquidadas segundo a classificação final reconhecida e a Tabela de Liquidação previamente divulgada.
 
-Embora existam mecanismos de controle, tais práticas podem afetar:
-	•	preços;
-	•	liquidez;
-	•	estabilidade do mercado.
+9.2. O valor de liquidação poderá ser maior ou menor que:
 
-⸻
+a) o preço inicialmente pago;b) o preço médio da posição; ec) o último preço negociado no mercado secundário.
 
-12. RISCO DE CONCENTRAÇÃO
+9.3. A liquidação poderá aguardar homologação, julgamento de recursos esportivos ou estabilização razoável da classificação quando houver fato capaz de alterar o resultado.
 
-O mercado pode apresentar:
-	•	baixa diversificação de participantes;
-	•	concentração de cotas em poucos usuários;
-	•	influência desproporcional de determinados agentes.
+9.4. Interrupção, cancelamento, abandono, redução ou mudança substancial da competição será tratado pela regra específica publicada. Na ausência de regra suficiente, deverá ser adotada solução objetiva, proporcional, documentada e compatível com a legislação aplicável.
 
-⸻
+10. RISCOS DOS “DIVIDENDOS” CONTRATUAIS
 
-13. RISCO RELACIONADO AO DESEMPENHO ESPORTIVO
+10.1. “Dividendos” são benefícios contratuais condicionados às regras da competição. Não são dividendos societários nem decorrem de participação em clube ou empresa.
 
-Os preços das cotas são influenciados por:
-	•	resultados de partidas;
-	•	classificação dos clubes;
-	•	eventos esportivos imprevistos.
+10.2. O pagamento não é garantido e dependerá do cumprimento integral de critérios como posição, permanência, quantidade mínima mantida, datas de corte e demais condições publicadas.
 
-Fatores externos podem impactar significativamente o valor das cotas.
+10.3. Na regra padrão do Top 4, alterações de posição entre rodadas, redução da quantidade mantida ou aquisição posterior ao início do período podem reduzir ou eliminar a elegibilidade.
 
-⸻
+10.4. Adiamentos, correções de classificação, decisões disciplinares e falhas de dados podem postergar a apuração ou exigir recálculo.
 
-14. RISCO DE INTERRUPÇÃO DE SERVIÇO
+10.5. Percentuais divulgados não representam promessa de rentabilidade, pois a elegibilidade é condicional e o preço da cota pode variar ou sofrer perda superior ao benefício.
 
-Eventos extraordinários podem afetar a operação, incluindo:
-	•	falhas técnicas;
-	•	indisponibilidade de serviços externos;
-	•	eventos de força maior;
-	•	mudanças estruturais no campeonato.
+11. IMPACTO DE TAXAS, TRIBUTOS E CUSTOS
 
-⸻
+11.1. Taxas de negociação, maker, taker, saque, serviço, plano ou outras informadas antes da contratação podem reduzir o resultado da operação.
 
-15. RISCO DE SEGURANÇA DA CONTA
+11.2. Uma operação com diferença positiva de preço pode resultar em ganho líquido menor ou mesmo resultado negativo depois dos custos aplicáveis.
 
-O usuário é responsável por:
-	•	manter suas credenciais seguras;
-	•	não compartilhar acesso;
-	•	adotar medidas de proteção.
+11.3. Tributos eventualmente incidentes e obrigações declaratórias pessoais são de responsabilidade do usuário, conforme a legislação aplicável. A TradeSports não presta consultoria tributária individual.
 
-A TradeSports não se responsabiliza por acessos indevidos decorrentes de negligência do usuário.
+12. RISCO DE DEPÓSITOS, SALDOS E SAQUES
 
-⸻
+12.1. Depósitos e saques podem depender de instituições de pagamento, bancos e outros terceiros.
 
-16. RISCO DE DECISÃO DO USUÁRIO
+12.2. As operações podem estar sujeitas a prazo de processamento, indisponibilidade, limites, conferência de titularidade, análise antifraude, estorno, chargeback ou verificação adicional.
 
-O usuário reconhece que:
-	•	todas as decisões são de sua responsabilidade;
-	•	não há orientação personalizada;
-	•	a Plataforma não garante adequação das operações ao seu perfil.
+12.3. O saldo exibido pode incluir valores reservados, pendentes de confirmação, bloqueados ou ainda não disponíveis para saque.
 
-⸻
+12.4. Atrasos, bloqueios ou falhas de terceiros não excluem responsabilidades que a lei atribuir à TradeSports.
 
-17. AUSÊNCIA DE GARANTIAS
+13. RISCO TECNOLÓGICO E OPERACIONAL
 
-A TradeSports não garante:
-	•	lucro;
-	•	liquidez;
-	•	estabilidade de preços;
-	•	continuidade ininterrupta da operação.
+13.1. Sites, aplicativos, servidores, bancos de dados, APIs e integrações podem sofrer:
 
-⸻
+a) indisponibilidade temporária;b) lentidão ou falha de comunicação;c) erro de processamento ou sincronização;d) manutenção programada ou emergencial;e) ataque cibernético; ouf) caso fortuito ou força maior.
 
-18. ATUALIZAÇÕES DA POLÍTICA
+13.2. Esses eventos podem atrasar a exibição de dados, o envio ou cancelamento de ordens, a confirmação de operações, depósitos, saques, dividendos ou liquidação.
 
-Esta Política poderá ser atualizada a qualquer momento.
+13.3. A TradeSports adotará medidas compatíveis para prevenção, continuidade e correção, mas não garante funcionamento ininterrupto ou ausência absoluta de falhas.
 
-O uso contínuo da Plataforma implica aceitação das alterações.
+13.4. Erros comprovados serão analisados conforme os registros técnicos, os Termos de Uso e a legislação aplicável. Este Aviso não autoriza a TradeSports a transferir ao usuário riscos decorrentes de falha própria quando houver responsabilidade legal.
 
-⸻
+14. RISCO DE SEGURANÇA, FRAUDE E ENGENHARIA SOCIAL
 
-19. CONTATO
+14.1. Credenciais comprometidas, dispositivo infectado, reutilização de senha, compartilhamento de códigos e mensagens falsas podem permitir acesso indevido à conta.
 
-Dúvidas sobre esta Política:
+14.2. O usuário deve utilizar senha forte e exclusiva, proteger seus dispositivos, conferir os canais oficiais e comunicar imediatamente atividade não reconhecida.
 
-📧 [email@tradesports.com]`;
+14.3. A TradeSports nunca solicitará senha completa por e-mail, mensagem ou atendimento.
 
-  const POLITICA_PRIVACIDADE_TEXTO = `POLÍTICA DE PRIVACIDADE — TRADESPORTS
+14.4. Mecanismos antifraude reduzem, mas não eliminam, os riscos de invasão, falsidade documental, contas relacionadas, automação indevida, conluio ou manipulação.
 
-Última atualização: [DATA]
+14.5. Contas, saldos, ordens ou saques poderão ser temporariamente limitados durante investigação fundamentada, observados necessidade, proporcionalidade e os direitos do usuário.
 
-⸻
+15. RISCO DE MANIPULAÇÃO, CONCENTRAÇÃO E CONDUTA DE TERCEIROS
 
-1. INTRODUÇÃO
+15.1. Outros usuários podem tentar criar preço artificial, liquidez fictícia, demanda enganosa ou vantagem indevida.
 
-A presente Política de Privacidade descreve como a TradeSports coleta, utiliza, compartilha e protege os dados pessoais dos usuários da Plataforma.
+15.2. A concentração de cotas ou de volume em poucos participantes pode ampliar volatilidade, reduzir liquidez e aumentar a influência de determinadas ordens.
 
-Ao utilizar a Plataforma, o usuário declara ciência e concordância com esta Política.
+15.3. Controles de integridade e auditoria não asseguram a detecção preventiva de todas as condutas abusivas.
 
-⸻
+15.4. A TradeSports poderá cancelar ordens, revisar operações, limitar contas e adotar outras medidas previstas nos Termos de Uso quando houver indício razoável de fraude, manipulação, erro material ou violação.
 
-2. CONTROLADOR DOS DADOS
+16. RISCO REGULATÓRIO E JURÍDICO
 
-O controlador dos dados pessoais é:
+16.1. Leis, regulamentos, interpretações administrativas, decisões judiciais e exigências de autoridades podem mudar.
 
-[RAZÃO SOCIAL DA EMPRESA]
-CNPJ: [CNPJ]
-Endereço: [ENDEREÇO COMPLETO]
-E-mail de contato: [email@tradesports.com]
+16.2. Tais mudanças podem exigir:
 
-⸻
+a) alteração das regras ou da estrutura do produto;b) identificação e verificações adicionais;c) limitação territorial ou de público;d) suspensão de mercado, depósitos, saques ou outras funcionalidades; oue) descontinuação total ou parcial do serviço.
 
-3. ENCARREGADO DE DADOS (DPO)
+16.3. A TradeSports deverá cumprir determinações legais e regulatórias aplicáveis e comunicar impactos relevantes quando permitido.
 
-Para questões relacionadas à proteção de dados:
+16.4. A existência deste Aviso não substitui parecer jurídico-regulatório nem autorização eventualmente exigida para a operação.
 
-📧 [privacidade@tradesports.com]
+17. RISCO DE TERCEIROS
 
-⸻
+17.1. A operação pode depender de provedores de pagamento, hospedagem, nuvem, e-mail, segurança, identidade, dados esportivos, atendimento e outras integrações.
 
-4. DADOS COLETADOS
+17.2. Falhas, mudanças contratuais, interrupções ou encerramento desses serviços podem afetar temporariamente a Plataforma.
 
-A TradeSports poderá coletar:
+17.3. A contratação de terceiros não afasta responsabilidades da TradeSports quando a legislação assim determinar.
 
-4.1 Dados cadastrais
-	•	nome completo
-	•	CPF
-	•	data de nascimento
-	•	e-mail
-	•	telefone
+18. DECISÃO RESPONSÁVEL DO USUÁRIO
 
-⸻
+18.1. Antes de operar, o usuário deve avaliar:
 
-4.2 Dados de identificação
-	•	documentos (quando exigido)
-	•	selfie / verificação
+a) se compreendeu o produto, suas regras e custos;b) se suporta perder integralmente o valor alocado;c) se a decisão compromete despesas essenciais ou aumenta dívidas;d) se está agindo de forma consciente, sem pressão, compulsão ou tentativa de recuperar perda anterior; ee) se as informações da ordem estão corretas.
 
-⸻
+18.2. O usuário deve interromper o uso e buscar orientação adequada caso perceba perda de controle, impacto financeiro desproporcional, sofrimento emocional ou comportamento compulsivo.
 
-4.3 Dados financeiros
-	•	histórico de depósitos e saques
-	•	saldo
-	•	operações realizadas
+18.3. Recursos de limite, pausa, bloqueio ou autoexclusão, quando disponibilizados, devem ser utilizados conforme suas regras. A existência desses controles não elimina os riscos.
 
-⸻
+18.4. A responsabilidade pelas decisões do usuário não exclui deveres legais de informação, segurança, transparência e boa-fé da TradeSports.
 
-4.4 Dados de uso
-	•	interações na plataforma
-	•	ordens e negociações
-	•	comportamento de navegação
+19. ALTERAÇÕES DESTE AVISO
 
-⸻
+19.1. Este Aviso poderá ser atualizado para refletir mudanças legais, regulatórias, operacionais ou tecnológicas.
 
-4.5 Dados técnicos
-	•	IP
-	•	dispositivo
-	•	navegador
-	•	logs
+19.2. Alterações relevantes serão comunicadas de forma destacada e, quando necessário, estarão sujeitas a nova ciência ou aceite.
 
-⸻
+19.3. A versão, a data de vigência e o histórico de alterações deverão permanecer acessíveis.
 
-5. FINALIDADES DO TRATAMENTO
+19.4. Alterações não serão aplicadas retroativamente para prejudicar direitos já constituídos, salvo imposição legal, regulatória ou correção de erro, observada a legislação aplicável.
 
-Os dados são utilizados para:
-	•	criação e gestão da conta
-	•	execução das operações
-	•	prevenção a fraudes
-	•	cumprimento de obrigações legais
-	•	comunicação com o usuário
-	•	melhoria da plataforma
+20. CONTATO
 
-⸻
+Dúvidas, relatos de erro, operações não reconhecidas ou solicitações relacionadas a este Aviso poderão ser encaminhadas para:
 
-6. BASES LEGAIS
+TradeSports — [RAZÃO SOCIAL]CNPJ: [CNPJ]Atendimento: [E-MAIL DE SUPORTE]Segurança: [E-MAIL DE SEGURANÇA]Canal adicional: [CANAL DE ATENDIMENTO]Horário: [HORÁRIO DE ATENDIMENTO]
 
-A TradeSports trata dados com base em:
-	•	execução de contrato
-	•	cumprimento de obrigação legal
-	•	legítimo interesse
-	•	consentimento (quando aplicável)
+ANEXO INTERNO A — CONTROLES OBRIGATÓRIOS ANTES DA PUBLICAÇÃO
 
-⸻
+Remover integralmente este anexo da versão pública.
 
-6.1 Detalhamento por finalidade
-	•	Cadastro: execução de contrato
-	•	Transações: execução de contrato
-	•	Antifraude: legítimo interesse
-	•	Compliance: obrigação legal
-	•	Marketing: consentimento
+Obter parecer jurídico-regulatório sobre a qualificação da operação real.
 
-⸻
+Preencher razão social, CNPJ, canais e horário de atendimento.
 
-7. COMPARTILHAMENTO DE DADOS
+Confirmar coerência com os Termos de Uso, a Política de Privacidade e as regras de mercado.
 
-Os dados poderão ser compartilhados com:
-	•	parceiros de pagamento
-	•	provedores de tecnologia
-	•	serviços de antifraude
-	•	autoridades legais (quando exigido)
+Confirmar regras efetivas de ordens, execuções parciais, cancelamentos e limite semanal.
 
-⸻
+Confirmar a Tabela de Liquidação e o tratamento de competição interrompida, anulada ou alterada.
 
-8. TRANSFERÊNCIA INTERNACIONAL
+Confirmar critérios, base de cálculo e histórico dos dividendos contratuais.
 
-Os dados poderão ser processados fora do Brasil, incluindo:
-	•	serviços de hospedagem
-	•	ferramentas de análise
-	•	provedores de segurança
+Confirmar todas as taxas exibidas antes da operação.
 
-A TradeSports adota medidas para garantir proteção adequada.
+Validar fluxos de depósito, saque, estorno, chargeback e verificação de titularidade.
 
-⸻
+Validar controles antifraude, logs, auditoria e atendimento a operações contestadas.
 
-9. COOKIES E TECNOLOGIAS
+Definir controles de uso responsável compatíveis com a classificação regulatória final.
 
-A Plataforma utiliza cookies para:
-	•	funcionamento essencial
-	•	análise de uso
-	•	melhoria da experiência
+Exibir o aviso destacado antes da primeira operação e manter acesso permanente no rodapé e na conta.
 
-Tipos de cookies:
-	•	essenciais
-	•	analíticos
-	•	funcionais
+Registrar versão, data, hora e evidências de ciência do usuário.
 
-O usuário pode gerenciar cookies no navegador.
+Manter alerta contextual antes da confirmação de operações de maior risco.
 
-⸻
+Garantir acessibilidade, leitura em dispositivos móveis e linguagem legível.
 
-10. RETENÇÃO DE DADOS
+Submeter o documento à aprovação formal de Jurídico, Compliance, Produto e Segurança.
 
-Os dados são armazenados:
-	•	enquanto a conta estiver ativa
-	•	pelo período necessário para cumprimento legal
-	•	para prevenção de fraudes
+ANEXO INTERNO B — TEXTO RECOMENDADO PARA CIÊNCIA
 
-Exemplos:
-	•	dados cadastrais: até encerramento + prazo legal
-	•	transações: conforme exigências regulatórias
-	•	logs: conforme necessidade operacional
+Remover integralmente este anexo da versão pública.
 
-⸻
+Texto da caixa de ciência:
 
-11. DIREITOS DO TITULAR
+Li e compreendi o Aviso de Riscos da TradeSports — versão 1.0, inclusive a possibilidade de perda parcial ou total dos valores alocados, a ausência de garantia de lucro ou liquidez e a diferença entre preço de mercado e valor de liquidação final.
 
-Nos termos da LGPD, o usuário pode:
-	•	confirmar tratamento
-	•	acessar dados
-	•	corrigir dados
-	•	solicitar exclusão
-	•	solicitar portabilidade
-	•	revogar consentimento
+A caixa não deverá vir previamente marcada. O registro deve armazenar, no mínimo, usuário, versão do documento, data e hora e as demais evidências previstas na Política de Privacidade.
 
-Solicitações:
+REFERÊNCIAS NORMATIVAS E INSTITUCIONAIS
 
-📧 [privacidade@tradesports.com]
+Se a versão pública adotar texto enxuto, esta seção poderá permanecer apenas na documentação interna.
 
-⸻
+Lei nº 8.078/1990 — Código de Defesa do Consumidor.
 
-12. SEGURANÇA
+Decreto nº 7.962/2013 — contratação no comércio eletrônico.
 
-A TradeSports adota medidas como:
-	•	criptografia
-	•	controle de acesso
-	•	monitoramento
-	•	proteção contra acessos não autorizados
+Lei nº 12.965/2014 — Marco Civil da Internet.
 
-⸻
+Lei nº 13.709/2018 — Lei Geral de Proteção de Dados Pessoais.
 
-13. DECISÕES AUTOMATIZADAS E ANTIFRAUDE
+Lei nº 14.790/2023 e regulamentação correlata — apenas na medida em que forem consideradas aplicáveis após a análise regulatória.
 
-A Plataforma poderá utilizar:
-	•	sistemas automatizados
-	•	análise de comportamento
-	•	detecção de risco
+Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausência de rentabilidade garantida — como referência de comunicação responsável, sem pressupor enquadramento da TradeSports no mercado de capitais.
 
-Esses sistemas podem:
-	•	bloquear operações
-	•	limitar contas
-	•	exigir verificação adicional
+`;
 
-⸻
-
-14. MENORES DE IDADE
-
-A Plataforma é destinada apenas a maiores de 18 anos.
-
-Contas identificadas como pertencentes a menores:
-	•	poderão ser bloqueadas
-	•	poderão ser encerradas
-
-⸻
-
-15. ALTERAÇÕES DA POLÍTICA
-
-Esta Política poderá ser atualizada a qualquer momento.
-
-A versão vigente será publicada na Plataforma.
-
-⸻
-
-16. CONTATO
-
-📧 [email@tradesports.com]
-📧 [privacidade@tradesports.com]`;
-
-  // Coloque aqui o texto real dos termos (ou importe de onde você mantém hoje)
   const TERMOS_USO = `# TERMOS DE USO DA TRADESPORTS
 
 **Documento:** Termos de Uso da Plataforma TradeSports  
@@ -1134,6 +1048,10 @@ Esta minuta foi estruturada considerando, entre outras normas aplicáveis confor
             <button type="button" style={styles.linkBtn} onClick={() => setModalAberto("uso")}>
               Termos de Uso
             </button>
+            <br />
+            <button type="button" style={styles.linkBtn} onClick={() => setModalAberto("comunidade")}>
+              Política da Comunidade
+            </button>
           </div>
 
           <div style={styles.col}>
@@ -1164,9 +1082,15 @@ Esta minuta foi estruturada considerando, entre outras normas aplicáveis confor
       )}
 
       {modalAberto === "privacidade" && (
-        <Modal
-          titulo="Política de Privacidade (TradeSports)"
-          texto={POLITICA_PRIVACIDADE_TEXTO}
+        <PoliticaPrivacidadeModal
+          modoConsulta
+          onClose={() => setModalAberto(null)}
+        />
+      )}
+
+      {modalAberto === "comunidade" && (
+        <PoliticaComunidadeModal
+          modoConsulta
           onClose={() => setModalAberto(null)}
         />
       )}
