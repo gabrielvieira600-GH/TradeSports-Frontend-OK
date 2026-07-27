@@ -13,8 +13,8 @@ const DESTAQUES = [
 ];
 
 function rotaSegura(valor) {
-  if (typeof valor !== 'string') return '/';
-  if (!valor.startsWith('/') || valor.startsWith('//')) return '/';
+  if (typeof valor !== 'string') return '/dashboard';
+  if (!valor.startsWith('/') || valor.startsWith('//')) return '/dashboard';
   return valor;
 }
 
@@ -304,4 +304,3 @@ const RegisterLink=styled(Link)`color:#4ade80;font-weight:850;text-decoration:no
 const Notice=styled.div`display:flex;align-items:flex-start;gap:10px;margin-top:25px;padding:12px;border:1px solid rgba(34,197,94,.13);border-radius:11px;background:rgba(34,197,94,.045);color:#94a3b8;font-size:.65rem;line-height:1.5`;
 const NoticeIcon=styled.span`width:18px;height:18px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(74,222,128,.28);border-radius:50%;color:#4ade80;font-size:.62rem;font-weight:900`;
 const Legal=styled.p`margin:16px 0 0;color:#475569;font-size:.61rem;line-height:1.5;text-align:center;a{color:#64748b;text-decoration:underline;text-underline-offset:2px;&:hover{color:#94a3b8}}`;
-

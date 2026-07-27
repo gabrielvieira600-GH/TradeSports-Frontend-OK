@@ -640,7 +640,10 @@ const meuPerfilHref = meuPerfilId
       <TopRow>
         <LeftBlock>
           <Logo>
-            <Link href="/" aria-label="TradeSports">
+            <Link
+              href={usuario ? '/dashboard' : '/'}
+              aria-label="TradeSports"
+            >
               <LogoImagem src="/tradesports-logo.png" alt="TradeSports" />
             </Link>
           </Logo>
@@ -779,14 +782,19 @@ const meuPerfilHref = meuPerfilId
                 >
                   <UserAndSaldo>
                     <SaldoInline>
-                      👤 R$ {parseFloat(saldo || 0).toFixed(2)}
+                      👤 T${' '}
+                      {parseFloat(saldo || 0).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
                   <Dropdown>
-                     <DropLink href="/como-funciona">Como funciona</DropLink>
+                    <DropLink href="/dashboard">Dashboard</DropLink>
+                    <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
