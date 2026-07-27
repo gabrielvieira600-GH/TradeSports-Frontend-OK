@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { useToast } from "../components/ToastProvider";
 import PoliticaPrivacidadeModal from "../components/PoliticaPrivacidadeModal";
+import PoliticaComunidadeModal from "../components/PoliticaComunidadeModal";
 
 /**
  * Cadastro (TradeSports)
@@ -12,6 +13,7 @@ import PoliticaPrivacidadeModal from "../components/PoliticaPrivacidadeModal";
  *   - Modal de Termos (com scroll obrigatório para habilitar "Aceitar")
  *   - Modal de Política de Risco
  *   - Modal de Política de Privacidade (componente separado)
+ *   - Modal de Política da Comunidade (componente separado)
  *
  * Observação: o checkbox de aceite só habilita depois do usuário aceitar no modal de Termos.
  */
@@ -20,6 +22,7 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 const VERSAO_TERMOS = "1.0";
 const VERSAO_POLITICA_RISCO = "1.0";
 const VERSAO_POLITICA_PRIVACIDADE = "1.0";
+const VERSAO_POLITICA_COMUNIDADE = "1.0";
 
 export default function Cadastro() {
   const router = useRouter();
@@ -45,6 +48,8 @@ export default function Cadastro() {
   const [aceitouPoliticaRisco, setAceitouPoliticaRisco] = useState(false);
   const [aceitouPoliticaPrivacidade, setAceitouPoliticaPrivacidade] =
     useState(false);
+  const [aceitouPoliticaComunidade, setAceitouPoliticaComunidade] =
+    useState(false);
 
   const [termosLiberados, setTermosLiberados] = useState(false);
 
@@ -52,6 +57,8 @@ export default function Cadastro() {
   const [mostrarTermos, setMostrarTermos] = useState(false);
   const [mostrarPoliticaRisco, setMostrarPoliticaRisco] = useState(false);
   const [mostrarPoliticaPrivacidade, setMostrarPoliticaPrivacidade] =
+    useState(false);
+  const [mostrarPoliticaComunidade, setMostrarPoliticaComunidade] =
     useState(false);
 
   // Controle de scroll do Termos
@@ -924,10 +931,11 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
       !aceitouTermos ||
       !termosLiberados ||
       !aceitouPoliticaRisco ||
-      !aceitouPoliticaPrivacidade
+      !aceitouPoliticaPrivacidade ||
+      !aceitouPoliticaComunidade
     ) {
       setErro(
-        "Confirme os Termos de Uso, a Política de Risco e a ciência da Política de Privacidade.",
+        "Confirme os Termos de Uso, a Política de Risco, a ciência da Política de Privacidade e a Política da Comunidade.",
       );
       return;
     }
@@ -972,6 +980,10 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
           politicaPrivacidade: {
             versao: VERSAO_POLITICA_PRIVACIDADE,
             aceitou: aceitouPoliticaPrivacidade,
+          },
+          politicaComunidade: {
+            versao: VERSAO_POLITICA_COMUNIDADE,
+            aceitou: aceitouPoliticaComunidade,
           },
         },
       });
@@ -1243,6 +1255,25 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
               </AceiteTexto>
             </AceiteLinha>
 
+            <AceiteLinha>
+              <Checkbox
+                type="checkbox"
+                checked={aceitouPoliticaComunidade}
+                readOnly
+                id="aceite-comunidade"
+              />
+              <AceiteTexto htmlFor="aceite-comunidade">
+                Li e concordo com a{" "}
+                <LinkLike
+                  type="button"
+                  onClick={() => setMostrarPoliticaComunidade(true)}
+                >
+                  Política da Comunidade
+                </LinkLike>
+                .
+              </AceiteTexto>
+            </AceiteLinha>
+
             <Botao
               type="submit"
               disabled={
@@ -1250,6 +1281,7 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
                 !termosLiberados ||
                 !aceitouPoliticaRisco ||
                 !aceitouPoliticaPrivacidade ||
+                !aceitouPoliticaComunidade ||
                 enviando
               }
             >
@@ -1365,6 +1397,14 @@ Orientações públicas da Comissão de Valores Mobiliários sobre risco e ausê
         <PoliticaPrivacidadeModal
           onClose={() => setMostrarPoliticaPrivacidade(false)}
           onAceitar={() => setAceitouPoliticaPrivacidade(true)}
+        />
+      )}
+
+      {/* MODAL POLÍTICA DA COMUNIDADE (componente separado) */}
+      {mostrarPoliticaComunidade && (
+        <PoliticaComunidadeModal
+          onClose={() => setMostrarPoliticaComunidade(false)}
+          onAceitar={() => setAceitouPoliticaComunidade(true)}
         />
       )}
     </Container>
@@ -1912,3 +1952,4 @@ const BotaoPrim = styled.button`
     cursor: not-allowed;
   }
 `;
+
