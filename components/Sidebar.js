@@ -88,20 +88,6 @@ export default function Sidebar() {
           </ToggleButton>
         </Header>
 
-        <DashboardLink
-          href="/dashboard"
-          title="Dashboard"
-          $minimizado={minimizado}
-        >
-          <DashboardIcon aria-hidden="true">⌂</DashboardIcon>
-          {!minimizado && (
-            <>
-              <Label>Dashboard</Label>
-              <Arrow>›</Arrow>
-            </>
-          )}
-        </DashboardLink>
-
         {!minimizado && <SectionLabel>Todos os mercados</SectionLabel>}
 
         <Nav>
@@ -227,49 +213,6 @@ const SectionLabel = styled.div`
   @media (max-width: 960px) {
     margin-bottom: 8px;
   }
-`;
-
-const DashboardLink = styled(Link)`
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: ${({ $minimizado }) =>
-    $minimizado ? 'center' : 'flex-start'};
-  gap: 12px;
-  margin-bottom: 14px;
-  padding: ${({ $minimizado }) =>
-    $minimizado ? '8px 4px' : '8px 10px'};
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  border-radius: 14px;
-  background: rgba(59, 130, 246, 0.07);
-  color: #f8fafc;
-  text-decoration: none;
-  transition: all 0.16s ease;
-
-  &:hover {
-    border-color: rgba(96, 165, 250, 0.32);
-    background: rgba(59, 130, 246, 0.13);
-  }
-
-  @media (max-width: 960px) {
-    display: inline-flex;
-    min-width: 132px;
-    margin: 0 8px 10px 0;
-    vertical-align: top;
-  }
-`;
-
-const DashboardIcon = styled.span`
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #2563eb, #16a34a);
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 900;
 `;
 
 const Nav = styled.nav`
