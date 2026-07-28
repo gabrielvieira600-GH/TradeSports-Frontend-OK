@@ -18,16 +18,12 @@ export default function Topbar() {
 
   const [notificacoes, setNotificacoes] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [carregandoNotificacoes, setCarregandoNotificacoes] =
-    useState(true);
-  const [erroNotificacoes, setErroNotificacoes] = useState('');
 
   const [busca, setBusca] = useState('');
   const [clubes, setClubes] = useState([]);
   const [usuariosBusca, setUsuariosBusca] = useState([]);
   const [carregandoUsuariosBusca, setCarregandoUsuariosBusca] =
     useState(false);
-  const [erroBuscaUsuarios, setErroBuscaUsuarios] = useState('');
 
   const [searchAberto, setSearchAberto] = useState(false);
   const [searchIndexAtivo, setSearchIndexAtivo] = useState(-1);
@@ -116,12 +112,10 @@ const meuPerfilHref = meuPerfilId
     try {
       if (!API_BASE || !token || !termo || termo.length < 2) {
         setUsuariosBusca([]);
-        setErroBuscaUsuarios('');
         return;
       }
 
       setCarregandoUsuariosBusca(true);
-      setErroBuscaUsuarios('');
 
       const { data } = await axios.get(`${API_BASE}/social/usuarios`, {
         params: {
@@ -134,7 +128,6 @@ const meuPerfilHref = meuPerfilId
       });
 
       setUsuariosBusca(Array.isArray(data?.usuarios) ? data.usuarios : []);
-      setErroBuscaUsuarios('');
     } catch (err) {
   console.error('[TOPBAR SEARCH] erro ao buscar usuários:', {
     status: err?.response?.status,
@@ -145,7 +138,6 @@ const meuPerfilHref = meuPerfilId
   });
 
   setUsuariosBusca([]);
-  setErroBuscaUsuarios('Não foi possível buscar perfis agora.');
 } finally {
   setCarregandoUsuariosBusca(false);
 }
@@ -153,13 +145,7 @@ const meuPerfilHref = meuPerfilId
 
   const carregarNotificacoes = async () => {
     try {
-      if (!token || !API_BASE) {
-        setCarregandoNotificacoes(false);
-        return;
-      }
-
-      setCarregandoNotificacoes(true);
-      setErroNotificacoes('');
+      if (!token || !API_BASE) return;
 
       const { data } = await axios.get(`${API_BASE}/notifications`, {
         headers: {
@@ -172,11 +158,7 @@ const meuPerfilHref = meuPerfilId
       );
 
       setUnreadCount(Number(data?.unreadCount || 0));
-    } catch {
-      setErroNotificacoes('Não foi possível carregar suas notificações.');
-    } finally {
-      setCarregandoNotificacoes(false);
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -220,7 +202,6 @@ const meuPerfilHref = meuPerfilId
     if (!token || termo.length < 2) {
       setUsuariosBusca([]);
       setCarregandoUsuariosBusca(false);
-      setErroBuscaUsuarios('');
       return;
     }
 
@@ -569,8 +550,7 @@ const meuPerfilHref = meuPerfilId
             <SearchEmpty>
               {carregandoUsuariosBusca
                 ? 'Buscando perfis...'
-                : erroBuscaUsuarios ||
-                  'Nenhum clube ou perfil corresponde à sua busca.'}
+                : 'Nenhum resultado encontrado.'}
             </SearchEmpty>
           ) : (
             <>
@@ -660,10 +640,7 @@ const meuPerfilHref = meuPerfilId
       <TopRow>
         <LeftBlock>
           <Logo>
-            <Link
-              href={usuario ? '/dashboard' : '/'}
-              aria-label="TradeSports"
-            >
+            <Link href="/" aria-label="TradeSports">
               <LogoImagem src="/tradesports-logo.png" alt="TradeSports" />
             </Link>
           </Logo>
@@ -757,30 +734,9 @@ const meuPerfilHref = meuPerfilId
                         </NotifHeaderActions>
                       </NotifHeader>
 
-                      {carregandoNotificacoes &&
-                      notificationsPreview.length === 0 ? (
+                      {notificationsPreview.length === 0 ? (
                         <NotifEmpty>
-                          <strong>Carregando notificações</strong>
-                          <span>Aguarde enquanto consultamos suas novidades.</span>
-                        </NotifEmpty>
-                      ) : erroNotificacoes &&
-                        notificationsPreview.length === 0 ? (
-                        <NotifEmpty $erro>
-                          <strong>Não foi possível carregar</strong>
-                          <span>{erroNotificacoes}</span>
-                          <button
-                            type="button"
-                            onClick={carregarNotificacoes}
-                          >
-                            Tentar novamente
-                          </button>
-                        </NotifEmpty>
-                      ) : notificationsPreview.length === 0 ? (
-                        <NotifEmpty>
-                          <strong>Você está em dia</strong>
-                          <span>
-                            Novas execuções, alertas e atividades aparecerão aqui.
-                          </span>
+                          Você ainda não recebeu notificações.
                         </NotifEmpty>
                       ) : (
                         <NotifList>
@@ -823,19 +779,14 @@ const meuPerfilHref = meuPerfilId
                 >
                   <UserAndSaldo>
                     <SaldoInline>
-                      👤 T${' '}
-                      {parseFloat(saldo || 0).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      👤 R$ {parseFloat(saldo || 0).toFixed(2)}
                     </SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropLink href="/dashboard">Dashboard</DropLink>
-                    <DropLink href="/como-funciona">Como funciona</DropLink>
+                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
@@ -846,7 +797,8 @@ const meuPerfilHref = meuPerfilId
                       Minhas Transações
                     </DropLink>
                     <DropLink href="/extrato">Extrato</DropLink>
-                    
+                    <DropLink href="/deposito">Depósito</DropLink>
+                    <DropLink href="/saque">Saque</DropLink>
                   </Dropdown>
                 )}
               </BancoWrap>
@@ -1501,37 +1453,8 @@ const NotifBody = styled.div`
 
 const NotifEmpty = styled.div`
   padding: 22px 16px;
-  color: ${({ $erro }) => ($erro ? '#fca5a5' : '#94a3b8')};
+  color: #94a3b8;
   text-align: center;
-
-  strong,
-  span {
-    display: block;
-  }
-
-  strong {
-    color: ${({ $erro }) => ($erro ? '#fecaca' : '#f8fafc')};
-    font-size: 0.9rem;
-  }
-
-  span {
-    max-width: 290px;
-    margin: 6px auto 0;
-    font-size: 0.8rem;
-    line-height: 1.45;
-  }
-
-  button {
-    margin-top: 12px;
-    padding: 8px 12px;
-    border: 1px solid rgba(96, 165, 250, 0.28);
-    border-radius: 10px;
-    background: rgba(59, 130, 246, 0.12);
-    color: #bfdbfe;
-    font-size: 0.78rem;
-    font-weight: 800;
-    cursor: pointer;
-  }
 `;
 
 const BancoWrap = styled.div`
