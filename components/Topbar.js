@@ -797,8 +797,9 @@ const meuPerfilHref = meuPerfilId
                       Minhas Transações
                     </DropLink>
                     <DropLink href="/extrato">Extrato</DropLink>
-                    <DropLink href="/deposito">Depósito</DropLink>
-                    <DropLink href="/saque">Saque</DropLink>
+                    <DropLogout type="button" onClick={handleLogout}>
+                      Sair da conta
+                    </DropLogout>
                   </Dropdown>
                 )}
               </BancoWrap>
@@ -1492,6 +1493,27 @@ const DropLink = styled(Link)`
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
+  }
+`;
+
+const DropLogout = styled.button`
+  display: none;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    padding: 10px 12px;
+    border: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 8px;
+    background: transparent;
+    color: #fca5a5;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
   }
 `;
 
