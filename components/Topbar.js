@@ -834,10 +834,6 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropSaldo>
-                      <span>Saldo disponível</span>
-                      <strong>T$ {saldoFormatado}</strong>
-                    </DropSaldo>
                     <DropLink href="/dashboard">Dashboard</DropLink>
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
