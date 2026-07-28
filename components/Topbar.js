@@ -803,10 +803,6 @@ const meuPerfilHref = meuPerfilId
                   </Dropdown>
                 )}
               </BancoWrap>
-
-              <Botao type="button" onClick={handleLogout}>
-                Sair
-              </Botao>
             </UserRow>
           )}
         </RightBlock>
