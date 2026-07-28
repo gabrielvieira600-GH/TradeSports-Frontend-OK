@@ -846,9 +846,7 @@ const meuPerfilHref = meuPerfilId
                       Minhas Transações
                     </DropLink>
                     <DropLink href="/extrato">Extrato</DropLink>
-                    <DropLogout type="button" onClick={handleLogout}>
-                      Sair da conta
-                    </DropLogout>
+                    
                   </Dropdown>
                 )}
               </BancoWrap>
