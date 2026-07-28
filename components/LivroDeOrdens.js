@@ -23,6 +23,7 @@ export default function LivroDeOrdens({
   const [compras, setCompras] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState('');
   
   useEffect(() => {
     let alive = true;
@@ -35,6 +36,11 @@ export default function LivroDeOrdens({
         if (!alive) return;
         setCompras(Array.isArray(data?.compras) ? data.compras : []);
         setVendas(Array.isArray(data?.vendas) ? data.vendas : []);
+        setErro('');
+      } catch (err) {
+        if (!alive) return;
+        console.error('Erro ao carregar livro de ordens:', err);
+        setErro('Não foi possível atualizar as ofertas agora.');
       } finally {
         if (alive) setLoading(false);
       }
@@ -103,17 +109,17 @@ export default function LivroDeOrdens({
       <Header>
         <MetricCard $variant="bid">
           <small>Melhor oferta de compra</small>
-          <strong>{bestBid != null ? `R$ ${bestBid.toFixed(2)}` : '—'}</strong>
+          <strong>{bestBid != null ? `T$ ${bestBid.toFixed(2)}` : '—'}</strong>
         </MetricCard>
 
         <MetricCard $variant="last">
           <small>Ultimo preço</small>
-          <strong>{lastPrice != null ? `R$ ${Number(lastPrice).toFixed(2)}` : '—'}</strong>
+          <strong>{lastPrice != null ? `T$ ${Number(lastPrice).toFixed(2)}` : '—'}</strong>
         </MetricCard>
 
         <MetricCard $variant="ask">
           <small>Melhor oferta de venda</small>
-          <strong>{bestAsk != null ? `R$ ${bestAsk.toFixed(2)}` : '—'}</strong>
+          <strong>{bestAsk != null ? `T$ ${bestAsk.toFixed(2)}` : '—'}</strong>
         </MetricCard>
       </Header>
 
@@ -129,7 +135,7 @@ export default function LivroDeOrdens({
 
         <span className="spread">
           {spread != null
-            ? `Spread: R$ ${spread.toFixed(2)}${spreadPct != null ? ` • ${spreadPct.toFixed(2)}%` : ''}`
+            ? `Spread: T$ ${spread.toFixed(2)}${spreadPct != null ? ` • ${spreadPct.toFixed(2)}%` : ''}`
             : 'Spread: —'}
         </span>
       </Toolbar>
@@ -138,14 +144,20 @@ export default function LivroDeOrdens({
         <Col>
           <h4>Ordens de Compra</h4>
 
-          {niveisCompra.length === 0 && <Empty>Nenhuma ordem de compra</Empty>}
+          {niveisCompra.length === 0 && (
+            <Empty $erro={Boolean(erro)}>
+              {loading
+                ? 'Carregando ofertas de compra...'
+                : erro || 'Ainda não há ofertas de compra neste preço.'}
+            </Empty>
+          )}
 
           {niveisCompra.map((n, i) => (
             <Row key={`b-${i}`} onClick={() => onSelecionarPreco?.(n.preco)}>
               <LevelBar
                 style={{ width: `${(n.qtd / maxQtdBuy) * 100}%`, background: '#1E6F43' }}
               />
-              <span className="preco">R$ {n.preco.toFixed(2)}</span>
+              <span className="preco">T$ {n.preco.toFixed(2)}</span>
               <span className="qtd">{n.qtd} und.</span>
             </Row>
           ))}
@@ -160,7 +172,7 @@ export default function LivroDeOrdens({
                 return (
                   <Linha key={`myb-${o.id}`} $minha={minha}>
                     <span>{o.quantidade} und.</span>
-                    <strong>R$ {Number(o.preco).toFixed(2)}</strong>
+                    <strong>T$ {Number(o.preco).toFixed(2)}</strong>
                     <BotaoCancelar onClick={() => onCancelar?.(o.id)}>Cancelar</BotaoCancelar>
                   </Linha>
                 );
@@ -172,14 +184,20 @@ export default function LivroDeOrdens({
         <Col>
           <h4>Ordens de Venda</h4>
 
-          {niveisVenda.length === 0 && <Empty>Nenhuma ordem de venda</Empty>}
+          {niveisVenda.length === 0 && (
+            <Empty $erro={Boolean(erro)}>
+              {loading
+                ? 'Carregando ofertas de venda...'
+                : erro || 'Ainda não há ofertas de venda neste preço.'}
+            </Empty>
+          )}
 
           {niveisVenda.map((n, i) => (
             <Row key={`a-${i}`} onClick={() => onSelecionarPreco?.(n.preco)}>
               <LevelBar
                 style={{ width: `${(n.qtd / maxQtdSell) * 100}%`, background: '#7A1D2A' }}
               />
-              <span className="preco">R$ {n.preco.toFixed(2)}</span>
+              <span className="preco">T$ {n.preco.toFixed(2)}</span>
               <span className="qtd">{n.qtd} und.</span>
             </Row>
           ))}
@@ -194,7 +212,7 @@ export default function LivroDeOrdens({
                 return (
                   <Linha key={`mya-${o.id}`} $minha={minha}>
                     <span>{o.quantidade} und.</span>
-                    <strong>R$ {Number(o.preco).toFixed(2)}</strong>
+                    <strong>T$ {Number(o.preco).toFixed(2)}</strong>
                     <BotaoCancelar onClick={() => onCancelar?.(o.id)}>Cancelar</BotaoCancelar>
                   </Linha>
                 );
@@ -339,10 +357,11 @@ const LevelBar = styled.span`
 `;
 
 const Empty = styled.div`
-  color: #94a3b8;
+  color: ${({ $erro }) => ($erro ? '#fca5a5' : '#94a3b8')};
   font-size: 12px;
   padding: 12px;
-  border: 1px dashed #223;
+  border: 1px dashed
+    ${({ $erro }) => ($erro ? 'rgba(248, 113, 113, 0.3)' : '#223')};
   border-radius: 8px;
   text-align: center;
 `;

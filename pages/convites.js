@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import EstadoInterface from '../components/EstadoInterface';
 
 function formatarData(data) {
   if (!data) return '';
@@ -251,22 +252,49 @@ function ConvitesPage() {
         </MensagemSucesso>
       )}
 
-      {erroAtual && (
+      {erroAtual && listaAtual.length > 0 && (
         <MensagemErro>
           {erroAtual}
         </MensagemErro>
       )}
 
       {carregandoAtual ? (
-        <EstadoCard>
-          Carregando convites...
-        </EstadoCard>
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando convites"
+          descricao={
+            aba === 'recebidos'
+              ? 'Estamos consultando os convites enviados para você.'
+              : 'Estamos consultando os convites que você enviou.'
+          }
+        />
+      ) : erroAtual ? (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar os convites"
+          descricao={erroAtual}
+          acao="Tentar novamente"
+          onAcao={
+            aba === 'recebidos' ? carregarRecebidos : carregarEnviados
+          }
+        />
       ) : listaAtual.length === 0 ? (
-        <EstadoCard>
-          {aba === 'recebidos'
-            ? 'Você ainda não recebeu convites de rankings privados.'
-            : 'Você ainda não enviou convites de rankings privados.'}
-        </EstadoCard>
+        <EstadoInterface
+          titulo={
+            aba === 'recebidos'
+              ? 'Você ainda não recebeu convites'
+              : 'Você ainda não enviou convites'
+          }
+          descricao={
+            aba === 'recebidos'
+              ? 'Convites para participar de rankings privados aparecerão aqui.'
+              : 'Crie ou abra um ranking privado para convidar outros usuários Premium.'
+          }
+          acao="Abrir rankings"
+          hrefAcao="/ranking"
+          acaoSecundaria="Explorar comunidade"
+          hrefAcaoSecundaria="/social"
+        />
       ) : (
         <ListaConvites>
           {listaAtual.map((convite) => {

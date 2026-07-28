@@ -148,7 +148,9 @@ export default function MarketStatusCard({
         </Mensagem>
       ) : !dados?.temporadaAtiva ? (
         <Mensagem>
-          Nenhuma temporada ativa no momento.
+          Nenhuma temporada está ativa no momento. A plataforma continua
+          disponível para consulta enquanto a próxima competição não é
+          publicada.
         </Mensagem>
       ) : (
         <Conteudo>

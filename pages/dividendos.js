@@ -1,38 +1,71 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import styled from 'styled-components';
+import api from '../lib/api';
+import withAuth from '../components/withAuth';
+import EstadoInterface from '../components/EstadoInterface';
 
-export default function Dividendos() {
+function formatarTS(valor) {
+  return `T$ ${Number(valor || 0).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function Dividendos() {
   const [dados, setDados] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  const carregar = async () => {
+    try {
+      setCarregando(true);
+      setErro('');
+
+      const { data } = await api.get('/usuario/dividendos');
+      setDados(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Erro ao carregar pagamentos Top 4:', err);
+      setDados([]);
+      setErro(
+        err?.response?.data?.erro ||
+          'Não foi possível carregar os pagamentos Top 4.'
+      );
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      setDados([]);
-      return;
-    }
-
-    axios
-      .get(`${API}/usuario/dividendos`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setDados(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch(() => {
-        setDados([]);
-      });
+    carregar();
   }, []);
 
   return (
     <Container>
       <Titulo>Meus Dividendos</Titulo>
 
-      {dados.length === 0 ? (
-        <Mensagem>Você ainda não recebeu dividendos.</Mensagem>
+      {carregando ? (
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando pagamentos Top 4"
+          descricao="Estamos consultando os créditos registrados nas rodadas elegíveis."
+        />
+      ) : erro ? (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar os pagamentos"
+          descricao={erro}
+          acao="Tentar novamente"
+          onAcao={carregar}
+        />
+      ) : dados.length === 0 ? (
+        <EstadoInterface
+          titulo="Nenhum pagamento Top 4 foi registrado"
+          descricao="Quando uma posição atender aos critérios de permanência no Top 4, o crédito em T$ aparecerá aqui."
+          acao="Ver como funciona"
+          hrefAcao="/como-funciona"
+          acaoSecundaria="Acompanhar ranking"
+          hrefAcaoSecundaria="/ranking"
+        />
       ) : (
         <TabelaWrapper>
           <Tabela>
@@ -53,8 +86,8 @@ export default function Dividendos() {
                   </td>
                   <td>{d?.clubeId?.nome || d?.clubeNome || '-'}</td>
                   <td>{d?.quantidade ?? 0}</td>
-                  <td>R$ {Number(d?.valorUnitario || 0).toFixed(2)}</td>
-                  <td>R$ {Number(d?.totalPago || 0).toFixed(2)}</td>
+                  <td>{formatarTS(d?.valorUnitario)}</td>
+                  <td>{formatarTS(d?.totalPago)}</td>
                 </tr>
               ))}
             </tbody>
@@ -65,6 +98,8 @@ export default function Dividendos() {
   );
 }
 
+export default withAuth(Dividendos);
+
 const Container = styled.div`
   padding: 24px;
   color: #fff;
@@ -73,11 +108,6 @@ const Container = styled.div`
 const Titulo = styled.h1`
   margin: 0 0 20px;
   font-size: 2rem;
-`;
-
-const Mensagem = styled.p`
-  color: #cbd5e1;
-  font-size: 1rem;
 `;
 
 const TabelaWrapper = styled.div`

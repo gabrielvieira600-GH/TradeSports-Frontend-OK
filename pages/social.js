@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import EstadoInterface from '../components/EstadoInterface';
 
 function formatarDataRelativa(data) {
   if (!data) return '';
@@ -307,7 +308,7 @@ function SocialPage() {
         </BotaoAtualizar>
       </FeedToolbar>
 
-      {erroFeed && (
+      {erroFeed && eventos.length > 0 && (
         <MensagemErro>
           {erroFeed}
         </MensagemErro>
@@ -316,20 +317,38 @@ function SocialPage() {
       <GridPrincipal>
         <FeedColuna>
           {carregandoFeed ? (
-            <EstadoCard>
-              Carregando feed da comunidade...
-            </EstadoCard>
+            <EstadoInterface
+              variante="carregando"
+              titulo="Carregando o feed da comunidade"
+              descricao="Estamos reunindo os movimentos sociais, de mercado e de ranking mais recentes."
+            />
+          ) : erroFeed ? (
+            <EstadoInterface
+              variante="erro"
+              titulo="Não foi possível carregar o feed"
+              descricao={erroFeed}
+              acao="Tentar novamente"
+              onAcao={carregarFeed}
+            />
           ) : eventosFiltrados.length === 0 ? (
-            <FeedVazio>
-              <FeedVazioIcone>
-                📣
-              </FeedVazioIcone>
-
-              <FeedVazioTitulo>
-                O feed ainda está vazio
-              </FeedVazioTitulo>
-
-            </FeedVazio>
+            eventos.length > 0 ? (
+              <EstadoInterface
+                variante="busca"
+                titulo="Nenhum evento corresponde a este filtro"
+                descricao="Existem atividades no feed, mas nenhuma pertence à categoria selecionada."
+                acao="Mostrar todas"
+                onAcao={() => setFiltro('todos')}
+              />
+            ) : (
+              <EstadoInterface
+                titulo="O feed da comunidade ainda está vazio"
+                descricao="Atividades públicas de usuários, rankings e marcos do mercado simulado aparecerão aqui."
+                acao="Ver ranking"
+                hrefAcao="/ranking"
+                acaoSecundaria="Explorar mercados"
+                hrefAcaoSecundaria="/brasileirao-a"
+              />
+            )
           ) : (
             <FeedLista>
               {eventosFiltrados.map((evento) => {

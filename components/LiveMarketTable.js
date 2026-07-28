@@ -220,7 +220,10 @@ export default function LiveMarketTable({ variant = "home", limit = 4, className
       ) : !exibidos.length ? (
         <Estado $erro>
           <strong>Mercado temporariamente indisponível</strong>
-          <span>Nenhum dado ilustrativo será exibido.</span>
+          <span>
+            Não exibimos números fictícios quando os dados reais não podem ser
+            carregados.
+          </span>
           <Tentar type="button" onClick={() => carregar()}>Tentar novamente</Tentar>
         </Estado>
       ) : (

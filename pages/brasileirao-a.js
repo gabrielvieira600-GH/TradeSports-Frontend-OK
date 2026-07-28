@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import NegociacaoModal from '../components/NegociacaoModal';
 import ClubBadge, { LeagueBadge } from '../components/ClubBadge';
+import EstadoInterface from '../components/EstadoInterface';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIGA_ID = 'brasileirao-a';
@@ -21,6 +22,8 @@ export default function BrasileiraoA() {
   const [modalAberto, setModalAberto] = useState(false);
   const [clubeSelecionado, setClubeSelecionado] = useState(null);
   const [filtro, setFiltro] = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
 
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -146,54 +149,64 @@ export default function BrasileiraoA() {
     if (termoInicial) setFiltro(termoInicial);
   }, [router.query.search]);
 
-  useEffect(() => {
-    const fetchDados = async () => {
-      try {
-        if (!API_BASE) return;
+  const fetchDados = async () => {
+    try {
+      setCarregando(true);
+      setErro('');
 
-        const [resTabela, resClubes] = await Promise.all([
-          axios.get(`${API_BASE}/api/tabela-brasileirao`),
-          axios.get(`${API_BASE}/clube/clubes`),
-        ]);
-
-        const clubesApi = Array.isArray(resTabela?.data?.data)
-          ? resTabela.data.data
-          : [];
-        const clubesJson = Array.isArray(resClubes?.data) ? resClubes.data : [];
-
-        const clubesCruzados = clubesApi
-          .map((clubeApi) => {
-            const clubeLocal = clubesJson.find(
-              (c) => canon(c.nome || '') === canon(clubeApi.nome || '')
-            );
-
-            if (!clubeLocal) return null;
-
-            return {
-              id: clubeLocal.id ?? clubeLocal.legacyId,
-              legacyId: clubeLocal.legacyId ?? clubeLocal.id,
-              nome: clubeLocal.nome,
-              escudo: clubeLocal.escudo || clubeApi.escudo || '',
-              posicao: clubeApi.posicao,
-              preco: Number(clubeLocal.preco || 0),
-              precoAtual:
-                clubeLocal.precoAtual != null
-                  ? Number(clubeLocal.precoAtual)
-                  : undefined,
-              cotasDisponiveis: clubeLocal.cotasDisponiveis,
-              ipoEncerrado: clubeLocal.ipoEncerrado,
-            };
-          })
-          .filter(Boolean);
-
-        setClubes(clubesCruzados);
-      } catch (e) {
-        console.error('Erro ao buscar dados:', e);
+      if (!API_BASE) {
+        throw new Error('Endereço da API não configurado.');
       }
-    };
 
+      const [resTabela, resClubes] = await Promise.all([
+        axios.get(`${API_BASE}/api/tabela-brasileirao`),
+        axios.get(`${API_BASE}/clube/clubes`),
+      ]);
+
+      const clubesApi = Array.isArray(resTabela?.data?.data)
+        ? resTabela.data.data
+        : [];
+      const clubesJson = Array.isArray(resClubes?.data) ? resClubes.data : [];
+
+      const clubesCruzados = clubesApi
+        .map((clubeApi) => {
+          const clubeLocal = clubesJson.find(
+            (c) => canon(c.nome || '') === canon(clubeApi.nome || '')
+          );
+
+          if (!clubeLocal) return null;
+
+          return {
+            id: clubeLocal.id ?? clubeLocal.legacyId,
+            legacyId: clubeLocal.legacyId ?? clubeLocal.id,
+            nome: clubeLocal.nome,
+            escudo: clubeLocal.escudo || clubeApi.escudo || '',
+            posicao: clubeApi.posicao,
+            preco: Number(clubeLocal.preco || 0),
+            precoAtual:
+              clubeLocal.precoAtual != null
+                ? Number(clubeLocal.precoAtual)
+                : undefined,
+            cotasDisponiveis: clubeLocal.cotasDisponiveis,
+            ipoEncerrado: clubeLocal.ipoEncerrado,
+          };
+        })
+        .filter(Boolean);
+
+      setClubes(clubesCruzados);
+    } catch (e) {
+      console.error('Erro ao buscar dados:', e);
+      setClubes([]);
+      setErro('Não foi possível carregar os clubes deste mercado.');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDados();
     carregarWatchlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const favoritosClubes = useMemo(
@@ -211,6 +224,11 @@ export default function BrasileiraoA() {
     const termo = canon(filtro);
     return clubes.filter((clube) => canon(clube.nome).includes(termo));
   }, [clubes, filtro]);
+
+  const limparBusca = () => {
+    setFiltro('');
+    router.replace('/brasileirao-a', undefined, { shallow: true });
+  };
 
   return (
     <Container>
@@ -242,6 +260,17 @@ export default function BrasileiraoA() {
         </LeagueActions>
       </Hero>
 
+      <SearchInline>
+        <SearchInlineIcon aria-hidden="true">⌕</SearchInlineIcon>
+        <SearchInlineInput
+          type="search"
+          value={filtro}
+          placeholder="Buscar clube neste mercado"
+          onChange={(e) => setFiltro(e.target.value)}
+          aria-label="Buscar clube no Brasileirão Série A"
+        />
+      </SearchInline>
+
       
       {modalAberto && clubeSelecionado && (
         <NegociacaoModal
@@ -252,6 +281,44 @@ export default function BrasileiraoA() {
         />
       )}
 
+      {carregando ? (
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando o mercado"
+          descricao="Estamos reunindo clubes, classificação e preços atuais em T$."
+        />
+      ) : erro ? (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar este mercado"
+          descricao={erro}
+          acao="Tentar novamente"
+          onAcao={fetchDados}
+          acaoSecundaria="Voltar ao dashboard"
+          hrefAcaoSecundaria="/dashboard"
+        />
+      ) : clubesFiltrados.length === 0 ? (
+        filtro.trim() ? (
+          <EstadoInterface
+            variante="busca"
+            titulo="Nenhum clube corresponde à busca"
+            descricao={`Não encontramos resultados para “${filtro.trim()}” neste mercado.`}
+            acao="Limpar busca"
+            onAcao={limparBusca}
+          />
+        ) : (
+          <EstadoInterface
+            variante="indisponivel"
+            titulo="Nenhum clube está disponível neste mercado"
+            descricao="A competição está cadastrada, mas ainda não possui clubes publicados para negociação."
+            acao="Tentar novamente"
+            onAcao={fetchDados}
+            acaoSecundaria="Voltar ao dashboard"
+            hrefAcaoSecundaria="/dashboard"
+          />
+        )
+      ) : (
+        <>
       <DesktopOnly>
         <TableSurface>
           <TableWrap>
@@ -397,6 +464,8 @@ export default function BrasileiraoA() {
           </Rows>
         </TableCard>
       </MobileOnly>
+        </>
+      )}
     </Container>
   );
 }

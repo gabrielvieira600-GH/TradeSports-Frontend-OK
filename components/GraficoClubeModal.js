@@ -10,27 +10,48 @@ import {
   Tooltip,
   Filler,
 } from 'chart.js';
+import EstadoInterface from './EstadoInterface';
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
+const API = process.env.NEXT_PUBLIC_API_URL;
 
-function formatBRL(value) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(value || 0));
+function formatTS(value) {
+  return `T$ ${Number(value || 0).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }) {
   const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     if (aberto && clubeId) {
       setLoading(true);
+      setErro('');
+
+      if (!API) {
+        setHistorico([]);
+        setErro('Endereço da API não configurado.');
+        setLoading(false);
+        return;
+      }
+
       fetch(`${API}/clubes/${clubeId}/historico`)
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Falha ao consultar o histórico.');
+          }
+          return res.json();
+        })
         .then((data) => setHistorico(Array.isArray(data) ? data : []))
-        .catch(() => setHistorico([]))
+        .catch((err) => {
+          console.error('Erro ao carregar histórico do clube:', err);
+          setHistorico([]);
+          setErro('Não foi possível carregar o histórico deste clube.');
+        })
         .finally(() => setLoading(false));
     }
   }, [aberto, clubeId]);
@@ -103,7 +124,7 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
               ? new Date(item.data).toLocaleString('pt-BR')
               : '';
           },
-          label: (context) => `Preço: ${formatBRL(context.raw)}`,
+          label: (context) => `Preço: ${formatTS(context.raw)}`,
         },
       },
     },
@@ -123,7 +144,7 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
       y: {
         ticks: {
           color: '#94a3b8',
-          callback: (value) => formatBRL(value),
+          callback: (value) => formatTS(value),
         },
         grid: {
           color: 'rgba(148,163,184,0.10)',
@@ -153,15 +174,15 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
         <ResumoGrid>
           <ResumoCard>
             <small>Preço atual</small>
-            <strong>{formatBRL(resumo.atual)}</strong>
+            <strong>{formatTS(resumo.atual)}</strong>
           </ResumoCard>
           <ResumoCard>
             <small>Máxima</small>
-            <strong>{formatBRL(resumo.max)}</strong>
+            <strong>{formatTS(resumo.max)}</strong>
           </ResumoCard>
           <ResumoCard>
             <small>Mínima</small>
-            <strong>{formatBRL(resumo.min)}</strong>
+            <strong>{formatTS(resumo.min)}</strong>
           </ResumoCard>
           <ResumoCard $positive={resumo.variacao >= 0}>
             <small>Variação</small>
@@ -171,9 +192,25 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
 
         <ChartArea>
           {loading ? (
-            <Estado>Carregando gráfico...</Estado>
+            <EstadoInterface
+              variante="carregando"
+              titulo="Carregando histórico"
+              descricao="Estamos reunindo os preços registrados deste clube."
+              compacto
+            />
+          ) : erro ? (
+            <EstadoInterface
+              variante="erro"
+              titulo="Histórico indisponível"
+              descricao={erro}
+              compacto
+            />
           ) : historico.length === 0 ? (
-            <Estado>Nenhum dado histórico encontrado.</Estado>
+            <EstadoInterface
+              titulo="Ainda não há histórico suficiente"
+              descricao="O gráfico será exibido depois que o clube tiver preços registrados ao longo do tempo."
+              compacto
+            />
           ) : (
             <Line data={dados} options={options} />
           )}

@@ -5,6 +5,7 @@ import api from '../lib/api';
 import NegociacaoModal from '../components/NegociacaoModal';
 import withAuth from '../components/withAuth';
 import ClubBadge from '../components/ClubBadge';
+import EstadoInterface from '../components/EstadoInterface';
 
 
 const PALETA_CORES = [
@@ -25,6 +26,7 @@ function CarteiraPage() {
 
   const [carteira, setCarteira] = useState([]);
   const [clubes, setClubes] = useState([]);
+  const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [resumo, setResumo] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
@@ -119,6 +121,9 @@ function CarteiraPage() {
 
     const carregarCarteira = async () => {
       try {
+        setCarregando(true);
+        setErro('');
+
         const [respClubes, respCarteira, respSaldo] = await Promise.all([
           api.get('/clube/clubes'),
           api.get('/usuario/carteira'),
@@ -135,6 +140,10 @@ function CarteiraPage() {
         if (!cancelado) {
           setErro('Erro ao carregar dados do painel.');
           setCarteira([]);
+        }
+      } finally {
+        if (!cancelado) {
+          setCarregando(false);
         }
       }
     };
@@ -541,8 +550,22 @@ function CarteiraPage() {
 
         <Titulo>Minha Posição</Titulo>
 
-        {erro && <Erro>{erro}</Erro>}
-
+        {carregando ? (
+          <EstadoInterface
+            variante="carregando"
+            titulo="Carregando sua carteira"
+            descricao="Estamos reunindo suas posições, saldo em T$ e histórico de desempenho."
+          />
+        ) : erro ? (
+          <EstadoInterface
+            variante="erro"
+            titulo="Não foi possível carregar sua carteira"
+            descricao={erro}
+            acao="Tentar novamente"
+            onAcao={() => router.reload()}
+          />
+        ) : (
+          <>
         {resumo && (
           <ResumoGrid>
             <ResumoCard>
@@ -584,7 +607,14 @@ function CarteiraPage() {
         )}
 
         {carteira.length === 0 ? (
-          <VazioText>Você ainda não possui unidades.</VazioText>
+          <EstadoInterface
+            titulo="Você ainda não possui posições"
+            descricao="Explore os clubes, compare os preços e faça sua primeira operação com a moeda virtual T$."
+            acao="Explorar mercados"
+            hrefAcao="/brasileirao-a"
+            acaoSecundaria="Entender como funciona"
+            hrefAcaoSecundaria="/como-funciona"
+          />
         ) : (
           <>
             <Toolbar>
@@ -762,6 +792,8 @@ function CarteiraPage() {
                 );
               })}
             </MobileLista>
+          </>
+        )}
           </>
         )}
       </Container>

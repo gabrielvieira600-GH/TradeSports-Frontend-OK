@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import EstadoInterface from '../components/EstadoInterface';
 
 const ITENS_POR_PAGINA = 50;
 
@@ -881,7 +882,7 @@ const voltarParaListaPrivados = () => {
           </MeuRanking>
         )}
                 {rankingPrivadoSelecionado?.isCriador && (
-          <PainelMembros>
+          <PainelMembros data-painel-membros>
             <PainelMembrosTopo>
               <div>
                 <PainelMembrosTitulo>
@@ -936,13 +937,18 @@ const voltarParaListaPrivados = () => {
             )}
 
             {carregandoMembrosPrivados ? (
-              <CarregandoCard>
-                Carregando participantes...
-              </CarregandoCard>
+              <EstadoInterface
+                variante="carregando"
+                titulo="Carregando participantes"
+                descricao="Estamos consultando os membros deste ranking privado."
+                compacto
+              />
             ) : membrosPrivados.length === 0 ? (
-              <VazioCard>
-                Nenhum participante encontrado.
-              </VazioCard>
+              <EstadoInterface
+                titulo="Nenhum participante foi adicionado"
+                descricao="Use o campo acima para convidar o primeiro participante deste ranking privado."
+                compacto
+              />
             ) : (
               <ListaMembros>
                 {membrosPrivados.map((membro) => (
@@ -1023,13 +1029,24 @@ const voltarParaListaPrivados = () => {
         )}
 
         {carregandoClassificacaoPrivada ? (
-          <CarregandoCard>
-            Carregando classificação privada...
-          </CarregandoCard>
+          <EstadoInterface
+            variante="carregando"
+            titulo="Carregando classificação privada"
+            descricao="Estamos calculando a posição dos participantes aprovados."
+          />
         ) : classificacaoPrivada.length === 0 ? (
-          <VazioCard>
-            Nenhum participante aprovado neste ranking privado.
-          </VazioCard>
+          <EstadoInterface
+            titulo="Este ranking ainda não possui participantes elegíveis"
+            descricao="Participantes aprovados aparecerão aqui assim que tiverem dados válidos na temporada."
+            acao="Gerenciar participantes"
+            onAcao={() => {
+              if (typeof window !== 'undefined') {
+                document
+                  .querySelector('[data-painel-membros]')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          />
         ) : (
           <>
             <DesktopOnly>
@@ -1268,16 +1285,28 @@ const voltarParaListaPrivados = () => {
       </>
     ) : (
       <>
-        {erroPrivados && (
+        {erroPrivados &&
+          (rankingsPrivados.criados.length > 0 ||
+            rankingsPrivados.participando.length > 0) && (
           <MensagemErro>
             {erroPrivados}
           </MensagemErro>
         )}
 
         {carregandoPrivados ? (
-          <CarregandoCard>
-            Carregando rankings privados...
-          </CarregandoCard>
+          <EstadoInterface
+            variante="carregando"
+            titulo="Carregando rankings privados"
+            descricao="Estamos consultando os rankings que você criou ou participa."
+          />
+        ) : erroPrivados ? (
+          <EstadoInterface
+            variante="erro"
+            titulo="Não foi possível carregar seus rankings privados"
+            descricao={erroPrivados}
+            acao="Tentar novamente"
+            onAcao={carregarRankingsPrivados}
+          />
         ) : (
           <>
             <PrivadosHeader>
@@ -1305,9 +1334,17 @@ const voltarParaListaPrivados = () => {
 
             {rankingsPrivados.criados.length === 0 &&
             rankingsPrivados.participando.length === 0 ? (
-              <VazioCard>
-                Você ainda não possui rankings privados.
-              </VazioCard>
+              <EstadoInterface
+                titulo="Você ainda não participa de rankings privados"
+                descricao="Crie uma competição fechada ou aceite um convite para comparar seu desempenho com outros usuários Premium."
+                acao="Criar ranking privado"
+                onAcao={() => {
+                  setErroCriarPrivado('');
+                  setModalCriarPrivadoAberto(true);
+                }}
+                acaoSecundaria="Ver convites"
+                hrefAcaoSecundaria="/convites"
+              />
             ) : (
               <PrivadosGrid>
                 {rankingsPrivados.criados.length > 0 && (
@@ -1453,23 +1490,37 @@ const voltarParaListaPrivados = () => {
   </PrivadosSection>
 ) : (
   <>
-    {erro && (
+    {erro && ranking.length > 0 && (
       <MensagemErro>
         {erro}
       </MensagemErro>
     )}
 
     {carregando ? (
-      <CarregandoCard>
-        Carregando ranking...
-      </CarregandoCard>
+      <EstadoInterface
+        variante="carregando"
+        titulo="Carregando ranking"
+        descricao="Estamos calculando as posições válidas da temporada."
+      />
+    ) : erro ? (
+      <EstadoInterface
+        variante="erro"
+        titulo="Não foi possível carregar o ranking"
+        descricao={erro}
+        acao="Tentar novamente"
+        onAcao={() => carregarRanking(pagina, categoria)}
+      />
     ) : (
       <>
         {ranking.length === 0 ? (
-  <VazioCard>
-    Nenhum usuário disponível no{' '}
-    {tituloCategoria.toLowerCase()}.
-  </VazioCard>
+  <EstadoInterface
+    titulo="O ranking ainda não possui participantes elegíveis"
+    descricao={`Nenhum usuário possui dados válidos no ${tituloCategoria.toLowerCase()} neste momento.`}
+    acao="Entender o ranking"
+    hrefAcao="/como-funciona"
+    acaoSecundaria="Voltar ao dashboard"
+    hrefAcaoSecundaria="/dashboard"
+  />
 ) : (
   <>
     <TabelaLigaContainer>
@@ -2990,4 +3041,3 @@ const CarregandoCard = styled.div`
 `;
 
 const VazioCard = styled(CarregandoCard)``;
-

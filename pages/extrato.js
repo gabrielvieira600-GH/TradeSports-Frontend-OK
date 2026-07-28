@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import api from '../lib/api';
 import { useToast } from '../components/ToastProvider';
 import withAuth from '../components/withAuth';
+import EstadoInterface from '../components/EstadoInterface';
 
 const TIPOS_EXTRATO = [
   {
@@ -204,23 +205,32 @@ function Extrato() {
     );
   };
 
-  const carregar = async () => {
+  const carregar = async (filtrosForcados = {}) => {
     setCarregando(true);
     setErro('');
 
     try {
+      const tiposDaConsulta =
+        filtrosForcados.tiposQuery !== undefined
+          ? filtrosForcados.tiposQuery
+          : tiposQuery;
+      const dataInicial =
+        filtrosForcados.from !== undefined ? filtrosForcados.from : from;
+      const dataFinal =
+        filtrosForcados.to !== undefined ? filtrosForcados.to : to;
+
       const params = {
         tipos:
-          tiposQuery ||
+          tiposDaConsulta ||
           '__NENHUM_TIPO__',
       };
 
-      if (from) {
-        params.from = from;
+      if (dataInicial) {
+        params.from = dataInicial;
       }
 
-      if (to) {
-        params.to = to;
+      if (dataFinal) {
+        params.to = dataFinal;
       }
 
       const { data } = await api.get(
@@ -291,6 +301,31 @@ function Extrato() {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const todosTiposSelecionados = TIPOS_EXTRATO.every((tipo) =>
+    Boolean(tipos[tipo.id])
+  );
+  const temFiltrosAtivos = Boolean(from || to || !todosTiposSelecionados);
+
+  const restaurarFiltros = () => {
+    const tiposPadrao = TIPOS_EXTRATO.reduce(
+      (acc, tipo) => ({
+        ...acc,
+        [tipo.id]: true,
+      }),
+      {}
+    );
+    const tiposPadraoQuery = TIPOS_EXTRATO.map((tipo) => tipo.id).join(',');
+
+    setFrom('');
+    setTo('');
+    setTipos(tiposPadrao);
+    carregar({
+      from: '',
+      to: '',
+      tiposQuery: tiposPadraoQuery,
+    });
+  };
 
   return (
     <Wrap>
@@ -519,26 +554,39 @@ function Extrato() {
         </LinhaChecks>
       </FiltrosCard>
 
-      {erro && (
-        <ErroCard>{erro}</ErroCard>
-      )}
-
       {carregando ? (
-        <EstadoCard>
-          Carregando movimentações...
-        </EstadoCard>
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando seu extrato"
+          descricao="Estamos organizando suas movimentações simuladas e os respectivos saldos em T$."
+        />
+      ) : erro ? (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar o extrato"
+          descricao={erro}
+          acao="Tentar novamente"
+          onAcao={() => carregar()}
+        />
       ) : itens.length === 0 ? (
-        <EstadoCard>
-          <EstadoTitulo>
-            Nenhuma movimentação encontrada
-          </EstadoTitulo>
-
-          <EstadoTexto>
-            Altere o período ou selecione outros
-            tipos de lançamento para consultar o
-            extrato.
-          </EstadoTexto>
-        </EstadoCard>
+        temFiltrosAtivos ? (
+          <EstadoInterface
+            variante="busca"
+            titulo="Nenhuma movimentação corresponde aos filtros"
+            descricao="Amplie o período ou restaure todos os tipos de lançamento para consultar novamente."
+            acao="Limpar filtros"
+            onAcao={restaurarFiltros}
+          />
+        ) : (
+          <EstadoInterface
+            titulo="Seu extrato ainda está vazio"
+            descricao="Compras, vendas, taxas e outros lançamentos simulados aparecerão aqui após sua primeira movimentação."
+            acao="Explorar mercados"
+            hrefAcao="/brasileirao-a"
+            acaoSecundaria="Entender o extrato"
+            hrefAcaoSecundaria="/como-funciona"
+          />
+        )
       ) : (
         <>
           <DesktopTableCard>

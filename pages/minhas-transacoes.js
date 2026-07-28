@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import withAuth from '../components/withAuth';
 import api from '../lib/api';
+import EstadoInterface from '../components/EstadoInterface';
 
 function formatBRL(v) {
   const n = Number(v || 0);
@@ -45,7 +46,8 @@ function corTipo(t) {
 function MinhasTransacoes() {
   const [itens, setItens] = useState([]);
   const [clubes, setClubes] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
 
   const [filtroClubeId, setFiltroClubeId] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
@@ -56,12 +58,22 @@ function MinhasTransacoes() {
 
   async function carregar() {
     setCarregando(true);
+    setErro('');
+
     try {
       const respClubes = await api.get('/clube/clubes');
       setClubes(Array.isArray(respClubes.data) ? respClubes.data : []);
 
       const resp = await api.get('/usuario/historico');
       setItens(Array.isArray(resp.data) ? resp.data : []);
+    } catch (err) {
+      console.error('Erro ao carregar transações:', err);
+      setErro(
+        err?.response?.data?.erro ||
+          err?.response?.data?.message ||
+          'Não foi possível carregar suas transações.'
+      );
+      setItens([]);
     } finally {
       setCarregando(false);
     }
@@ -87,6 +99,66 @@ function MinhasTransacoes() {
   const totalPaginas = Math.max(1, Math.ceil(itensFiltrados.length / itensPorPagina));
   const inicio = (paginaAtual - 1) * itensPorPagina;
   const itensPaginados = itensFiltrados.slice(inicio, inicio + itensPorPagina);
+  const temFiltrosAtivos = Boolean(
+    filtroClubeId || filtroTipo || filtroOrigem
+  );
+  const deveExibirEstado =
+    carregando || Boolean(erro) || itensFiltrados.length === 0;
+
+  const limparFiltros = () => {
+    setFiltroClubeId('');
+    setFiltroTipo('');
+    setFiltroOrigem('');
+  };
+
+  const renderEstadoTransacoes = () => {
+    if (carregando) {
+      return (
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando suas transações"
+          descricao="Estamos consultando as operações já executadas."
+          compacto
+        />
+      );
+    }
+
+    if (erro) {
+      return (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar suas transações"
+          descricao={erro}
+          acao="Tentar novamente"
+          onAcao={carregar}
+          compacto
+        />
+      );
+    }
+
+    if (temFiltrosAtivos) {
+      return (
+        <EstadoInterface
+          variante="busca"
+          titulo="Nenhuma transação corresponde aos filtros"
+          descricao="Ajuste o clube, o tipo ou a origem da operação para ampliar a consulta."
+          acao="Limpar filtros"
+          onAcao={limparFiltros}
+          compacto
+        />
+      );
+    }
+
+    return (
+      <EstadoInterface
+        titulo="Você ainda não realizou transações"
+        descricao="As execuções de compra, venda e liquidação aparecerão aqui depois da sua primeira operação."
+        acao="Explorar mercados"
+        hrefAcao="/brasileirao-a"
+        compacto
+      />
+    );
+  };
 
   const irParaPagina = (p) => {
     const alvo = Math.min(Math.max(1, Number(p) || 1), totalPaginas);
@@ -177,10 +249,8 @@ function MinhasTransacoes() {
       </PaginacaoBar>
 
       <DesktopCard>
-        {carregando ? (
-          <Vazio>Carregando...</Vazio>
-        ) : itensFiltrados.length === 0 ? (
-          <Vazio>Nenhuma transação encontrada.</Vazio>
+        {deveExibirEstado ? (
+          renderEstadoTransacoes()
         ) : (
           <TabelaWrap>
             <Tabela>
@@ -214,10 +284,8 @@ function MinhasTransacoes() {
       </DesktopCard>
 
       <MobileLista>
-        {carregando ? (
-          <Vazio>Carregando...</Vazio>
-        ) : itensFiltrados.length === 0 ? (
-          <Vazio>Nenhuma transação encontrada.</Vazio>
+        {deveExibirEstado ? (
+          renderEstadoTransacoes()
         ) : (
           itensPaginados.map((x) => (
             <MobileItem key={x.id}>

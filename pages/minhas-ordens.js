@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import withAuth from '../components/withAuth';
 import api from '../lib/api';
+import EstadoInterface from '../components/EstadoInterface';
 
 function formatTS(n) {
   const v = Number(n || 0);
@@ -62,7 +63,7 @@ function dataStatusOrdem(item) {
 }
 
 function MinhasOrdens() {
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [clubes, setClubes] = useState([]);
   const [itens, setItens] = useState([]);
@@ -151,6 +152,16 @@ setItens(itensOrdens);
     });
   }, [itens, filtroClubeId, filtroTipo, filtroStatus]);
 
+  const temFiltrosAtivos = Boolean(
+    filtroClubeId || filtroTipo || filtroStatus
+  );
+
+  const limparFiltros = () => {
+    setFiltroClubeId('');
+    setFiltroTipo('');
+    setFiltroStatus('');
+  };
+
   useEffect(() => {
     setPage(1);
   }, [filtroClubeId, filtroTipo, filtroStatus, pageSize]);
@@ -169,6 +180,62 @@ setItens(itensOrdens);
     const end = start + size;
     return itensFiltrados.slice(start, end);
   }, [itensFiltrados, page, pageSize]);
+
+  const deveExibirEstado =
+    (carregando && itens.length === 0) ||
+    (Boolean(erro) && itens.length === 0) ||
+    itensFiltrados.length === 0;
+
+  const renderEstadoOrdens = () => {
+    if (carregando && itens.length === 0) {
+      return (
+        <EstadoInterface
+          variante="carregando"
+          titulo="Carregando suas ordens"
+          descricao="Estamos consultando ordens abertas, executadas e canceladas."
+          compacto
+        />
+      );
+    }
+
+    if (erro && itens.length === 0) {
+      return (
+        <EstadoInterface
+          variante="erro"
+          titulo="Não foi possível carregar suas ordens"
+          descricao={erro}
+          acao="Tentar novamente"
+          onAcao={carregarTudo}
+          compacto
+        />
+      );
+    }
+
+    if (temFiltrosAtivos) {
+      return (
+        <EstadoInterface
+          variante="busca"
+          titulo="Nenhuma ordem corresponde aos filtros"
+          descricao="Ajuste o clube, o tipo ou o status para ampliar os resultados."
+          acao="Limpar filtros"
+          onAcao={limparFiltros}
+          compacto
+        />
+      );
+    }
+
+    return (
+      <EstadoInterface
+        titulo="Você ainda não enviou ordens"
+        descricao="Quando você criar uma ordem de compra ou venda, ela aparecerá aqui com seu status de execução."
+        acao="Explorar mercados"
+        hrefAcao="/brasileirao-a"
+        acaoSecundaria="Como funcionam as ordens"
+        hrefAcaoSecundaria="/como-funciona"
+        compacto
+      />
+    );
+  };
 
   async function cancelarOrdem(ordemId) {
   const confirmou = window.confirm(
@@ -250,7 +317,7 @@ setItens(itensOrdens);
         </Filtros>
       </FiltrosCard>
 
-      {erro && <Erro>{erro}</Erro>}
+      {erro && itens.length > 0 && <Erro>{erro}</Erro>}
 
       <ResumoTopo>
         <span>
@@ -282,10 +349,8 @@ setItens(itensOrdens);
       </ResumoTopo>
 
       <DesktopCard>
-  {itensFiltrados.length === 0 ? (
-    <Vazio>
-      Nenhuma ordem encontrada com esses filtros.
-    </Vazio>
+  {deveExibirEstado ? (
+    renderEstadoOrdens()
   ) : (
     <>
       <TabelaWrap>
@@ -449,10 +514,8 @@ setItens(itensOrdens);
 </DesktopCard>
 
 <MobileLista>
-  {itensFiltrados.length === 0 ? (
-    <Vazio>
-      Nenhuma ordem encontrada com esses filtros.
-    </Vazio>
+  {deveExibirEstado ? (
+    renderEstadoOrdens()
   ) : (
     itensPaginados.map((x) => {
       const isCompra = x.tipo === 'compra';
