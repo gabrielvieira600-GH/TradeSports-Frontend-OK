@@ -131,6 +131,25 @@ export default function NegociacaoModal({
 }, [isOpen, token]);
 
   useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined;
+
+    const overflowAnterior = document.body.style.overflow;
+    const fecharComEscape = (event) => {
+      if (event.key === 'Escape' && !mostrarRisco) {
+        onClose?.();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', fecharComEscape);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener('keydown', fecharComEscape);
+    };
+  }, [isOpen, mostrarRisco, onClose]);
+
+  useEffect(() => {
     const basePreco =
       clube?.precoMercado !== undefined && clube?.precoMercado !== null
         ? Number(clube.precoMercado)
@@ -286,9 +305,9 @@ export default function NegociacaoModal({
       suggested,
       message: valid
         ? ''
-        : `O preço deve respeitar o tick de R$ ${TICK_SIZE.toFixed(
+        : `O preço deve respeitar o tick de T$ ${TICK_SIZE.toFixed(
             2
-          )}. Sugestão: R$ ${suggested.toFixed(2)}.`,
+          )}. Sugestão: T$ ${suggested.toFixed(2)}.`,
     };
   }, [ipoEncerrado, precoAtual, preco]);
 
@@ -577,9 +596,9 @@ if (
         if (response?.erro) throw new Error(response.erro);
       } else {
         if (!isValidTickPrice(Number(precoAtual || 0))) {
-          setMensagem(`❌ Preço inválido para o tick de R$ ${TICK_SIZE.toFixed(2)}.`);
+          setMensagem(`❌ Preço inválido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`);
           adicionarToast(
-            `❌ Preço inválido para o tick de R$ ${TICK_SIZE.toFixed(2)}.`,
+            `❌ Preço inválido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`,
             'erro'
           );
           setCarregando(false);
@@ -973,7 +992,7 @@ return (
             <div>
               <h2>{clube.nome}</h2>
               <PrecoAtualTexto>
-                {precoMercado > 0 ? `Preço atual: R$ ${precoMercado.toFixed(2)}` : ''}
+                {precoMercado > 0 ? `Preço atual: T$ ${precoMercado.toFixed(2)}` : ''}
               </PrecoAtualTexto>
             </div>
           </Header>
@@ -1126,7 +1145,7 @@ return (
 )}
 
           <Bloco>
-            <label>Preço (R$)</label>
+            <label>Preço (T$)</label>
             <InputNumero
               type="text"
               inputMode="decimal"
@@ -1161,7 +1180,7 @@ return (
               <>
                 <TickMeta>
                   <span>Tick mínimo</span>
-                  <strong>R$ {TICK_SIZE.toFixed(2)}</strong>
+                  <strong>T$ {TICK_SIZE.toFixed(2)}</strong>
                 </TickMeta>
 
                 {!tickValidation.valid && (
@@ -1173,7 +1192,7 @@ return (
 
                     {tickValidation.suggested != null && (
                       <BotaoCorrigirTick type="button" onClick={aplicarPrecoSugerido}>
-                        Corrigir para R$ {Number(tickValidation.suggested).toFixed(2)}
+                        Corrigir para T$ {Number(tickValidation.suggested).toFixed(2)}
                       </BotaoCorrigirTick>
                     )}
                   </TickAlert>
@@ -1202,12 +1221,12 @@ return (
           <Bloco>
             <LinhaInfo>
               <span>Valor da Ordem</span>
-              <strong>R$ {precoTotal}</strong>
+              <strong>T$ {precoTotal}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
               <span>Preço de Mercado</span>
-              <span>R$ {Number(precoMercado).toFixed(2)}</span>
+              <span>T$ {Number(precoMercado).toFixed(2)}</span>
             </LinhaInfo>
 
             {ipoEncerrado && (
@@ -1223,7 +1242,7 @@ return (
 
                 <LinhaInfo>
                   <span>Taxa estimada</span>
-                  <span>R$ {tradeRolePreview.feeValue.toFixed(2)}</span>
+                  <span>T$ {tradeRolePreview.feeValue.toFixed(2)}</span>
                 </LinhaInfo>
 
                 
@@ -1235,7 +1254,7 @@ return (
                 <span>Poder de Compra</span>
                 <span>
                   {usuario
-                    ? `R$ ${Number(poderCompra || 0).toFixed(2)}`
+                    ? `T$ ${Number(poderCompra || 0).toFixed(2)}`
                     : 'Faça login para visualizar'}
                 </span>
               </LinhaInfo>
@@ -1433,6 +1452,8 @@ return (
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: rgba(2, 6, 23, 0.76);
   z-index: 999;
   display: flex;
@@ -1441,6 +1462,7 @@ const Overlay = styled.div`
   @media (max-width: 900px) {
     justify-content: center;
     align-items: stretch;
+    height: 100dvh;
   }
 `;
 
@@ -1458,15 +1480,25 @@ const ModalContainer = styled.div`
   @media (max-width: 900px) {
     width: 100vw;
     height: 100vh;
-    padding: 14px 12px max(14px, env(safe-area-inset-bottom));
+    height: 100dvh;
+    min-height: 0;
+    padding:
+      max(14px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
     border-radius: 0;
   }
 `;
 
 const ModalContentInner = styled.div`
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 6px;
+  padding-bottom: 18px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -1484,8 +1516,12 @@ const ModalContentInner = styled.div`
 
 const FecharX = styled.button`
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   font-size: 1.5rem;
   color: #94a3b8;
   background: none;
@@ -1502,7 +1538,8 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-right: 22px;
+  min-height: 44px;
+  padding-right: 48px;
 
   h2 {
     font-size: 1.12rem;
@@ -1525,6 +1562,7 @@ const Acoes = styled.div`
 
 const Aba = styled.button`
   flex: 1;
+  min-height: 48px;
   text-align: center;
   padding: 0.8rem;
   background-color: ${({ $ativa }) => ($ativa ? '#1d4ed8' : '#1e293b')};
@@ -1551,6 +1589,7 @@ const Bloco = styled.div`
 
 const InputNumero = styled.input`
   width: 100%;
+  min-height: 48px;
   padding: 0.75rem;
   background-color: #1e293b;
   border: none;
@@ -1567,6 +1606,17 @@ const LinhaInfo = styled.div`
   padding: 0.42rem 0;
   color: #cbd5e1;
   font-size: 0.93rem;
+
+  > :last-child {
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 380px) {
+    align-items: flex-start;
+    font-size: 0.86rem;
+  }
 `;
 
 const FranquiaCard = styled.div`
@@ -1747,6 +1797,16 @@ const ResultadoItem = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  @media (max-width: 640px) {
+    span {
+      font-size: 0.75rem;
+    }
+
+    strong {
+      font-size: 0.86rem;
+    }
+  }
 `;
 
 const ResultadoFranquia = styled.div`
@@ -1757,6 +1817,10 @@ const ResultadoFranquia = styled.div`
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.4;
+
+  @media (max-width: 640px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const ResultadoAviso = styled.div`
@@ -1764,6 +1828,10 @@ const ResultadoAviso = styled.div`
   color: #fde68a;
   font-size: 0.72rem;
   line-height: 1.4;
+
+  @media (max-width: 640px) {
+    font-size: 0.78rem;
+  }
 `;
 
 const Mensagem = styled.p`
@@ -1776,6 +1844,7 @@ const Mensagem = styled.p`
 const BotaoComprar = styled.button`
   margin-top: 1.3rem;
   width: 100%;
+  min-height: 48px;
   background-color: #16a34a;
   color: white;
   border: none;
@@ -1796,6 +1865,7 @@ const BotaoComprar = styled.button`
 `;
 
 const BotaoLogin = styled.button`
+  min-height: 44px;
   background-color: #2563eb;
   color: white;
   border: none;
@@ -1876,6 +1946,7 @@ const TickOk = styled.div`
 `;
 
 const BotaoCorrigirTick = styled.button`
+  min-height: 44px;
   border: none;
   border-radius: 10px;
   padding: 0.7rem 0.8rem;
@@ -1889,6 +1960,7 @@ const BotaoCorrigirTick = styled.button`
 const BotaoMelhorarPreco = styled.button`
   margin-top: 0.75rem;
   width: 100%;
+  min-height: 44px;
   padding: 0.7rem 0.75rem;
   border-radius: 8px;
   border: 1px solid rgba(59, 130, 246, 0.35);

@@ -98,6 +98,25 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [erroConvite, setErroConvite] = useState('');
   const [sucessoConvite, setSucessoConvite] = useState('');
 
+  useEffect(() => {
+    if (!modalConexoesAberto || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const overflowAnterior = document.body.style.overflow;
+    const fecharComEscape = (event) => {
+      if (event.key === 'Escape') setModalConexoesAberto(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', fecharComEscape);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener('keydown', fecharComEscape);
+    };
+  }, [modalConexoesAberto]);
+
   const usuarioLogadoPremium = planoUsuarioLogado === 'premium';
 
   const perfilPremium =
@@ -914,6 +933,7 @@ const Container = styled.div`
 `;
 
 const VoltarBotao = styled.button`
+  min-height: 44px;
   margin-bottom: 14px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 12px;
@@ -931,9 +951,9 @@ const VoltarBotao = styled.button`
 
   @media (max-width: 640px) {
     margin-bottom: 8px;
-    padding: 7px 10px;
+    padding: 9px 12px;
     border-radius: 10px;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
   }
 `;
 
@@ -1032,7 +1052,7 @@ const NomeSecundario = styled.div`
 
   @media (max-width: 640px) {
     margin-top: 3px;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
   }
 `;
 
@@ -1073,7 +1093,7 @@ const PlanoBadge = styled.span`
 
   @media (max-width: 640px) {
     padding: 4px 6px;
-    font-size: 0.55rem;
+    font-size: 0.68rem;
   }
 `;
 
@@ -1092,7 +1112,7 @@ const SegueVoceBadge = styled.span`
 
   @media (max-width: 640px) {
     padding: 4px 6px;
-    font-size: 0.55rem;
+    font-size: 0.68rem;
   }
 `;
 
@@ -1111,7 +1131,7 @@ const DesdeBadge = styled.span`
 
   @media (max-width: 640px) {
     padding: 4px 6px;
-    font-size: 0.55rem;
+    font-size: 0.68rem;
   }
 `;
 
@@ -1166,12 +1186,12 @@ const HeroStat = styled.div`
 
     span {
       margin-bottom: 4px;
-      font-size: 0.58rem;
+      font-size: 0.7rem;
       letter-spacing: 0.03em;
     }
 
     strong {
-      font-size: 0.86rem;
+      font-size: 0.92rem;
     }
   }
 `;
@@ -1191,6 +1211,7 @@ const AcoesTopo = styled.div`
 `;
 
 const BotaoPrimario = styled.button`
+  min-height: 44px;
   border: 1px solid rgba(59, 130, 246, 0.34);
   border-radius: 13px;
   padding: 11px 15px;
@@ -1212,11 +1233,12 @@ const BotaoPrimario = styled.button`
   @media (max-width: 640px) {
     padding: 9px 10px;
     border-radius: 11px;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
   }
 `;
 
 const BotaoSecundario = styled.button`
+  min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 13px;
   padding: 11px 15px;
@@ -1239,7 +1261,7 @@ const BotaoSecundario = styled.button`
   @media (max-width: 640px) {
     padding: 9px 10px;
     border-radius: 11px;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
   }
 `;
 
@@ -1284,16 +1306,17 @@ const MetricaCard = styled.div`
 
     span {
       margin-bottom: 4px;
-      font-size: 0.62rem;
+      font-size: 0.72rem;
     }
 
     strong {
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
   }
 `;
 
 const MetricaButton = styled.button`
+  min-height: 72px;
   padding: 15px;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 17px;
@@ -1326,11 +1349,11 @@ const MetricaButton = styled.button`
 
     span {
       margin-bottom: 4px;
-      font-size: 0.62rem;
+      font-size: 0.72rem;
     }
 
     strong {
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
   }
 `;
@@ -1419,11 +1442,11 @@ const LinhaInfo = styled.div`
     gap: 8px;
 
     span {
-      font-size: 0.7rem;
+      font-size: 0.78rem;
     }
 
     strong {
-      font-size: 0.76rem;
+      font-size: 0.84rem;
     }
   }
 `;
@@ -1435,7 +1458,7 @@ const TextoAuxiliar = styled.p`
   line-height: 1.5;
 
   @media (max-width: 640px) {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     line-height: 1.4;
   }
 `;
@@ -1458,12 +1481,13 @@ const CampoLabel = styled.span`
 
   @media (max-width: 640px) {
     margin-bottom: 4px;
-    font-size: 0.66rem;
+    font-size: 0.74rem;
   }
 `;
 
 const SelectRanking = styled.select`
   width: 100%;
+  min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 12px;
   padding: 11px 12px;
@@ -1480,7 +1504,7 @@ const SelectRanking = styled.select`
   @media (max-width: 640px) {
     padding: 9px 10px;
     border-radius: 10px;
-    font-size: 0.76rem;
+    font-size: 1rem;
   }
 `;
 
@@ -1511,12 +1535,13 @@ const TextareaConvite = styled.textarea`
     min-height: 62px;
     padding: 9px 10px;
     border-radius: 10px;
-    font-size: 0.76rem;
+    font-size: 1rem;
   }
 `;
 
 const BotaoConvite = styled.button`
   width: 100%;
+  min-height: 44px;
   border: 1px solid rgba(250, 204, 21, 0.32);
   border-radius: 12px;
   padding: 11px 14px;
@@ -1538,7 +1563,7 @@ const BotaoConvite = styled.button`
   @media (max-width: 640px) {
     padding: 9px 10px;
     border-radius: 10px;
-    font-size: 0.76rem;
+    font-size: 0.82rem;
   }
 `;
 
@@ -1575,7 +1600,7 @@ const PremiumMiniBadge = styled.span`
 
   @media (max-width: 640px) {
     padding: 4px 7px;
-    font-size: 0.56rem;
+    font-size: 0.7rem;
   }
 `;
 
@@ -1825,11 +1850,11 @@ const ClubeResumo = styled.div`
     gap: 8px;
 
     strong {
-      font-size: 0.78rem;
+      font-size: 0.86rem;
     }
 
     span {
-      font-size: 0.66rem;
+      font-size: 0.74rem;
     }
   }
 `;
@@ -1879,11 +1904,11 @@ const MiniMetrica = styled.div`
 
     span {
       margin-bottom: 3px;
-      font-size: 0.57rem;
+      font-size: 0.7rem;
     }
 
     strong {
-      font-size: 0.66rem;
+      font-size: 0.78rem;
     }
   }
 `;
@@ -1908,6 +1933,8 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
 
   @media (max-width: 640px) {
     align-items: stretch;
@@ -1939,11 +1966,12 @@ const ModalCard = styled.div`
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 `;
 
 const ModalTopo = styled.div`
-  height: 56px;
+  min-height: 56px;
   padding: 0 16px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 
@@ -1951,11 +1979,16 @@ const ModalTopo = styled.div`
   grid-template-columns: 44px 1fr 44px;
   align-items: center;
   gap: 8px;
+
+  @media (max-width: 640px) {
+    min-height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
 `;
 
 const BotaoVoltarModal = styled.button`
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 999px;
 
@@ -2140,6 +2173,7 @@ const UsuarioModalInfo = styled.div`
 
 const BotaoSeguirModal = styled.button`
   min-width: 96px;
+  min-height: 44px;
   border: 0;
   border-radius: 10px;
   padding: 8px 13px;

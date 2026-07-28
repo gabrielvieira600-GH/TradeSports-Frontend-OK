@@ -25,7 +25,6 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background-color: #0e1117;
   color: #fff;
-  overflow-x: hidden;
 }
 
 a {
@@ -37,6 +36,12 @@ img {
   height: auto;
 }
 
+pre,
+code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 button,
 input,
 textarea,
@@ -45,11 +50,9 @@ select {
 }
 
 @media (max-width: 640px) {
-  html {
-    font-size: 15px;
-  }
-
-  body {
-    overflow-x: hidden;
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 }

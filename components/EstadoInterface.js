@@ -189,7 +189,7 @@ const Acoes = styled.div`
 `;
 
 const estiloAcao = css`
-  min-height: 40px;
+  min-height: 44px;
   padding: 10px 15px;
   display: inline-flex;
   align-items: center;

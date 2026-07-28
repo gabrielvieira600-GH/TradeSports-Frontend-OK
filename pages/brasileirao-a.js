@@ -327,7 +327,7 @@ export default function BrasileiraoA() {
                 <tr>
                   <th>#</th>
                   <th>Clube</th>
-                  <th>R$ p/ Posição</th>
+                  <th>T$ p/ Posição</th>
                   <th>Mercado</th>
                   <th>Status</th>
                   <th></th>
@@ -557,8 +557,8 @@ const LeagueStar = styled.button`
   cursor: pointer;
 
   @media (max-width: 640px) {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
   }
 `;
 
@@ -666,7 +666,8 @@ const StarButton = styled.button`
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  width: 24px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
 `;
 
@@ -718,6 +719,7 @@ const StatusText = styled.div`
 `;
 
 const Botao = styled.button`
+  min-height: 44px;
   background: linear-gradient(180deg, #3b82f6, #2563eb);
   color: white;
   border: none;
@@ -747,6 +749,10 @@ const TableHeader = styled.div`
   padding: 10px 8px;
   background: rgba(255, 255, 255, 0.04);
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+  @media (max-width: 520px) {
+    display: none;
+  }
 `;
 
 const HeaderCellBase = styled.div`
@@ -787,6 +793,59 @@ const Row = styled.div`
   &:last-child {
     border-bottom: none;
   }
+
+  @media (max-width: 520px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'club pos'
+      'liq trade'
+      'market trade';
+    gap: 9px 12px;
+    padding: 13px 12px;
+
+    > :nth-child(1) {
+      grid-area: pos;
+      justify-self: end;
+    }
+
+    > :nth-child(2) {
+      grid-area: club;
+    }
+
+    > :nth-child(3) {
+      grid-area: liq;
+    }
+
+    > :nth-child(4) {
+      grid-area: market;
+    }
+
+    > :nth-child(5) {
+      grid-area: trade;
+      align-self: stretch;
+    }
+
+    > :nth-child(3),
+    > :nth-child(4) {
+      justify-content: flex-start;
+      gap: 8px;
+    }
+
+    > :nth-child(3)::before,
+    > :nth-child(4)::before {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    > :nth-child(3)::before {
+      content: 'Liq./IPO';
+    }
+
+    > :nth-child(4)::before {
+      content: 'Mercado';
+    }
+  }
 `;
 
 const ColSmall = styled.div`
@@ -820,6 +879,10 @@ const PosMobile = styled.div`
 `;
 
 const StarButtonMobile = styled.button`
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   border: none;
   background: transparent;
   color: ${({ $active }) => ($active ? '#fde68a' : '#64748b')};
@@ -867,6 +930,8 @@ const PriceValue = styled.div`
 
 const TradeButton = styled.button`
   width: 100%;
+  min-width: 76px;
+  min-height: 44px;
   max-width: 84px;
   border: none;
   border-radius: 999px;

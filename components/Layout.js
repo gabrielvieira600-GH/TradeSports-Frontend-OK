@@ -4,6 +4,8 @@ import styled from 'styled-components';
 
 const PageShell = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   background: #0c1c2c;
   color: white;
 `;
@@ -28,10 +30,15 @@ const Main = styled.main`
 
   @media (max-width: 960px) {
     padding: 14px 12px 22px;
+    width: 100%;
   }
 
   @media (max-width: 640px) {
-    padding: 10px 10px 18px;
+    padding:
+      10px
+      max(10px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
   }
 `;
 

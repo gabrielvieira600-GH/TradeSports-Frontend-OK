@@ -475,6 +475,7 @@ const Filtro = styled.div`
 
   select {
     width: 100%;
+    min-height: 44px;
     min-width: 0;
     padding: 0.7rem 0.75rem;
     border-radius: 10px;
@@ -563,6 +564,7 @@ const PaginacaoDir = styled.div`
 `;
 
 const BotaoPagina = styled.button`
+  min-height: 44px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #fff;

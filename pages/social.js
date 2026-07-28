@@ -529,7 +529,7 @@ const Filtros = styled.div`
 `;
 
 const FiltroBotao = styled.button`
-  min-height: 38px;
+  min-height: 44px;
   border: 1px solid
     ${({ $ativo }) =>
       $ativo ? 'rgba(59, 130, 246, 0.4)' : 'transparent'};
@@ -558,6 +558,7 @@ const FiltroBotao = styled.button`
 `;
 
 const BotaoAtualizar = styled.button`
+  min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 12px;
   padding: 10px 13px;
@@ -773,6 +774,7 @@ const ListaInfo = styled.ul`
 const BotaoSecundario = styled.button`
   margin-top: 13px;
   width: 100%;
+  min-height: 44px;
 
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 12px;

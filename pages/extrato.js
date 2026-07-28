@@ -1019,6 +1019,7 @@ const PeriodosRapidos = styled.div`
 `;
 
 const BtnPill = styled.button`
+  min-height: 44px;
   padding: 6px 10px;
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 999px;
@@ -1058,6 +1059,7 @@ const CampoLabel = styled.label`
 
 const CampoInput = styled.input`
   width: 100%;
+  min-height: 44px;
   box-sizing: border-box;
   padding: 10px;
   border: 1px solid rgba(148, 163, 184, 0.18);
@@ -1073,7 +1075,7 @@ const CampoInput = styled.input`
 `;
 
 const BtnPrimary = styled.button`
-  min-height: 39px;
+  min-height: 44px;
   padding: 9px 15px;
   border: 0;
   border-radius: 9px;
@@ -1110,6 +1112,7 @@ const TiposCabecalho = styled.div`
 `;
 
 const BotaoTexto = styled.button`
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -1127,6 +1130,7 @@ const LinhaChecks = styled.div`
 `;
 
 const Check = styled.label`
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 6px;

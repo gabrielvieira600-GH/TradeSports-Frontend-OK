@@ -483,7 +483,7 @@ function CarteiraPage() {
             <DonutInner>
               <DonutCenterLabel>Total alocado</DonutCenterLabel>
               <DonutCenterValue>
-                R$ {totalValorCarteiraGrafico.toFixed(2)}
+                T$ {totalValorCarteiraGrafico.toFixed(2)}
               </DonutCenterValue>
               <DonutCenterMeta>
                 {distribuicaoCarteira.length} clube
@@ -519,7 +519,7 @@ function CarteiraPage() {
                     </LegendClub>
 
                     <LegendValue>
-                      <strong>R$ {item.totalAtual.toFixed(2)}</strong>
+                      <strong>T$ {item.totalAtual.toFixed(2)}</strong>
                     </LegendValue>
                   </LegendTopRow>
 
@@ -570,25 +570,25 @@ function CarteiraPage() {
           <ResumoGrid>
             <ResumoCard>
               <LabelResumo>Valor total da posição</LabelResumo>
-              <ValorPrincipal>R$ {resumo.valorTotalCarteira.toFixed(2)}</ValorPrincipal>
+              <ValorPrincipal>T$ {resumo.valorTotalCarteira.toFixed(2)}</ValorPrincipal>
             </ResumoCard>
 
             <ResumoCard>
               <LabelResumo>Total alocado</LabelResumo>
-              <ValorSecundario>R$ {resumo.totalInvestido.toFixed(2)}</ValorSecundario>
+              <ValorSecundario>T$ {resumo.totalInvestido.toFixed(2)}</ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
               <LabelResumo>Resultado da posição</LabelResumo>
               <ValorSecundario $positivo={resumo.plTotal >= 0}>
-                R$ {resumo.plTotal.toFixed(2)}
+                T$ {resumo.plTotal.toFixed(2)}
               </ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>
               <LabelResumo>Créditos recebidos</LabelResumo>
               <ValorSecundario $positivo>
-                R$ {Number(resumo.totalDividendos || 0).toFixed(2)}
+                T$ {Number(resumo.totalDividendos || 0).toFixed(2)}
               </ValorSecundario>
             </ResumoCard>
 
@@ -702,16 +702,16 @@ function CarteiraPage() {
                           {ativo.nome}
                         </td>
                         <td>{ativo.quantidade}</td>
-                        <td>R$ {ativo.precoMedio.toFixed(2)}</td>
-                        <td>R$ {precoAtual.toFixed(2)}</td>
-                        <td>R$ {totalInvestidoAtivo.toFixed(2)}</td>
+                        <td>T$ {ativo.precoMedio.toFixed(2)}</td>
+                        <td>T$ {precoAtual.toFixed(2)}</td>
+                        <td>T$ {totalInvestidoAtivo.toFixed(2)}</td>
                         <td style={{ color: variacaoPerc >= 0 ? '#22c55e' : '#ef4444' }}>
                           {variacaoPerc.toFixed(2)}%
                         </td>
                         <td style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
-                          R$ {lucro.toFixed(2)}
+                          T$ {lucro.toFixed(2)}
                         </td>
-                        <td>R$ {valorAtual.toFixed(2)}</td>
+                        <td>T$ {valorAtual.toFixed(2)}</td>
                         <td>
                           <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
                             Negociar
@@ -756,17 +756,17 @@ function CarteiraPage() {
 
                       <MetricBox>
                         <span>Preço Médio</span>
-                        <strong>R$ {ativo.precoMedio.toFixed(2)}</strong>
+                        <strong>T$ {ativo.precoMedio.toFixed(2)}</strong>
                       </MetricBox>
 
                       <MetricBox>
                         <span>Preço Atual</span>
-                        <strong>R$ {precoAtual.toFixed(2)}</strong>
+                        <strong>T$ {precoAtual.toFixed(2)}</strong>
                       </MetricBox>
 
                       <MetricBox>
                         <span>Total Alocado</span>
-                        <strong>R$ {totalInvestidoAtivo.toFixed(2)}</strong>
+                        <strong>T$ {totalInvestidoAtivo.toFixed(2)}</strong>
                       </MetricBox>
 
                       <MetricBox>
@@ -779,13 +779,13 @@ function CarteiraPage() {
                       <MetricBox>
                         <span>Resultado</span>
                         <strong style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
-                          R$ {lucro.toFixed(2)}
+                          T$ {lucro.toFixed(2)}
                         </strong>
                       </MetricBox>
 
                       <MetricBoxFull>
                         <span>Valor Atual</span>
-                        <strong>R$ {valorAtual.toFixed(2)}</strong>
+                        <strong>T$ {valorAtual.toFixed(2)}</strong>
                       </MetricBoxFull>
                     </MobileMetrics>
                   </MobileCard>
@@ -876,7 +876,7 @@ function GraficoLinhaCarteira({ pontos }) {
     <GraficoLinhaWrapper>
       <HeroMetric>
         <MetricValue $positivo={positivo}>
-          R$ {activePoint.valor.toFixed(2)}
+          T$ {activePoint.valor.toFixed(2)}
         </MetricValue>
         <MetricMeta>
           <span>
@@ -930,7 +930,7 @@ function GraficoLinhaCarteira({ pontos }) {
                 fontSize="11"
                 fill="#64748b"
               >
-                R$ {tick.value.toFixed(0)}
+                T$ {tick.value.toFixed(0)}
               </text>
             </g>
           ))}
@@ -992,7 +992,7 @@ function GraficoLinhaCarteira({ pontos }) {
             }}
           >
             <strong>Posição da carteira</strong>
-            <span>R$ {activePoint.valor.toFixed(2)}</span>
+            <span>T$ {activePoint.valor.toFixed(2)}</span>
             <small>
               {activePoint.data.toLocaleString('pt-BR', {
                 day: '2-digit',
@@ -1022,7 +1022,7 @@ function GraficoLinhaCarteira({ pontos }) {
             month: '2-digit',
             year: '2-digit',
           })}{' '}
-          • R$ {last.valor.toFixed(2)}
+          • T$ {last.valor.toFixed(2)}
         </span>
       </InfoLinha>
     </GraficoLinhaWrapper>
@@ -1161,6 +1161,7 @@ const RangeSelector = styled.div`
 `;
 
 const RangeButton = styled.button`
+  min-height: 44px;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px solid ${({ ativo }) => (ativo ? '#22c55e' : '#1f2937')};
@@ -1349,6 +1350,7 @@ const ToolbarLeft = styled.div`
   }
 
   select {
+    min-height: 44px;
     padding: 6px 10px;
     border-radius: 8px;
     background: #0b1220;
@@ -1365,6 +1367,7 @@ const ToolbarRight = styled.div`
 `;
 
 const PageButton = styled.button`
+  min-height: 44px;
   padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.12);
@@ -1495,6 +1498,7 @@ const Tabela = styled.table`
 `;
 
 const BotaoVender = styled.button`
+  min-height: 44px;
   background-color: #3b82f6;
   color: white;
   border: none;

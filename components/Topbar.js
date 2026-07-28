@@ -273,14 +273,14 @@ const meuPerfilHref = meuPerfilId
 
     const isMobile = window.innerWidth <= 640;
 
-    if (notifAberto && isMobile) {
+    if ((notifAberto || bancoAberto) && isMobile) {
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.body.style.overflow = '';
     };
-  }, [notifAberto]);
+  }, [notifAberto, bancoAberto]);
 
   const marcarTodasComoLidas = async () => {
     if (!token || !API_BASE) return;
@@ -544,6 +544,10 @@ const meuPerfilHref = meuPerfilId
     () => notificacoes.slice(0, 12),
     [notificacoes]
   );
+  const saldoFormatado = parseFloat(saldo || 0).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   const renderSearchBox = (mobile = false) => (
     <SearchBoxWrap ref={mobile ? searchMobileRef : searchDesktopRef}>
@@ -716,7 +720,10 @@ const meuPerfilHref = meuPerfilId
               <IconWrap ref={notifRef}>
                 <IconButton
                   type="button"
-                  onClick={() => setNotifAberto((v) => !v)}
+                  onClick={() => {
+                    setBancoAberto(false);
+                    setNotifAberto((v) => !v);
+                  }}
                   aria-label="Notificações"
                 >
                   <Bell>🔔</Bell>
@@ -819,21 +826,26 @@ const meuPerfilHref = meuPerfilId
               <BancoWrap ref={bancoRef}>
                 <BotaoVerde
                   type="button"
-                  onClick={() => setBancoAberto((v) => !v)}
+                  onClick={() => {
+                    setNotifAberto(false);
+                    setBancoAberto((v) => !v);
+                  }}
+                  aria-label={`Abrir menu da conta. Saldo T$ ${saldoFormatado}`}
+                  aria-expanded={bancoAberto}
+                  title={`Saldo T$ ${saldoFormatado}`}
                 >
                   <UserAndSaldo>
-                    <SaldoInline>
-                      👤 T${' '}
-                      {parseFloat(saldo || 0).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </SaldoInline>
+                    <AccountIcon aria-hidden="true">👤</AccountIcon>
+                    <SaldoInline>T$ {saldoFormatado}</SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
 
                 {bancoAberto && (
                   <Dropdown>
+                    <DropSaldo>
+                      <span>Saldo disponível</span>
+                      <strong>T$ {saldoFormatado}</strong>
+                    </DropSaldo>
                     <DropLink href="/dashboard">Dashboard</DropLink>
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
@@ -848,13 +860,16 @@ const meuPerfilHref = meuPerfilId
                     <DropLink href="/extrato">Extrato</DropLink>
                     <DropLink href="/deposito">Depósito</DropLink>
                     <DropLink href="/saque">Saque</DropLink>
+                    <DropLogout type="button" onClick={handleLogout}>
+                      Sair da conta
+                    </DropLogout>
                   </Dropdown>
                 )}
               </BancoWrap>
 
-              <Botao type="button" onClick={handleLogout}>
+              <DesktopLogout type="button" onClick={handleLogout}>
                 Sair
-              </Botao>
+              </DesktopLogout>
             </UserRow>
           )}
         </RightBlock>
@@ -871,7 +886,7 @@ const meuPerfilHref = meuPerfilId
 
 const Barra = styled.header`
   width: 100%;
-  padding: 10px 18px 12px;
+  padding: max(10px, env(safe-area-inset-top)) 18px 12px;
   background:
     radial-gradient(
       circle at top center,
@@ -887,7 +902,11 @@ const Barra = styled.header`
   z-index: 50;
 
   @media (max-width: 640px) {
-    padding: 10px 10px 12px;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      10px
+      max(10px, env(safe-area-inset-left));
   }
 `;
 
@@ -951,16 +970,19 @@ const Logo = styled.h1`
 
 const LogoImagem = styled.img`
   display: block;
-  height: 140px;
+  height: 46px;
+  max-width: min(210px, 24vw);
   width: auto;
   object-fit: contain;
 
   @media (max-width: 900px) {
-    height: 100px;
+    height: 42px;
+    max-width: 150px;
   }
 
   @media (max-width: 640px) {
-    height: 100px;
+    height: 34px;
+    max-width: 104px;
   }
 `;
 
@@ -1014,9 +1036,9 @@ const ComoFuncionaLink = styled(Link)`
 
   @media (max-width: 640px) {
 
-    width: 38px;
+    width: 44px;
 
-    min-height: 38px;
+    min-height: 44px;
 
     border-radius: 12px;
 
@@ -1063,6 +1085,14 @@ const GuestActions = styled.div`
   align-items: center;
   gap: 8px;
   flex-wrap: nowrap;
+
+  @media (max-width: 360px) {
+    gap: 6px;
+
+    ${ComoFuncionaLink} {
+      display: none;
+    }
+  }
 `;
 
 const UserRow = styled.div`
@@ -1121,7 +1151,13 @@ const SearchDropdown = styled.div`
 
   padding: 6px;
   z-index: 90;
-  overflow: hidden;
+  max-height: min(520px, calc(100dvh - 120px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  @media (max-width: 640px) {
+    max-height: min(56dvh, 460px);
+  }
 `;
 
 const SearchSectionTitle = styled.div`
@@ -1131,10 +1167,15 @@ const SearchSectionTitle = styled.div`
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+
+  @media (max-width: 640px) {
+    font-size: 0.74rem;
+  }
 `;
 
 const SearchOption = styled.button`
   width: 100%;
+  min-height: 48px;
   border: 0;
   border-radius: 12px;
   background: ${({ $active }) =>
@@ -1218,6 +1259,10 @@ const SearchPlanBadge = styled.span`
   font-weight: 900;
   text-transform: uppercase;
   white-space: nowrap;
+
+  @media (max-width: 640px) {
+    font-size: 0.72rem;
+  }
 `;
 
 const SearchEmpty = styled.div`
@@ -1285,8 +1330,8 @@ const IconButton = styled.button`
   }
 
   @media (max-width: 640px) {
-    height: 38px;
-    width: 38px;
+    height: 44px;
+    width: 44px;
     border-radius: 12px;
   }
 `;
@@ -1350,12 +1395,12 @@ const NotifDropdown = styled.div`
     position: fixed;
     left: 50%;
     right: auto;
-    top: 76px;
+    top: max(66px, calc(env(safe-area-inset-top) + 56px));
     transform: translateX(-50%);
 
     width: calc(100vw - 16px);
     max-width: 430px;
-    max-height: calc(100vh - 96px);
+    max-height: calc(100dvh - 82px - env(safe-area-inset-top));
     border-radius: 18px;
   }
 `;
@@ -1397,6 +1442,7 @@ const NotifHeaderActions = styled.div`
 `;
 
 const MarkAllBtn = styled.button`
+  min-height: 44px;
   border: 0;
   background: transparent;
   color: #60a5fa;
@@ -1412,8 +1458,8 @@ const CloseNotifBtn = styled.button`
     align-items: center;
     justify-content: center;
 
-    height: 32px;
-    width: 32px;
+    height: 44px;
+    width: 44px;
 
     border: 1px solid rgba(148, 163, 184, 0.18);
     border-radius: 10px;
@@ -1430,7 +1476,7 @@ const NotifList = styled.div`
   overflow: auto;
 
   @media (max-width: 640px) {
-    max-height: calc(100vh - 190px);
+    max-height: calc(100dvh - 196px - env(safe-area-inset-top));
   }
 `;
 
@@ -1524,6 +1570,7 @@ const NotifEmpty = styled.div`
 
   button {
     margin-top: 12px;
+    min-height: 44px;
     padding: 8px 12px;
     border: 1px solid rgba(96, 165, 250, 0.28);
     border-radius: 10px;
@@ -1559,6 +1606,19 @@ const Dropdown = styled.div`
 
   z-index: 50;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+
+  @media (max-width: 640px) {
+    position: fixed;
+    top: max(66px, calc(env(safe-area-inset-top) + 56px));
+    right: max(8px, env(safe-area-inset-right));
+    width: min(300px, calc(100vw - 16px));
+    max-width: none;
+    max-height: calc(100dvh - 82px - env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 16px;
+  }
 `;
 
 const DropLink = styled(Link)`
@@ -1566,10 +1626,56 @@ const DropLink = styled(Link)`
   text-decoration: none;
 
   padding: 10px 12px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   border-radius: 8px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
+  }
+`;
+
+const DropSaldo = styled.div`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 5px;
+    padding: 10px 12px 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+    span {
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    strong {
+      color: #86efac;
+      font-size: 1rem;
+    }
+  }
+`;
+
+const DropLogout = styled.button`
+  display: none;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    padding: 10px 12px;
+    border: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 8px;
+    background: transparent;
+    color: #fca5a5;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
   }
 `;
 
@@ -1578,7 +1684,7 @@ const BaseButton = styled.button`
   border-radius: 14px;
 
   padding: 10px 14px;
-  min-height: 42px;
+  min-height: 44px;
 
   color: white;
   font-size: 0.92rem;
@@ -1595,8 +1701,8 @@ const BaseButton = styled.button`
   white-space: nowrap;
 
   @media (max-width: 640px) {
-    min-height: 38px;
-    padding: 9px 12px;
+    min-height: 44px;
+    padding: 9px 11px;
     border-radius: 12px;
     font-size: 0.88rem;
   }
@@ -1615,6 +1721,13 @@ const BotaoVerde = styled(BaseButton)`
 
   &:hover {
     background: #15803d;
+  }
+
+  @media (max-width: 640px) {
+    &[aria-expanded] {
+      width: 44px;
+      padding: 0;
+    }
   }
 `;
 
@@ -1640,6 +1753,25 @@ const UserAndSaldo = styled.div`
   }
 `;
 
+const AccountIcon = styled.span`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: inline-flex;
+    font-size: 1rem;
+  }
+`;
+
 const SaldoInline = styled.span`
   font-weight: 800;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const DesktopLogout = styled(Botao)`
+  @media (max-width: 640px) {
+    display: none;
+  }
 `;

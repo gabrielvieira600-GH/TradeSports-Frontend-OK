@@ -790,6 +790,7 @@ const Filtro = styled.div`
 
   select {
     width: 100%;
+    min-height: 44px;
     min-width: 0;
     padding: 0.7rem 0.75rem;
     border-radius: 10px;
@@ -988,6 +989,7 @@ const AcoesLinha = styled.div`
 `;
 
 const Mini = styled.button`
+  min-height: 44px;
   padding: 0.45rem 0.65rem;
   border-radius: 8px;
   border: 1px solid #1e293b;

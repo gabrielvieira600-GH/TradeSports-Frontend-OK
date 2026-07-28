@@ -915,6 +915,10 @@ const Eyebrow = styled.div`
   font-size: 0.69rem;
   font-weight: 900;
   letter-spacing: 0.13em;
+
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
+  }
 `;
 
 const Titulo = styled.h1`
@@ -953,6 +957,11 @@ const SimuladoBadge = styled.span`
   font-weight: 850;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    min-height: 44px;
+    font-size: 0.73rem;
+  }
 `;
 
 const StatusDot = styled.i`
@@ -965,7 +974,7 @@ const StatusDot = styled.i`
 `;
 
 const AtualizarButton = styled.button`
-  min-height: 38px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -993,6 +1002,10 @@ const AtualizarButton = styled.button`
   .girando {
     animation: ${spin} 0.8s linear infinite;
   }
+
+  @media (max-width: 640px) {
+    font-size: 0.78rem;
+  }
 `;
 
 const AvisoAtualizacao = styled.div`
@@ -1003,6 +1016,11 @@ const AvisoAtualizacao = styled.div`
   background: rgba(245, 158, 11, 0.07);
   color: #fcd34d;
   font-size: 0.72rem;
+
+  @media (max-width: 640px) {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
 `;
 
 const MercadoHero = styled.section`
@@ -1083,6 +1101,10 @@ const HeroStatus = styled.div`
   font-weight: 850;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    font-size: 0.74rem;
+  }
 `;
 
 const HeroStatusDot = styled.i`
@@ -1109,6 +1131,10 @@ const HeroTexto = styled.p`
   color: #94a3b8;
   font-size: 0.79rem;
   line-height: 1.6;
+
+  @media (max-width: 640px) {
+    font-size: 0.88rem;
+  }
 `;
 
 const HeroMeta = styled.div`
@@ -1117,6 +1143,12 @@ const HeroMeta = styled.div`
   gap: 22px;
   margin-top: 22px;
   flex-wrap: wrap;
+
+  @media (max-width: 420px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
 `;
 
 const MetaItem = styled.div`
@@ -1142,6 +1174,16 @@ const MetaItem = styled.div`
   strong {
     color: #e2e8f0;
     font-size: 0.72rem;
+  }
+
+  @media (max-width: 640px) {
+    small {
+      font-size: 0.72rem;
+    }
+
+    strong {
+      font-size: 0.82rem;
+    }
   }
 `;
 
@@ -1174,6 +1216,10 @@ const QuotaRotulo = styled.div`
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    font-size: 0.72rem;
+  }
 `;
 
 const QuotaPlano = styled.div`
@@ -1182,6 +1228,10 @@ const QuotaPlano = styled.div`
     $premium ? '#c4b5fd' : '#93c5fd'};
   font-size: 0.69rem;
   font-weight: 850;
+
+  @media (max-width: 640px) {
+    font-size: 0.78rem;
+  }
 `;
 
 const QuotaValor = styled.div`
@@ -1196,6 +1246,12 @@ const QuotaValor = styled.div`
     font-size: 0.67rem;
     font-weight: 700;
     letter-spacing: 0;
+  }
+
+  @media (max-width: 640px) {
+    span {
+      font-size: 0.76rem;
+    }
   }
 `;
 
@@ -1224,6 +1280,10 @@ const QuotaAjuda = styled.div`
   color: #64748b;
   font-size: 0.61rem;
   line-height: 1.45;
+
+  @media (max-width: 640px) {
+    font-size: 0.74rem;
+  }
 `;
 
 const HeroLink = styled(Link)`
@@ -1235,9 +1295,15 @@ const HeroLink = styled(Link)`
   font-size: 0.67rem;
   font-weight: 850;
   text-decoration: none;
+  min-height: 44px;
+  align-items: center;
 
   &:hover {
     color: #fff;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 0.76rem;
   }
 `;
 
@@ -1312,6 +1378,10 @@ const KpiBadge = styled.span`
   }};
   font-size: 0.57rem;
   font-weight: 850;
+
+  @media (max-width: 640px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const KpiRotulo = styled.div`
@@ -1319,6 +1389,10 @@ const KpiRotulo = styled.div`
   color: #64748b;
   font-size: 0.66rem;
   font-weight: 750;
+
+  @media (max-width: 640px) {
+    font-size: 0.76rem;
+  }
 `;
 
 const KpiValor = styled.div`
@@ -1335,6 +1409,13 @@ const KpiValor = styled.div`
   letter-spacing: -0.04em;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 640px) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 `;
 
 const KpiDetalhe = styled.div`
@@ -1342,6 +1423,10 @@ const KpiDetalhe = styled.div`
   color: #64748b;
   font-size: 0.61rem;
   line-height: 1.4;
+
+  @media (max-width: 640px) {
+    font-size: 0.74rem;
+  }
 `;
 
 const ConteudoGrid = styled.section`
@@ -1385,6 +1470,11 @@ const CardCabecalho = styled.div`
   justify-content: space-between;
   gap: 16px;
   padding: 19px 20px 15px;
+
+  @media (max-width: 600px) {
+    align-items: flex-start;
+    padding: 16px 15px 13px;
+  }
 `;
 
 const CardEyebrow = styled.div`
@@ -1392,6 +1482,10 @@ const CardEyebrow = styled.div`
   font-size: 0.59rem;
   font-weight: 900;
   letter-spacing: 0.11em;
+
+  @media (max-width: 640px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const CardTitulo = styled.h2`
@@ -1410,9 +1504,15 @@ const CardLink = styled(Link)`
   font-weight: 850;
   text-decoration: none;
   white-space: nowrap;
+  min-height: 44px;
+  align-items: center;
 
   &:hover {
     color: #fff;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
   }
 `;
 
@@ -1470,8 +1570,13 @@ const ClubeInfo = styled.div`
   }
 
   @media (max-width: 600px) {
+    strong {
+      font-size: 0.84rem;
+    }
+
     span {
       max-width: 170px;
+      font-size: 0.72rem;
       white-space: normal;
     }
   }
@@ -1487,6 +1592,16 @@ const PosicaoValores = styled.div`
     color: #f8fafc;
     font-size: 0.75rem;
   }
+
+  @media (max-width: 600px) {
+    min-width: 82px;
+
+    strong {
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+      text-align: right;
+    }
+  }
 `;
 
 const Resultado = styled.span`
@@ -1494,6 +1609,10 @@ const Resultado = styled.span`
     $positivo ? '#4ade80' : '#f87171'};
   font-size: 0.62rem;
   font-weight: 850;
+
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
+  }
 `;
 
 const CarteiraResumo = styled.div`
@@ -1505,6 +1624,11 @@ const CarteiraResumo = styled.div`
   background: rgba(2, 6, 23, 0.24);
   color: #64748b;
   font-size: 0.61rem;
+
+  @media (max-width: 640px) {
+    padding: 12px 15px;
+    font-size: 0.72rem;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -1528,6 +1652,16 @@ const EmptyState = styled.div`
     font-size: 0.68rem;
     line-height: 1.5;
   }
+
+  @media (max-width: 640px) {
+    h3 {
+      font-size: 0.95rem;
+    }
+
+    p {
+      font-size: 0.78rem;
+    }
+  }
 `;
 
 const EmptyIcone = styled.div`
@@ -1549,6 +1683,13 @@ const EmptyLink = styled(Link)`
   font-size: 0.66rem;
   font-weight: 850;
   text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    font-size: 0.76rem;
+  }
 `;
 
 const AtividadesLista = styled.div`
@@ -1610,6 +1751,17 @@ const AtividadeTexto = styled.div`
     font-size: 0.57rem;
     text-transform: capitalize;
   }
+
+  @media (max-width: 640px) {
+    strong {
+      font-size: 0.78rem;
+      white-space: normal;
+    }
+
+    span {
+      font-size: 0.7rem;
+    }
+  }
 `;
 
 const AtividadeValor = styled.div`
@@ -1621,6 +1773,13 @@ const AtividadeValor = styled.div`
       : '#94a3b8'};
   font-size: 0.67rem;
   font-weight: 850;
+
+  @media (max-width: 640px) {
+    max-width: 92px;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
 `;
 
 const ProximoCard = styled.article`
@@ -1667,10 +1826,14 @@ const ProximoTexto = styled.p`
   color: #94a3b8;
   font-size: 0.7rem;
   line-height: 1.6;
+
+  @media (max-width: 640px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const ProximoLink = styled(Link)`
-  min-height: 40px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1687,6 +1850,10 @@ const ProximoLink = styled(Link)`
   &:hover {
     transform: translateY(-1px);
     background: #1d4ed8;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 0.8rem;
   }
 `;
 
@@ -1726,6 +1893,12 @@ const OrdemMetrica = styled.div`
     color: #e2e8f0;
     font-size: 1rem;
   }
+
+  @media (max-width: 640px) {
+    span {
+      font-size: 0.74rem;
+    }
+  }
 `;
 
 const OrdemTotal = styled.div`
@@ -1743,10 +1916,18 @@ const OrdemTotal = styled.div`
     color: #cbd5e1;
     font-size: 0.7rem;
   }
+
+  @media (max-width: 640px) {
+    font-size: 0.74rem;
+
+    strong {
+      font-size: 0.8rem;
+    }
+  }
 `;
 
 const CardLinkGrande = styled(Link)`
-  min-height: 39px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1763,6 +1944,10 @@ const CardLinkGrande = styled(Link)`
   &:hover {
     color: #fff;
     background: rgba(59, 130, 246, 0.13);
+  }
+
+  @media (max-width: 640px) {
+    font-size: 0.78rem;
   }
 `;
 
@@ -1802,6 +1987,11 @@ const Atalho = styled(Link)`
     border-color: rgba(96, 165, 250, 0.27);
     background: rgba(59, 130, 246, 0.07);
   }
+
+  @media (max-width: 640px) {
+    min-height: 72px;
+    font-size: 0.76rem;
+  }
 `;
 
 const RodapeNota = styled.div`
@@ -1825,6 +2015,8 @@ const RodapeNota = styled.div`
 
   @media (max-width: 600px) {
     align-items: flex-start;
+    font-size: 0.7rem;
+    line-height: 1.45;
     text-align: left;
   }
 `;
@@ -1866,7 +2058,7 @@ const ErroIcone = styled.div`
 `;
 
 const RetryButton = styled.button`
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 8px;

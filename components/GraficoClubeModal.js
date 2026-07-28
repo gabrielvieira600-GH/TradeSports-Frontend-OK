@@ -56,6 +56,23 @@ export default function GraficoClubeModal({ aberto, fechar, clubeId, clubeNome }
     }
   }, [aberto, clubeId]);
 
+  useEffect(() => {
+    if (!aberto || typeof document === 'undefined') return undefined;
+
+    const overflowAnterior = document.body.style.overflow;
+    const fecharComEscape = (event) => {
+      if (event.key === 'Escape') fechar?.();
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', fecharComEscape);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener('keydown', fecharComEscape);
+    };
+  }, [aberto, fechar]);
+
   const resumo = useMemo(() => {
     if (!historico.length) {
       return { atual: 0, max: 0, min: 0, variacao: 0 };
@@ -229,7 +246,22 @@ const Overlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 999;
-  padding: 20px;
+  height: 100vh;
+  height: 100dvh;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+
+  @media (max-width: 640px) {
+    align-items: stretch;
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
 `;
 
 const Modal = styled.div`
@@ -240,6 +272,14 @@ const Modal = styled.div`
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   color: white;
   padding: 22px;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  @media (max-width: 640px) {
+    padding: 16px 12px;
+    border-radius: 18px;
+  }
 `;
 
 const Header = styled.div`
@@ -248,6 +288,12 @@ const Header = styled.div`
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+
+  @media (max-width: 520px) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
 `;
 
 const TitleBlock = styled.div`
@@ -283,6 +329,10 @@ const ResumoGrid = styled.div`
   @media (max-width: 720px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  @media (max-width: 420px) {
+    gap: 8px;
+  }
 `;
 
 const ResumoCard = styled.div`
@@ -303,6 +353,21 @@ const ResumoCard = styled.div`
     font-size: 1.05rem;
     font-weight: 800;
   }
+
+  @media (max-width: 420px) {
+    min-width: 0;
+    padding: 11px 10px;
+    border-radius: 14px;
+
+    small {
+      font-size: 0.75rem;
+    }
+
+    strong {
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+  }
 `;
 
 const ChartArea = styled.div`
@@ -311,6 +376,16 @@ const ChartArea = styled.div`
   padding: 14px;
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
   border: 1px solid rgba(148, 163, 184, 0.10);
+
+  @media (max-width: 640px) {
+    height: 260px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  @media (max-height: 660px) and (max-width: 640px) {
+    height: 210px;
+  }
 `;
 
 const Estado = styled.div`
@@ -322,6 +397,7 @@ const Estado = styled.div`
 `;
 
 const BotaoFechar = styled.button`
+  min-height: 44px;
   background: rgba(239, 68, 68, 0.14);
   color: #fecaca;
   border: 1px solid rgba(239, 68, 68, 0.18);
@@ -332,5 +408,9 @@ const BotaoFechar = styled.button`
 
   &:hover {
     background: rgba(239, 68, 68, 0.22);
+  }
+
+  @media (max-width: 520px) {
+    width: 100%;
   }
 `;
