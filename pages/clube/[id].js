@@ -13,10 +13,6 @@ const LIGA_NOME = 'Brasileirão Série A';
 const Wrapper = styled.div`
   padding: 28px 24px;
   color: #e5e7eb;
-
-  @media (max-width: 640px) {
-    padding: 12px 4px 20px;
-  }
 `;
 
 const HeaderMain = styled.div`
@@ -38,7 +34,6 @@ const Header = styled.div`
   margin-bottom: 18px;
 
   @media (max-width: 640px) {
-    flex-direction: column;
     align-items: flex-start;
   }
 `;
@@ -52,10 +47,6 @@ const TitleBox = styled.div`
 const Title = styled.h1`
   font-size: 28px;
   margin: 0;
-
-  @media (max-width: 640px) {
-    font-size: 1.35rem;
-  }
 `;
 
 const FavoriteHeader = styled.div`
@@ -76,8 +67,8 @@ const FavoriteStar = styled.button`
   color: ${({$active}) =>
     $active ? "#fde68a" : "#cbd5e1"};
 
-  height:44px;
-  width:44px;
+  height:40px;
+  width:40px;
 
   border-radius:10px;
 
@@ -117,7 +108,6 @@ const Tabs = styled.div`
 `;
 
 const Tab = styled.button`
-  min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: ${({ active }) => (active ? '#16a34a' : 'transparent')};
   color: ${({ active }) => (active ? '#0b1220' : '#e5e7eb')};
@@ -152,7 +142,6 @@ const Value = styled.div`
 `;
 
 const Btn = styled.button`
-  min-height: 44px;
   background: #3b82f6;
   color: white;
   border: 0;
@@ -162,9 +151,9 @@ const Btn = styled.button`
   font-weight: 700;
 `;
 
-function formatTS(v) {
+function formatBRL(v) {
   const n = Number(v || 0);
-  return `T$ ${n.toFixed(2)}`;
+  return `R$ ${n.toFixed(2)}`;
 }
 
 // SVG line chart (sem libs), “linha por operação”
@@ -412,25 +401,25 @@ export default function ClubeDetalhe() {
         <Card>
           <Row>
             <Label>Preço IPO/Liquidação (estático)</Label>
-            <Value>{formatTS(hist?.ipoLiquidacao ?? clube?.preco)}</Value>
+            <Value>{formatBRL(hist?.ipoLiquidacao ?? clube?.preco)}</Value>
           </Row>
 
           <Row>
             <Label>Preço de Mercado (último negócio)</Label>
-            <Value>{formatTS(hist?.precoMercado ?? clube?.precoAtual ?? clube?.preco)}</Value>
+            <Value>{formatBRL(hist?.precoMercado ?? clube?.precoAtual ?? clube?.preco)}</Value>
           </Row>
 
           <Row>
             <Label>Variação no período</Label>
             <Value style={{ color: variacaoCor }}>
-              {formatTS(resumo?.variacaoAbs)} ({(resumo?.variacaoPct ?? 0).toFixed(2)}%)
+              {formatBRL(resumo?.variacaoAbs)} ({(resumo?.variacaoPct ?? 0).toFixed(2)}%)
             </Value>
           </Row>
 
           <Row>
             <Label>Máxima / Mínima</Label>
             <Value>
-              {formatTS(resumo?.max)} / {formatTS(resumo?.min)}
+              {formatBRL(resumo?.max)} / {formatBRL(resumo?.min)}
             </Value>
           </Row>
 

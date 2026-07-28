@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import styled from 'styled-components';
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useMemo, useState } from 'react';
 import { LeagueBadge } from './ClubBadge';
 
 const mercados = [
@@ -63,19 +62,13 @@ const mercados = [
 ];
 
 export default function Sidebar() {
-  const router = useRouter();
   const [minimizado, setMinimizado] = useState(false);
-  const [mobileAberto, setMobileAberto] = useState(false);
   const mercadoCount = useMemo(() => mercados.length, []);
-
-  useEffect(() => {
-    setMobileAberto(false);
-  }, [router.asPath]);
 
   return (
     <SidebarShell $minimizado={minimizado}>
       <SidebarContainer $minimizado={minimizado}>
-        <DesktopHeader>
+        <Header>
           <BrandWrap>
             {!minimizado && (
               <BrandText>
@@ -93,43 +86,25 @@ export default function Sidebar() {
           >
             {minimizado ? '»' : '«'}
           </ToggleButton>
-        </DesktopHeader>
-
-        <MobileHeader
-          type="button"
-          onClick={() => setMobileAberto((aberto) => !aberto)}
-          aria-expanded={mobileAberto}
-          aria-controls="menu-mercados-mobile"
-        >
-          <MobileHeaderText>
-            <MobileHeaderIcon>⚽</MobileHeaderIcon>
-            <span>
-              <strong>Mercados</strong>
-              <small>{mercadoCount} ligas disponíveis</small>
-            </span>
-          </MobileHeaderText>
-          <MobileChevron $aberto={mobileAberto}>⌄</MobileChevron>
-        </MobileHeader>
+        </Header>
 
         {!minimizado && <SectionLabel>Todos os mercados</SectionLabel>}
 
-        <Nav id="menu-mercados-mobile" $mobileAberto={mobileAberto}>
+        <Nav>
           {mercados.map((item) => (
             <NavItem key={item.href}>
-              <StyledLink
-                href={item.href}
-                title={item.nome}
-                aria-current={
-                  router.pathname.toLowerCase() === item.href ? 'page' : undefined
-                }
-              >
+              <StyledLink href={item.href} title={item.nome}>
                 <LinkInner $minimizado={minimizado}>
                   <LeagueIconWrap>
                     <LeagueBadge liga={item.badge} size={28} />
                   </LeagueIconWrap>
 
-                  <Label $minimizado={minimizado}>{item.nome}</Label>
-                  <Arrow $minimizado={minimizado}>›</Arrow>
+                  {!minimizado && (
+                    <>
+                      <Label>{item.nome}</Label>
+                      <Arrow>›</Arrow>
+                    </>
+                  )}
                 </LinkInner>
               </StyledLink>
             </NavItem>
@@ -169,7 +144,7 @@ const SidebarContainer = styled.aside`
   }
 `;
 
-const DesktopHeader = styled.div`
+const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -177,68 +152,8 @@ const DesktopHeader = styled.div`
   margin-bottom: 18px;
 
   @media (max-width: 960px) {
-    display: none;
+    margin-bottom: 10px;
   }
-`;
-
-const MobileHeader = styled.button`
-  display: none;
-
-  @media (max-width: 960px) {
-    width: 100%;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 7px 10px;
-    border: 1px solid rgba(148, 163, 184, 0.13);
-    border-radius: 13px;
-    background: rgba(255, 255, 255, 0.035);
-    color: #f8fafc;
-    text-align: left;
-    cursor: pointer;
-  }
-`;
-
-const MobileHeaderText = styled.span`
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  > span:last-child {
-    min-width: 0;
-    display: grid;
-    gap: 2px;
-  }
-
-  strong {
-    font-size: 0.9rem;
-  }
-
-  small {
-    color: #94a3b8;
-    font-size: 0.76rem;
-  }
-`;
-
-const MobileHeaderIcon = styled.span`
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 10px;
-  background: rgba(34, 197, 94, 0.1);
-`;
-
-const MobileChevron = styled.span`
-  color: #94a3b8;
-  font-size: 1.25rem;
-  line-height: 1;
-  transform: rotate(${({ $aberto }) => ($aberto ? '180deg' : '0deg')});
-  transition: transform 0.18s ease;
 `;
 
 const BrandWrap = styled.div`
@@ -296,7 +211,7 @@ const SectionLabel = styled.div`
   padding-left: 2px;
 
   @media (max-width: 960px) {
-    display: none;
+    margin-bottom: 8px;
   }
 `;
 
@@ -306,18 +221,14 @@ const Nav = styled.nav`
   gap: 2px;
 
   @media (max-width: 960px) {
-    display: ${({ $mobileAberto }) => ($mobileAberto ? 'grid' : 'none')};
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-direction: row;
     gap: 8px;
-    max-height: min(60dvh, 520px);
-    margin-top: 9px;
-    padding: 2px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
+    overflow-x: auto;
+    padding-bottom: 2px;
 
-  @media (max-width: 520px) {
-    grid-template-columns: 1fr;
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
   }
 `;
 
@@ -325,18 +236,13 @@ const NavItem = styled.div`
   width: 100%;
 
   @media (max-width: 960px) {
-    width: 100%;
+    width: auto;
+    flex: 0 0 auto;
   }
 `;
 
 const StyledLink = styled(Link)`
-  display: block;
   text-decoration: none;
-
-  &[aria-current='page'] > div {
-    border-color: rgba(34, 197, 94, 0.28);
-    background: rgba(34, 197, 94, 0.09);
-  }
 `;
 
 const LinkInner = styled.div`
@@ -357,9 +263,8 @@ const LinkInner = styled.div`
   }
 
   @media (max-width: 960px) {
-    min-height: 48px;
-    justify-content: flex-start;
-    padding: 7px 10px;
+    min-height: 40px;
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(148, 163, 184, 0.08);
   }
@@ -376,27 +281,21 @@ const LeagueIconWrap = styled.div`
   flex: 0 0 auto;
 
   @media (max-width: 960px) {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 10px;
   }
 `;
 
 const Label = styled.span`
-  display: ${({ $minimizado }) => ($minimizado ? 'none' : 'inline')};
   flex: 1;
   min-width: 0;
   font-size: 0.94rem;
   font-weight: 600;
   color: #e2e8f0;
-
-  @media (max-width: 960px) {
-    display: inline;
-  }
 `;
 
 const Arrow = styled.span`
-  display: ${({ $minimizado }) => ($minimizado ? 'none' : 'inline')};
   color: #64748b;
   font-size: 1.15rem;
   flex: 0 0 auto;

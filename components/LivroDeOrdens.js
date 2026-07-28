@@ -232,12 +232,6 @@ const Wrap = styled.div`
   border: 1px solid rgba(148, 163, 184, 0.14);
   padding: 12px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
-
-  @media (max-width: 640px) {
-    margin-top: 14px;
-    padding: 10px;
-    border-radius: 14px;
-  }
 `;
 
 const Header = styled.div`
@@ -245,16 +239,6 @@ const Header = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 10px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-
-    > div:nth-child(2) {
-      grid-column: 1 / -1;
-      grid-row: 1;
-    }
-  }
 `;
 
 const MetricCard = styled.div`
@@ -282,22 +266,6 @@ const MetricCard = styled.div`
     color: #e4e7ec;
     font-weight: 700;
   }
-
-  @media (max-width: 640px) {
-    min-width: 0;
-    padding: 10px;
-
-    small {
-      min-height: 2.5em;
-      font-size: 0.72rem;
-      line-height: 1.25;
-    }
-
-    strong {
-      font-size: 0.9rem;
-      overflow-wrap: anywhere;
-    }
-  }
 `;
 
 const Toolbar = styled.div`
@@ -309,7 +277,6 @@ const Toolbar = styled.div`
   flex-wrap: wrap;
 
   button {
-    min-height: 44px;
     border: none;
     border-radius: 10px;
     padding: 10px 12px;
@@ -335,28 +302,12 @@ const Toolbar = styled.div`
     border-radius: 999px;
     padding: 8px 10px;
   }
-
-  @media (max-width: 640px) {
-    align-items: stretch;
-    flex-direction: column;
-
-    button,
-    .spread {
-      width: 100%;
-      text-align: center;
-    }
-  }
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
 `;
 
 const Col = styled.div`
@@ -374,7 +325,6 @@ const Col = styled.div`
 
 const Row = styled.div`
   position: relative;
-  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -427,8 +377,6 @@ const Linha = styled.div`
 `;
 
 const BotaoCancelar = styled.button`
-  min-width: 44px;
-  min-height: 44px;
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;

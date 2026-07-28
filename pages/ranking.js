@@ -93,25 +93,6 @@ const [pagina, setPagina] = useState(1);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
-  useEffect(() => {
-    if (!modalCriarPrivadoAberto || typeof document === 'undefined') {
-      return undefined;
-    }
-
-    const overflowAnterior = document.body.style.overflow;
-    const fecharComEscape = (event) => {
-      if (event.key === 'Escape') setModalCriarPrivadoAberto(false);
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', fecharComEscape);
-
-    return () => {
-      document.body.style.overflow = overflowAnterior;
-      document.removeEventListener('keydown', fecharComEscape);
-    };
-  }, [modalCriarPrivadoAberto]);
-
   const carregarRanking = async (
   paginaSolicitada = 1,
   categoriaSolicitada = categoria
@@ -1542,132 +1523,85 @@ const voltarParaListaPrivados = () => {
   />
 ) : (
   <>
-    <DesktopOnly>
-      <TabelaLigaContainer>
-        <TabelaLiga>
-          <thead>
-            <tr>
-              <th>Pos.</th>
-              <th>Usuário</th>
-              <th>Valorização histórica</th>
-              <th>Patrimônio</th>
-            </tr>
-          </thead>
+    <TabelaLigaContainer>
+      <TabelaLiga>
+        <thead>
+          <tr>
+            <th>Pos.</th>
+            <th>Usuário</th>
+            <th>Valorização histórica</th>
+            <th className="patrimonio">
+              Patrimônio
+            </th>
+          </tr>
+        </thead>
 
-          <tbody>
-            {ranking.map((usuario) => {
-              const souEu =
-                String(usuario.usuarioId) ===
-                String(usuarioAtual?.usuarioId);
+        <tbody>
+          {ranking.map((usuario) => {
+            const souEu =
+              String(usuario.usuarioId) ===
+              String(usuarioAtual?.usuarioId);
 
-              return (
-                <LinhaLiga
-                  key={usuario.usuarioId}
-                  $destaque={souEu}
-                >
-                  <td>
-                    <PosicaoLiga $posicao={usuario.posicao}>
-                      {usuario.posicao}º
-                    </PosicaoLiga>
-                  </td>
-
-                  <td>
-                    <UsuarioCelula>
-                      <AvatarPequeno>
-                        {String(
-                          usuario.nomeUsuario ||
-                            usuario.nome ||
-                            'U'
-                        )
-                          .charAt(0)
-                          .toUpperCase()}
-                      </AvatarPequeno>
-
-                      <UsuarioLiga>
-                        <strong>
-                          {usuario.nomeUsuario
-                            ? `@${usuario.nomeUsuario}`
-                            : usuario.nome || 'Usuário'}
-                        </strong>
-
-                        {souEu && <small>Você</small>}
-                      </UsuarioLiga>
-                    </UsuarioCelula>
-                  </td>
-
-                  <td>
-                    <Variacao
-                      $positivo={Number(usuario.rentabilidade) >= 0}
-                    >
-                      {formatarPercentual(usuario.rentabilidade)}
-                    </Variacao>
-                  </td>
-
-                  <td>
-                    <ValorDestaque>
-                      {formatarTS(usuario.patrimonio)}
-                    </ValorDestaque>
-                  </td>
-                </LinhaLiga>
-              );
-            })}
-          </tbody>
-        </TabelaLiga>
-      </TabelaLigaContainer>
-    </DesktopOnly>
-
-    <MobileOnly>
-      <ListaMobile>
-        {ranking.map((usuario) => {
-          const souEu =
-            String(usuario.usuarioId) ===
-            String(usuarioAtual?.usuarioId);
-
-          return (
-            <CardMobile key={usuario.usuarioId} $destaque={souEu}>
-              <CardMobileTopo>
-                <UsuarioMobile>
-                  <AvatarPequeno>
-                    {String(
-                      usuario.nomeUsuario ||
-                        usuario.nome ||
-                        'U'
-                    )
-                      .charAt(0)
-                      .toUpperCase()}
-                  </AvatarPequeno>
-                  <div>
-                    <strong>
-                      {usuario.nomeUsuario
-                        ? `@${usuario.nomeUsuario}`
-                        : usuario.nome || 'Usuário'}
-                    </strong>
-                    <small>{souEu ? 'Você' : tituloCategoria}</small>
-                  </div>
-                </UsuarioMobile>
-
-                <PosicaoMobile>{usuario.posicao}º</PosicaoMobile>
-              </CardMobileTopo>
-
-              <MetricasMobile>
-                <MetricaMobile>
-                  <span>Valorização histórica</span>
-                  <Variacao
-                    $positivo={Number(usuario.rentabilidade) >= 0}
+            return (
+              <LinhaLiga
+                key={usuario.usuarioId}
+                $destaque={souEu}
+              >
+                <td>
+                  <PosicaoLiga
+                    $posicao={usuario.posicao}
                   >
-                    {formatarPercentual(usuario.rentabilidade)}
+                    {usuario.posicao}º
+                  </PosicaoLiga>
+                </td>
+
+                <td>
+                  <UsuarioCelula>
+                    <AvatarPequeno>
+                      {String(
+                        usuario.nomeUsuario ||
+                          usuario.nome ||
+                          'U'
+                      )
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarPequeno>
+
+                    <UsuarioLiga>
+                      <strong>
+                        {usuario.nomeUsuario
+                          ? `@${usuario.nomeUsuario}`
+                          : usuario.nome || 'Usuário'}
+                      </strong>
+
+                      {souEu && <small>Você</small>}
+                    </UsuarioLiga>
+                  </UsuarioCelula>
+                </td>
+
+                <td>
+                  <Variacao
+                    $positivo={
+                      Number(usuario.rentabilidade) >= 0
+                    }
+                  >
+                    {formatarPercentual(
+                      usuario.rentabilidade
+                    )}
                   </Variacao>
-                </MetricaMobile>
-                <MetricaMobile>
-                  <span>Patrimônio</span>
-                  <strong>{formatarTS(usuario.patrimonio)}</strong>
-                </MetricaMobile>
-              </MetricasMobile>
-            </CardMobile>
-          );
-        })}
-      </ListaMobile>
-    </MobileOnly>
+                </td>
+
+                <td className="patrimonio">
+                  <ValorDestaque>
+                    {formatarTS(usuario.patrimonio)}
+                  </ValorDestaque>
+                </td>
+              </LinhaLiga>
+            );
+          })}
+        </tbody>
+      </TabelaLiga>
+    </TabelaLigaContainer>
 
             <Paginacao>
               <BotaoPagina
@@ -1942,7 +1876,7 @@ const AbasRanking = styled.div`
 `;
 
 const AbaRanking = styled.button`
-  min-height: 44px;
+  min-height: 40px;
   padding: 9px 14px;
   border: 1px solid
     ${({ $ativa }) =>
@@ -2421,11 +2355,6 @@ const CardMobile = styled.div`
     $destaque
       ? 'rgba(59, 130, 246, 0.09)'
       : 'rgba(255, 255, 255, 0.025)'};
-
-  @media (max-width: 420px) {
-    padding: 13px;
-    border-radius: 14px;
-  }
 `;
 
 const CardMobileTopo = styled.div`
@@ -2452,13 +2381,13 @@ const UsuarioMobile = styled.div`
 
   strong {
     color: #f8fafc;
-    font-size: 0.92rem;
+    font-size: 0.87rem;
   }
 
   small {
     margin-top: 2px;
     color: #60a5fa;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
   }
 `;
 
@@ -2489,19 +2418,16 @@ const MetricasMobile = styled.div`
 `;
 
 const MetricaMobile = styled.div`
-  min-width: 0;
-
   span {
     display: block;
     margin-bottom: 3px;
     color: #64748b;
-    font-size: 0.76rem;
+    font-size: 0.69rem;
   }
 
   strong {
     color: #cbd5e1;
-    font-size: 0.88rem;
-    overflow-wrap: anywhere;
+    font-size: 0.82rem;
   }
 `;
 
@@ -2860,7 +2786,6 @@ const Paginacao = styled.div`
 `;
 
 const BotaoPagina = styled.button`
-  min-height: 44px;
   border: 1px solid
     rgba(148, 163, 184, 0.16);
   border-radius: 11px;
@@ -2890,8 +2815,6 @@ const ModalOverlay = styled.div`
   inset: 0;
   z-index: 1000;
   padding: 20px;
-  min-height: 100vh;
-  min-height: 100dvh;
 
   background: rgba(2, 6, 23, 0.78);
   backdrop-filter: blur(8px);
@@ -2899,15 +2822,6 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-
-  @media (max-width: 520px) {
-    align-items: stretch;
-    padding:
-      max(8px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(8px, env(safe-area-inset-left));
-  }
 `;
 
 const ModalCard = styled.div`
@@ -2928,11 +2842,6 @@ const ModalCard = styled.div`
     #0f172a;
 
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-
-  @media (max-width: 520px) {
-    max-height: 100%;
-    border-radius: 16px;
-  }
 `;
 
 const ModalTopo = styled.div`
@@ -2959,8 +2868,8 @@ const ModalTexto = styled.p`
 `;
 
 const BotaoFecharModal = styled.button`
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 999px;
 
@@ -3075,7 +2984,6 @@ const ModalAcoes = styled.div`
 `;
 
 const BotaoCancelarModal = styled.button`
-  min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 12px;
   padding: 10px 14px;
@@ -3092,7 +3000,6 @@ const BotaoCancelarModal = styled.button`
 `;
 
 const BotaoSalvarModal = styled.button`
-  min-height: 44px;
   border: 1px solid rgba(250, 204, 21, 0.32);
   border-radius: 12px;
   padding: 10px 15px;
