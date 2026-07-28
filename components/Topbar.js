@@ -803,6 +803,9 @@ const meuPerfilHref = meuPerfilId
                   </Dropdown>
                 )}
               </BancoWrap>
+              <DesktopLogout type="button" onClick={handleLogout}>
+                Sair
+              </DesktopLogout>
             </UserRow>
           )}
         </RightBlock>

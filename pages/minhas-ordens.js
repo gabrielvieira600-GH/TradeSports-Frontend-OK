@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import withAuth from '../components/withAuth';
 import api from '../lib/api';
 import EstadoInterface from '../components/EstadoInterface';
+import ClubBadge from '../components/ClubBadge';
+import NegociacaoModal from '../components/NegociacaoModal';
 
 function formatTS(n) {
   const v = Number(n || 0);
@@ -73,6 +75,30 @@ function MinhasOrdens() {
   const [filtroStatus, setFiltroStatus] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [ordensExpandidas, setOrdensExpandidas] = useState({});
+  const [modalAberto, setModalAberto] = useState(false);
+  const [clubeSelecionado, setClubeSelecionado] = useState(null);
+  const [modoNegociacao, setModoNegociacao] = useState('compra');
+
+  const alternarDetalhesOrdem = (ordemId) => {
+    const chave = String(ordemId);
+    setOrdensExpandidas((estadoAtual) => ({
+      ...estadoAtual,
+      [chave]: !estadoAtual[chave],
+    }));
+  };
+
+  const abrirNegociacao = (ordem) => {
+    const clube = clubes.find(
+      (item) => String(item.id) === String(ordem.clubeId)
+    );
+
+    if (!clube) return;
+
+    setClubeSelecionado(clube);
+    setModoNegociacao(ordem.tipo === 'venda' ? 'venda' : 'compra');
+    setModalAberto(true);
+  };
 
   async function carregarTudo() {
     setCarregando(true);
@@ -262,6 +288,19 @@ setItens(itensOrdens);
 
 
   return (
+    <>
+      {modalAberto && clubeSelecionado && (
+        <NegociacaoModal
+          isOpen={modalAberto}
+          clube={clubeSelecionado}
+          modoInicial={modoNegociacao}
+          onClose={() => {
+            setModalAberto(false);
+            setClubeSelecionado(null);
+          }}
+        />
+      )}
+
     <Container>
       <Titulo>Minhas Ordens</Titulo>
 
@@ -525,84 +564,114 @@ setItens(itensOrdens);
         Number(x.restante || 0) > 0;
 
       const evento = dataStatusOrdem(x);
+      const chaveOrdem = String(x.id);
+      const detalhesExpandidos = Boolean(ordensExpandidas[chaveOrdem]);
+      const detalhesId = `detalhes-ordem-${chaveOrdem}`;
 
       return (
         <MobileItem key={x.id}>
           <MobileTop>
-            <div>
-              <MobileClube>
-                {x.clubeNome}
-              </MobileClube>
+            <MobileClube>
+              <OrdemBadgeWrap>
+                <ClubBadge clube={x.clubeNome} size={28} />
+              </OrdemBadgeWrap>
+              <strong>{x.clubeNome}</strong>
+            </MobileClube>
 
-              <MobileData>
-                Criada em {formatData(x.criadoEm)}
-              </MobileData>
-            </div>
+            <MobileHeaderActions>
+              <BotaoNegociar
+                type="button"
+                onClick={() => abrirNegociacao(x)}
+              >
+                Negociar
+              </BotaoNegociar>
 
-            <TipoPill $compra={isCompra}>
-              {isCompra ? 'COMPRA' : 'VENDA'}
-            </TipoPill>
+              <ToggleDetailsButton
+                type="button"
+                $expandido={detalhesExpandidos}
+                aria-expanded={detalhesExpandidos}
+                aria-controls={detalhesId}
+                aria-label={
+                  detalhesExpandidos
+                    ? `Ocultar informações da ordem de ${x.clubeNome}`
+                    : `Exibir informações da ordem de ${x.clubeNome}`
+                }
+                onClick={() => alternarDetalhesOrdem(x.id)}
+              />
+            </MobileHeaderActions>
           </MobileTop>
 
-          <StatusMobile>
-            <StatusBadge $status={x.status}>
-              {statusLabel(x.status)}
-            </StatusBadge>
-          </StatusMobile>
+          {detalhesExpandidos && (
+            <MobileDetails id={detalhesId}>
+              <MobileMeta>
+                <MobileData>
+                  Criada em {formatData(x.criadoEm)}
+                </MobileData>
 
-          <MobileGrid>
-            <InfoBloco>
-              <span>Preço limite</span>
-              <strong>{formatTS(x.preco)}</strong>
-            </InfoBloco>
+                <TipoPill $compra={isCompra}>
+                  {isCompra ? 'COMPRA' : 'VENDA'}
+                </TipoPill>
 
-            <InfoBloco>
-              <span>Quantidade original</span>
-              <strong>{x.quantidade}</strong>
-            </InfoBloco>
+                <StatusBadge $status={x.status}>
+                  {statusLabel(x.status)}
+                </StatusBadge>
+              </MobileMeta>
 
-            <InfoBloco>
-              <span>Quantidade executada</span>
-              <QuantidadeExecutada>
-                {x.executada}
-              </QuantidadeExecutada>
-            </InfoBloco>
+              <MobileGrid>
+                <InfoBloco>
+                  <span>Preço limite</span>
+                  <strong>{formatTS(x.preco)}</strong>
+                </InfoBloco>
 
-            <InfoBloco>
-              <span>Quantidade restante</span>
-              <QuantidadeRestante
-                $possuiRestante={
-                  Number(x.restante || 0) > 0
-                }
-              >
-                {x.restante}
-              </QuantidadeRestante>
-            </InfoBloco>
+                <InfoBloco>
+                  <span>Quantidade original</span>
+                  <strong>{x.quantidade}</strong>
+                </InfoBloco>
 
-            <InfoBloco $largo>
-              <span>{evento.label}</span>
-              <strong>
-                {evento.data
-                  ? formatData(evento.data)
-                  : evento.label}
-              </strong>
-            </InfoBloco>
-          </MobileGrid>
+                <InfoBloco>
+                  <span>Quantidade executada</span>
+                  <QuantidadeExecutada>
+                    {x.executada}
+                  </QuantidadeExecutada>
+                </InfoBloco>
 
-          <MobileAcoes>
-            {podeCancelar ? (
-              <MiniDanger
-                type="button"
-                onClick={() => cancelarOrdem(x.id)}
-              >
-                Cancelar quantidade restante
-              </MiniDanger>
-            ) : (
-              <SemAcao>
-                Esta ordem não possui ações disponíveis.
-              </SemAcao>
-            )}
-          </MobileAcoes>
+                <InfoBloco>
+                  <span>Quantidade restante</span>
+                  <QuantidadeRestante
+                    $possuiRestante={
+                      Number(x.restante || 0) > 0
+                    }
+                  >
+                    {x.restante}
+                  </QuantidadeRestante>
+                </InfoBloco>
+
+                <InfoBloco $largo>
+                  <span>{evento.label}</span>
+                  <strong>
+                    {evento.data
+                      ? formatData(evento.data)
+                      : evento.label}
+                  </strong>
+                </InfoBloco>
+              </MobileGrid>
+
+              <MobileAcoes>
+                {podeCancelar ? (
+                  <MiniDanger
+                    type="button"
+                    onClick={() => cancelarOrdem(x.id)}
+                  >
+                    Cancelar quantidade restante
+                  </MiniDanger>
+                ) : (
+                  <SemAcao>
+                    Esta ordem não possui ações disponíveis.
+                  </SemAcao>
+                )}
+              </MobileAcoes>
+            </MobileDetails>
+          )}
         </MobileItem>
       );
     })
@@ -615,6 +684,7 @@ setItens(itensOrdens);
   executada não pode ser revertida.
 </Nota>
     </Container>
+    </>
   );
 }
 
@@ -676,26 +746,118 @@ const MobileItem = styled.div`
 
 const MobileTop = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
 `;
 
 const MobileClube = styled.div`
-  color: #fff;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  strong {
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const OrdemBadgeWrap = styled.div`
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: grid;
+  place-items: center;
+  margin-right: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+`;
+
+const MobileHeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+`;
+
+const BotaoNegociar = styled.button`
+  min-height: 44px;
+  padding: 0.48rem 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.84rem;
   font-weight: 800;
-  font-size: 1rem;
+  white-space: nowrap;
+
+  &:hover {
+    background: #2563eb;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+`;
+
+const ToggleDetailsButton = styled.button`
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.72);
+  color: #cbd5e1;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: ${({ $expandido }) =>
+      $expandido ? 'translateY(3px) rotate(-135deg)' : 'translateY(-2px) rotate(45deg)'};
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #ffffff;
+    border-color: rgba(96, 165, 250, 0.55);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+`;
+
+const MobileDetails = styled.div`
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+`;
+
+const MobileMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
 `;
 
 const MobileData = styled.div`
-  margin-top: 4px;
   color: #64748b;
-  font-size: 0.7rem;
-`;
-
-const StatusMobile = styled.div`
-  margin-bottom: 12px;
+  font-size: 0.75rem;
 `;
 
 const TipoPill = styled.span`
