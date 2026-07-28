@@ -1041,7 +1041,8 @@ return (
       </FranquiaTexto>
     ) : !limiteOrdens.temporadaAtiva ? (
       <FranquiaTexto>
-        Nenhuma temporada ativa no momento.
+        Nenhuma temporada está ativa. Novas ordens serão liberadas quando a
+        próxima competição for publicada.
       </FranquiaTexto>
     ) : !limiteOrdens.mercadoAberto ? (
   <FranquiaTexto>
