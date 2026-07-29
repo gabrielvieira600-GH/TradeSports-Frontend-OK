@@ -1493,24 +1493,20 @@ const DropLink = styled(Link)`
 `;
 
 const DropLogout = styled.button`
-  display: none;
-
-  @media (max-width: 640px) {
-    width: 100%;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    margin-top: 5px;
-    padding: 10px 12px;
-    border: 0;
-    border-top: 1px solid rgba(148, 163, 184, 0.12);
-    border-radius: 8px;
-    background: transparent;
-    color: #fca5a5;
-    font-weight: 800;
-    text-align: left;
-    cursor: pointer;
-  }
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  padding: 10px 12px;
+  border: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  background: transparent;
+  color: #fca5a5;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
 `;
 
 const BaseButton = styled.button`
