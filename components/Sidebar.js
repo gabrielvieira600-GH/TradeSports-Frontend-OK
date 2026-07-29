@@ -117,20 +117,25 @@ export default function Sidebar() {
 
 const SidebarShell = styled.div`
   position: relative;
+  align-self: stretch;
+  display: flex;
   width: ${({ $minimizado }) => ($minimizado ? '86px' : '272px')};
   transition: width 0.22s ease;
   flex: 0 0 auto;
+  background: linear-gradient(180deg, #0f172a 0%, #0b1324 100%);
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
 
   @media (max-width: 960px) {
     width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   }
 `;
 
 const SidebarContainer = styled.aside`
+  flex: 1 1 auto;
   width: 100%;
   min-height: calc(100vh - 73px);
-  background: linear-gradient(180deg, #0f172a 0%, #0b1324 100%);
-  border-right: 1px solid rgba(148, 163, 184, 0.12);
   padding: ${({ $minimizado }) => ($minimizado ? '18px 12px' : '20px 16px')};
   color: white;
   transition: padding 0.22s ease;
@@ -138,8 +143,6 @@ const SidebarContainer = styled.aside`
 
   @media (max-width: 960px) {
     min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
     padding: 10px 10px 12px;
   }
 `;
