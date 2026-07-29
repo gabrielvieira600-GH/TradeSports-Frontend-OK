@@ -39,6 +39,15 @@ function CarteiraPage() {
 
   const [serieCarteira, setSerieCarteira] = useState([]);
   const [intervaloGrafico, setIntervaloGrafico] = useState('SEASON');
+  const [ativosExpandidos, setAtivosExpandidos] = useState({});
+
+  const alternarDetalhesAtivo = (clubeId) => {
+    const chave = String(clubeId);
+    setAtivosExpandidos((estadoAtual) => ({
+      ...estadoAtual,
+      [chave]: !estadoAtual[chave],
+    }));
+  };
 
   const abrirPaginaClube = (clubeId) => {
     router.push(`/clube/${clubeId}`);
@@ -732,9 +741,12 @@ function CarteiraPage() {
                 const lucro = valorAtual - totalInvestidoAtivo;
                 const variacaoPerc =
                   totalInvestidoAtivo > 0 ? (lucro / totalInvestidoAtivo) * 100 : 0;
+                const chaveAtivo = String(ativo.clubeId);
+                const detalhesExpandidos = Boolean(ativosExpandidos[chaveAtivo]);
+                const detalhesId = `detalhes-carteira-${chaveAtivo}`;
 
                 return (
-                  <MobileCard key={index}>
+                  <MobileCard key={chaveAtivo || index}>
                     <MobileTop>
                       <MobileClub onClick={() => abrirPaginaClube(ativo.clubeId)}>
                        <CarteiraBadgeWrap>
@@ -743,51 +755,70 @@ function CarteiraPage() {
                        <strong>{ativo.nome}</strong>
                       </MobileClub>
 
-                      <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
-                        Negociar
-                      </BotaoVender>
+                      <MobileHeaderActions>
+                        <BotaoVender onClick={() => abrirModalDeVenda(ativo)}>
+                          Negociar
+                        </BotaoVender>
+
+                        <ToggleDetailsButton
+                          type="button"
+                          $expandido={detalhesExpandidos}
+                          aria-expanded={detalhesExpandidos}
+                          aria-controls={detalhesId}
+                          aria-label={
+                            detalhesExpandidos
+                              ? `Ocultar informações de ${ativo.nome}`
+                              : `Exibir informações de ${ativo.nome}`
+                          }
+                          onClick={() => alternarDetalhesAtivo(ativo.clubeId)}
+                        />
+                      </MobileHeaderActions>
                     </MobileTop>
 
-                    <MobileMetrics>
-                      <MetricBox>
-                        <span>Unidades</span>
-                        <strong>{ativo.quantidade}</strong>
-                      </MetricBox>
+                    {detalhesExpandidos && (
+                      <MobileDetails id={detalhesId}>
+                        <MobileMetrics>
+                          <MetricBox>
+                            <span>Unidades</span>
+                            <strong>{ativo.quantidade}</strong>
+                          </MetricBox>
 
-                      <MetricBox>
-                        <span>Preço Médio</span>
-                        <strong>T$ {ativo.precoMedio.toFixed(2)}</strong>
-                      </MetricBox>
+                          <MetricBox>
+                            <span>Preço Médio</span>
+                            <strong>T$ {ativo.precoMedio.toFixed(2)}</strong>
+                          </MetricBox>
 
-                      <MetricBox>
-                        <span>Preço Atual</span>
-                        <strong>T$ {precoAtual.toFixed(2)}</strong>
-                      </MetricBox>
+                          <MetricBox>
+                            <span>Preço Atual</span>
+                            <strong>T$ {precoAtual.toFixed(2)}</strong>
+                          </MetricBox>
 
-                      <MetricBox>
-                        <span>Total Alocado</span>
-                        <strong>T$ {totalInvestidoAtivo.toFixed(2)}</strong>
-                      </MetricBox>
+                          <MetricBox>
+                            <span>Total Alocado</span>
+                            <strong>T$ {totalInvestidoAtivo.toFixed(2)}</strong>
+                          </MetricBox>
 
-                      <MetricBox>
-                        <span>Valorização</span>
-                        <strong style={{ color: variacaoPerc >= 0 ? '#22c55e' : '#ef4444' }}>
-                          {variacaoPerc.toFixed(2)}%
-                        </strong>
-                      </MetricBox>
+                          <MetricBox>
+                            <span>Valorização</span>
+                            <strong style={{ color: variacaoPerc >= 0 ? '#22c55e' : '#ef4444' }}>
+                              {variacaoPerc.toFixed(2)}%
+                            </strong>
+                          </MetricBox>
 
-                      <MetricBox>
-                        <span>Resultado</span>
-                        <strong style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
-                          T$ {lucro.toFixed(2)}
-                        </strong>
-                      </MetricBox>
+                          <MetricBox>
+                            <span>Resultado</span>
+                            <strong style={{ color: lucro >= 0 ? '#22c55e' : '#ef4444' }}>
+                              T$ {lucro.toFixed(2)}
+                            </strong>
+                          </MetricBox>
 
-                      <MetricBoxFull>
-                        <span>Valor Atual</span>
-                        <strong>T$ {valorAtual.toFixed(2)}</strong>
-                      </MetricBoxFull>
-                    </MobileMetrics>
+                          <MetricBoxFull>
+                            <span>Valor Atual</span>
+                            <strong>T$ {valorAtual.toFixed(2)}</strong>
+                          </MetricBoxFull>
+                        </MobileMetrics>
+                      </MobileDetails>
+                    )}
                   </MobileCard>
                 );
               })}
@@ -1412,9 +1443,8 @@ const MobileCard = styled.div`
 const MobileTop = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
 `;
 
 const MobileClub = styled.div`
@@ -1423,11 +1453,62 @@ const MobileClub = styled.div`
   gap: 8px;
   color: #60a5fa;
   cursor: pointer;
+  min-width: 0;
 
   strong {
     color: #fff;
     font-size: 0.98rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+`;
+
+const MobileHeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+`;
+
+const ToggleDetailsButton = styled.button`
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.72);
+  color: #cbd5e1;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: ${({ $expandido }) =>
+      $expandido ? 'translateY(3px) rotate(-135deg)' : 'translateY(-2px) rotate(45deg)'};
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #ffffff;
+    border-color: rgba(96, 165, 250, 0.55);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+`;
+
+const MobileDetails = styled.div`
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
 `;
 
 const MobileMetrics = styled.div`
