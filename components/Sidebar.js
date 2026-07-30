@@ -2,7 +2,6 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { useMemo, useState } from 'react';
 import { LeagueBadge } from './ClubBadge';
-import { FiActivity } from 'react-icons/fi';
 
 const mercados = [
   {
@@ -88,20 +87,6 @@ export default function Sidebar() {
             {minimizado ? '»' : '«'}
           </ToggleButton>
         </Header>
-
-        <PerformanceLink
-          href="/performance"
-          title="Central de Performance"
-          $minimizado={minimizado}
-        >
-          <FiActivity aria-hidden="true" />
-          {!minimizado && (
-            <>
-              <Label>Performance</Label>
-              <PremiumTag>Premium</PremiumTag>
-            </>
-          )}
-        </PerformanceLink>
 
         {!minimizado && <SectionLabel>Todos os mercados</SectionLabel>}
 
@@ -231,37 +216,6 @@ const SectionLabel = styled.div`
   @media (max-width: 960px) {
     margin-bottom: 8px;
   }
-`;
-
-const PerformanceLink = styled(Link)`
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: ${({ $minimizado }) =>
-    $minimizado ? 'center' : 'flex-start'};
-  gap: 12px;
-  padding: ${({ $minimizado }) => ($minimizado ? '8px 4px' : '8px 10px')};
-  margin-bottom: 16px;
-  border-radius: 14px;
-  color: #f8fafc;
-  text-decoration: none;
-  background: rgba(0, 217, 130, 0.08);
-  border: 1px solid rgba(0, 217, 130, 0.16);
-
-  &:hover {
-    background: rgba(0, 217, 130, 0.14);
-  }
-`;
-
-const PremiumTag = styled.span`
-  margin-left: auto;
-  padding: 3px 7px;
-  border-radius: 999px;
-  color: #002d1d;
-  background: #00e98b;
-  font-size: 0.62rem;
-  font-weight: 900;
-  text-transform: uppercase;
 `;
 
 const Nav = styled.nav`

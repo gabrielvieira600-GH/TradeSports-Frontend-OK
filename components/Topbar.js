@@ -786,7 +786,15 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
-                     <DropLink href="/como-funciona">Como funciona</DropLink>
+                    <DropPremiumLink href="/performance">
+                      <DropPremiumContent>
+                        <DropPremiumTitle>Central de Performance</DropPremiumTitle>
+                        <DropPremiumText>Inteligência da carteira</DropPremiumText>
+                      </DropPremiumContent>
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropPremiumLink>
+                    <DropDivider />
+                    <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
@@ -1490,6 +1498,67 @@ const DropLink = styled(Link)`
   &:hover {
     background: rgba(255, 255, 255, 0.05);
   }
+`;
+
+const DropPremiumLink = styled(Link)`
+  min-height: 58px;
+  padding: 9px 10px;
+  border: 1px solid rgba(250, 204, 21, 0.24);
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(250, 204, 21, 0.11),
+    rgba(250, 204, 21, 0.035)
+  );
+  color: #f8fafc;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  &:hover {
+    border-color: rgba(250, 204, 21, 0.4);
+    background: rgba(250, 204, 21, 0.15);
+  }
+`;
+
+const DropPremiumContent = styled.span`
+  min-width: 0;
+`;
+
+const DropPremiumTitle = styled.strong`
+  display: block;
+  color: #f8fafc;
+  font-size: 0.82rem;
+  line-height: 1.2;
+`;
+
+const DropPremiumText = styled.small`
+  display: block;
+  margin-top: 3px;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+`;
+
+const DropPremiumBadge = styled.span`
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+  font-size: 0.56rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
+
+const DropDivider = styled.div`
+  height: 1px;
+  margin: 7px 4px;
+  background: rgba(148, 163, 184, 0.12);
 `;
 
 const DropLogout = styled.button`

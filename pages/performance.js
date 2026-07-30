@@ -80,12 +80,17 @@ function Kpi({ titulo, valor, detalhe, tom = 'neutro', icone }) {
 function Bloqueado({ titulo, texto }) {
   return (
     <LockedCard>
-      <LockIcon><FiLock /></LockIcon>
-      <div>
+      <LockedPreview aria-hidden="true">
+        <PreviewLine $width="68%" />
+        <PreviewLine $width="92%" />
+        <PreviewBars><i /><i /><i /><i /><i /></PreviewBars>
+      </LockedPreview>
+      <LockedOverlay>
+        <LockIcon><FiLock /></LockIcon>
         <LockedTitle>{titulo}</LockedTitle>
         <LockedText>{texto}</LockedText>
-      </div>
-      <Upgrade href="/planos">Conhecer Premium</Upgrade>
+        <Upgrade href="/planos">Fazer upgrade</Upgrade>
+      </LockedOverlay>
     </LockedCard>
   );
 }
@@ -247,8 +252,8 @@ function PerformancePage() {
                       maintainAspectRatio: false,
                       plugins: { legend: { display: false } },
                       scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                        y: { grid: { color: 'rgba(148,163,184,.12)' }, ticks: { color: '#64748b' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(148,163,184,.12)' }, ticks: { color: '#94a3b8' } },
                       },
                     }}
                   />
@@ -267,7 +272,7 @@ function PerformancePage() {
                       responsive: true,
                       maintainAspectRatio: false,
                       cutout: '68%',
-                      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14 } } },
+                      plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', usePointStyle: true, padding: 14 } } },
                     }}
                   />
                 ) : (
@@ -339,51 +344,55 @@ function PerformancePage() {
 
 export default withAuth(PerformancePage);
 
-const Page = styled.main`max-width: 1440px; margin: 0 auto; padding: 8px 4px 34px; color: #0f172a;`;
+const Page = styled.main`max-width:1440px;margin:0 auto;padding:8px 4px 34px;color:#f8fafc;`;
 const Header = styled.header`display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px;@media(max-width:900px){align-items:flex-start;flex-direction:column;}`;
-const Eyebrow = styled.div`display:flex;align-items:center;gap:8px;color:#008f59;font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;`;
+const Eyebrow = styled.div`display:flex;align-items:center;gap:8px;color:#fde68a;font-weight:900;font-size:.76rem;text-transform:uppercase;letter-spacing:.09em;`;
 const Title = styled.h1`font-size:clamp(1.75rem,3vw,2.45rem);margin:7px 0 5px;letter-spacing:-.04em;`;
-const Subtitle = styled.p`margin:0;color:#64748b;max-width:680px;`;
+const Subtitle = styled.p`margin:0;color:#94a3b8;max-width:680px;`;
 const HeaderActions = styled.div`display:flex;align-items:center;gap:10px;`;
-const Periodos = styled.div`display:flex;padding:4px;background:#eef2f7;border-radius:13px;`;
-const Periodo = styled.button`border:0;border-radius:10px;padding:9px 13px;background:${({$ativo})=>$ativo?'#fff':'transparent'};color:${({$ativo})=>$ativo?'#0f172a':'#64748b'};font-weight:800;cursor:pointer;box-shadow:${({$ativo})=>$ativo?'0 2px 8px rgba(15,23,42,.08)':'none'};`;
-const Refresh = styled.button`width:42px;height:42px;border:1px solid #dbe3ec;background:#fff;border-radius:12px;display:grid;place-items:center;cursor:pointer;.girando{animation:spin .8s linear infinite;}@keyframes spin{to{transform:rotate(360deg)}}`;
+const Periodos = styled.div`display:flex;padding:4px;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.13);border-radius:13px;`;
+const Periodo = styled.button`border:1px solid ${({$ativo})=>$ativo?'rgba(250,204,21,.25)':'transparent'};border-radius:10px;padding:9px 13px;background:${({$ativo})=>$ativo?'rgba(250,204,21,.12)':'transparent'};color:${({$ativo})=>$ativo?'#fde68a':'#94a3b8'};font-weight:850;cursor:pointer;`;
+const Refresh = styled.button`width:42px;height:42px;border:1px solid rgba(148,163,184,.16);background:rgba(15,23,42,.72);color:#cbd5e1;border-radius:12px;display:grid;place-items:center;cursor:pointer;.girando{animation:spin .8s linear infinite;}@keyframes spin{to{transform:rotate(360deg)}}`;
 const Kpis = styled.section`display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;@media(max-width:1050px){grid-template-columns:repeat(2,1fr)}@media(max-width:560px){grid-template-columns:1fr}`;
-const KpiCard = styled.article`padding:18px;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 24px rgba(15,23,42,.04);`;
+const KpiCard = styled.article`padding:18px;background:linear-gradient(145deg,rgba(15,23,42,.82),rgba(15,23,42,.62));border:1px solid rgba(148,163,184,.13);border-radius:18px;box-shadow:0 12px 30px rgba(2,6,23,.14);`;
 const KpiTopo = styled.div`display:flex;align-items:center;gap:10px;`;
-const KpiIcone = styled.div`width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:${({$tom})=>$tom==='positivo'?'#e7fff4':$tom==='negativo'?'#fff0f0':$tom==='destaque'?'#eff6ff':'#f1f5f9'};color:${({$tom})=>$tom==='positivo'?'#008f59':$tom==='negativo'?'#dc2626':$tom==='destaque'?'#2563eb':'#475569'};`;
-const KpiTitulo = styled.span`font-size:.82rem;color:#64748b;font-weight:700;`;
-const KpiValor = styled.div`font-size:1.45rem;font-weight:900;margin:15px 0 4px;color:${({$tom})=>$tom==='positivo'?'#008f59':$tom==='negativo'?'#dc2626':'#0f172a'};`;
-const KpiDetalhe = styled.div`font-size:.76rem;color:#94a3b8;`;
-const MiniLock = styled.div`grid-column:span 2;border:1px dashed #cbd5e1;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:10px;color:#64748b;font-weight:700;min-height:132px;@media(max-width:560px){grid-column:auto}`;
-const LiteCallout = styled.section`background:linear-gradient(135deg,#0b172b,#10243b);color:#fff;border-radius:22px;padding:28px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:18px;h2{margin:8px 0;font-size:1.5rem}p{margin:0;color:#b8c6d9;max-width:750px}@media(max-width:700px){align-items:flex-start;flex-direction:column}`;
-const BadgeLite = styled.span`color:#00e98b;font-size:.72rem;font-weight:900;letter-spacing:.09em;`;
-const UpgradePrimary = styled(Link)`background:#00d982;color:#042719;text-decoration:none;font-weight:900;padding:12px 18px;border-radius:12px;white-space:nowrap;`;
+const KpiIcone = styled.div`width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:${({$tom})=>$tom==='positivo'?'rgba(0,217,130,.12)':$tom==='negativo'?'rgba(239,68,68,.12)':$tom==='destaque'?'rgba(250,204,21,.12)':'rgba(148,163,184,.1)'};color:${({$tom})=>$tom==='positivo'?'#34d399':$tom==='negativo'?'#fca5a5':$tom==='destaque'?'#fde68a':'#cbd5e1'};`;
+const KpiTitulo = styled.span`font-size:.82rem;color:#94a3b8;font-weight:750;`;
+const KpiValor = styled.div`font-size:1.45rem;font-weight:900;margin:15px 0 4px;color:${({$tom})=>$tom==='positivo'?'#34d399':$tom==='negativo'?'#fca5a5':$tom==='destaque'?'#fde68a':'#f8fafc'};`;
+const KpiDetalhe = styled.div`font-size:.76rem;color:#64748b;`;
+const MiniLock = styled.div`grid-column:span 2;border:1px solid rgba(250,204,21,.2);border-radius:18px;background:radial-gradient(circle at center,rgba(250,204,21,.08),rgba(15,23,42,.66));display:flex;align-items:center;justify-content:center;gap:10px;color:#fde68a;font-weight:800;min-height:132px;@media(max-width:560px){grid-column:auto}`;
+const LiteCallout = styled.section`position:relative;overflow:hidden;background:linear-gradient(135deg,#111c31,#0d1729);color:#fff;border:1px solid rgba(250,204,21,.18);border-radius:22px;padding:28px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);h2{margin:8px 0;font-size:1.5rem}p{margin:0;color:#b8c6d9;max-width:750px}@media(max-width:700px){align-items:flex-start;flex-direction:column}`;
+const BadgeLite = styled.span`color:#fde68a;font-size:.72rem;font-weight:950;letter-spacing:.09em;`;
+const UpgradePrimary = styled(Link)`background:rgba(250,204,21,.14);border:1px solid rgba(250,204,21,.32);color:#fde68a;text-decoration:none;font-weight:950;padding:12px 18px;border-radius:12px;white-space:nowrap;&:hover{background:rgba(250,204,21,.22)}`;
 const LockedGrid = styled.div`display:grid;grid-template-columns:repeat(3,1fr);gap:14px;@media(max-width:850px){grid-template-columns:1fr}`;
-const LockedCard = styled.div`background:#fff;border:1px solid #e2e8f0;border-radius:17px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px;`;
-const LockIcon = styled.div`width:38px;height:38px;border-radius:11px;background:#f1f5f9;color:#64748b;display:grid;place-items:center;`;
-const LockedTitle = styled.strong`display:block;margin-bottom:4px;`;
-const LockedText = styled.p`margin:0;color:#64748b;font-size:.82rem;`;
-const Upgrade = styled(Link)`grid-column:2;color:#008f59;text-decoration:none;font-size:.8rem;font-weight:900;`;
+const LockedCard = styled.div`position:relative;overflow:hidden;min-height:235px;background:rgba(15,23,42,.66);border:1px solid rgba(148,163,184,.13);border-radius:18px;`;
+const LockedPreview = styled.div`position:absolute;inset:18px;display:flex;flex-direction:column;gap:11px;filter:blur(4px);opacity:.42;`;
+const PreviewLine = styled.i`display:block;width:${({$width})=>$width};height:12px;border-radius:999px;background:rgba(148,163,184,.34);`;
+const PreviewBars = styled.div`flex:1;display:flex;align-items:flex-end;gap:10px;padding-top:12px;i{flex:1;border-radius:7px 7px 2px 2px;background:rgba(96,165,250,.24)}i:nth-child(1){height:42%}i:nth-child(2){height:68%}i:nth-child(3){height:54%}i:nth-child(4){height:88%}i:nth-child(5){height:72%}`;
+const LockedOverlay = styled.div`position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at center,rgba(15,23,42,.84),rgba(15,23,42,.66));`;
+const LockIcon = styled.div`width:42px;height:42px;margin-bottom:10px;border-radius:999px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.24);color:#fde68a;display:grid;place-items:center;font-size:1.1rem;`;
+const LockedTitle = styled.strong`display:block;color:#f8fafc;margin-bottom:5px;`;
+const LockedText = styled.p`margin:0 0 14px;color:#cbd5e1;font-size:.8rem;line-height:1.4;`;
+const Upgrade = styled(Link)`border:1px solid rgba(250,204,21,.3);border-radius:11px;padding:9px 13px;background:rgba(250,204,21,.14);color:#fde68a;text-decoration:none;font-size:.78rem;font-weight:950;&:hover{background:rgba(250,204,21,.22)}`;
 const ChartGrid = styled.section`display:grid;grid-template-columns:1.45fr 1fr;gap:16px;margin-bottom:16px;@media(max-width:950px){grid-template-columns:1fr}`;
-const Panel = styled.section`background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(15,23,42,.035);`;
+const Panel = styled.section`background:rgba(15,23,42,.68);border:1px solid rgba(148,163,184,.13);border-radius:18px;padding:20px;box-shadow:0 12px 30px rgba(2,6,23,.12);`;
 const PanelHeader = styled.div`display:flex;justify-content:space-between;gap:14px;margin-bottom:18px;`;
 const PanelTitle = styled.h2`font-size:1rem;margin:0 0 4px;`;
-const PanelText = styled.p`font-size:.78rem;color:#64748b;margin:0;`;
+const PanelText = styled.p`font-size:.78rem;color:#94a3b8;margin:0;`;
 const Info = styled.span`color:#94a3b8;cursor:help;`;
 const ChartBox = styled.div`height:300px;`;
 const DonutBox = styled.div`height:300px;`;
-const EmptyChart = styled.div`height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#94a3b8;gap:8px;strong{color:#475569}span{font-size:.8rem;max-width:320px}`;
-const StatsStrip = styled.section`display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#e2e8f0;border:1px solid #e2e8f0;border-radius:17px;overflow:hidden;margin-bottom:16px;@media(max-width:850px){grid-template-columns:repeat(2,1fr)}`;
-const Stat = styled.div`background:#fff;padding:16px;display:flex;flex-direction:column;gap:5px;span{font-size:.74rem;color:#64748b}strong{font-size:1.02rem}`;
+const EmptyChart = styled.div`height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#94a3b8;gap:8px;strong{color:#cbd5e1}span{font-size:.8rem;max-width:320px}`;
+const StatsStrip = styled.section`display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.13);border-radius:17px;overflow:hidden;margin-bottom:16px;@media(max-width:850px){grid-template-columns:repeat(2,1fr)}`;
+const Stat = styled.div`background:#101a2d;padding:16px;display:flex;flex-direction:column;gap:5px;span{font-size:.74rem;color:#94a3b8}strong{font-size:1.02rem;color:#f8fafc}`;
 const TableWrap = styled.div`overflow-x:auto;`;
-const Table = styled.table`width:100%;border-collapse:collapse;min-width:820px;th{text-align:right;font-size:.7rem;text-transform:uppercase;color:#94a3b8;padding:10px;border-bottom:1px solid #e2e8f0}th:first-child{text-align:left}td{text-align:right;padding:13px 10px;border-bottom:1px solid #f1f5f9;font-size:.84rem}td:first-child{text-align:left}`;
+const Table = styled.table`width:100%;border-collapse:collapse;min-width:820px;th{text-align:right;font-size:.7rem;text-transform:uppercase;color:#94a3b8;padding:10px;border-bottom:1px solid rgba(148,163,184,.14)}th:first-child{text-align:left}td{text-align:right;padding:13px 10px;border-bottom:1px solid rgba(148,163,184,.08);font-size:.84rem;color:#e2e8f0}td:first-child{text-align:left}`;
 const Club = styled.div`display:flex;align-items:center;gap:10px;strong,small{display:block}small{color:#94a3b8;font-size:.7rem;margin-top:2px}`;
 const Result = styled.td`color:${({$positivo})=>$positivo?'#008f59':'#dc2626'};`;
 const EmptyRow = styled.div`padding:34px;text-align:center;color:#94a3b8;`;
 const BottomGrid = styled.section`display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;@media(max-width:750px){grid-template-columns:1fr}`;
-const TradeCard = styled.div`display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin-top:15px;padding:14px;border-radius:14px;background:${({$positivo})=>$positivo?'#f0fff8':'#fff5f5'};color:${({$positivo})=>$positivo?'#008f59':'#dc2626'};div strong,div span{display:block}div span{font-size:.75rem;color:#64748b;margin-top:3px}b{white-space:nowrap}`;
-const Method = styled.div`display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:14px 16px;border-radius:14px;background:#eef6ff;color:#475569;font-size:.78rem;strong,span{display:block}strong{color:#1e3a5f;margin-bottom:3px}`;
-const Estado = styled.div`min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748b;h2{color:#0f172a;margin:14px 0 4px}p{margin:0}`;
-const Spinner = styled.div`width:42px;height:42px;border:4px solid #dbe5ee;border-top-color:#00d982;border-radius:50%;animation:spin .8s linear infinite;@keyframes spin{to{transform:rotate(360deg)}}`;
-const Retry = styled.button`margin-top:16px;border:0;background:#0f172a;color:#fff;border-radius:11px;padding:11px 16px;font-weight:800;cursor:pointer;`;
+const TradeCard = styled.div`display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin-top:15px;padding:14px;border:1px solid ${({$positivo})=>$positivo?'rgba(52,211,153,.15)':'rgba(252,165,165,.15)'};border-radius:14px;background:${({$positivo})=>$positivo?'rgba(52,211,153,.07)':'rgba(252,165,165,.07)'};color:${({$positivo})=>$positivo?'#34d399':'#fca5a5'};div strong,div span{display:block}div span{font-size:.75rem;color:#94a3b8;margin-top:3px}b{white-space:nowrap}`;
+const Method = styled.div`display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:14px 16px;border:1px solid rgba(250,204,21,.14);border-radius:14px;background:rgba(250,204,21,.055);color:#94a3b8;font-size:.78rem;strong,span{display:block}strong{color:#fde68a;margin-bottom:3px}`;
+const Estado = styled.div`min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#94a3b8;h2{color:#f8fafc;margin:14px 0 4px}p{margin:0}`;
+const Spinner = styled.div`width:42px;height:42px;border:4px solid rgba(148,163,184,.18);border-top-color:#fde68a;border-radius:50%;animation:spin .8s linear infinite;@keyframes spin{to{transform:rotate(360deg)}}`;
+const Retry = styled.button`margin-top:16px;border:1px solid rgba(250,204,21,.3);background:rgba(250,204,21,.14);color:#fde68a;border-radius:11px;padding:11px 16px;font-weight:900;cursor:pointer;`;
