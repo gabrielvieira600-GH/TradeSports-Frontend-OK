@@ -83,6 +83,9 @@ const DIFERENCIAIS = [
 export default function Home() {
   return (
     <Page>
+      <Glow $top />
+      <Glow />
+
       <Hero>
         <HeroCopy>
           <Eyebrow>
