@@ -26,29 +26,31 @@ const Main = styled.main`
   min-width: 0;
   background-color: #0c1c2c;
   color: white;
-  padding: 20px 20px 28px;
+  padding: ${({ $fullBleed }) => ($fullBleed ? '0' : '20px 20px 28px')};
 
   @media (max-width: 960px) {
-    padding: 14px 12px 22px;
+    padding: ${({ $fullBleed }) => ($fullBleed ? '0' : '14px 12px 22px')};
     width: 100%;
   }
 
   @media (max-width: 640px) {
-    padding:
-      10px
-      max(10px, env(safe-area-inset-right))
-      max(18px, env(safe-area-inset-bottom))
-      max(10px, env(safe-area-inset-left));
+    padding: ${({ $fullBleed }) =>
+      $fullBleed
+        ? '0'
+        : `10px
+          max(10px, env(safe-area-inset-right))
+          max(18px, env(safe-area-inset-bottom))
+          max(10px, env(safe-area-inset-left))`};
   }
 `;
 
-export default function Layout({ children }) {
+export default function Layout({ children, fullBleed = false }) {
   return (
     <PageShell>
       <Topbar />
       <ContentArea>
         <Sidebar />
-        <Main>{children}</Main>
+        <Main $fullBleed={fullBleed}>{children}</Main>
       </ContentArea>
     </PageShell>
   );

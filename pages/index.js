@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styled, { keyframes } from "styled-components";
 import LiveMarketTable from "../components/LiveMarketTable";
+import Layout from "../components/Layout";
 import {
   FiArrowRight,
   FiBookOpen,
@@ -351,6 +352,8 @@ export default function Home() {
     </Page>
   );
 }
+
+Home.getLayout = (page) => <Layout fullBleed>{page}</Layout>;
 
 const pulse = keyframes`0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.75;box-shadow:0 0 0 7px rgba(34,197,94,0)}`;
 const rise = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
