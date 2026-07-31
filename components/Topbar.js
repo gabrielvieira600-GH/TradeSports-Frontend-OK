@@ -786,13 +786,9 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropPremiumLink href="/performance">
-                      <DropPremiumContent>
-                        <DropPremiumTitle>Central de Performance</DropPremiumTitle>
-                        <DropPremiumText>Inteligência da carteira</DropPremiumText>
-                      </DropPremiumContent>
+                    <DropLink href="/performance">Central de Performance
                       <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropPremiumLink>
+                    </DropLink>
                     <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
