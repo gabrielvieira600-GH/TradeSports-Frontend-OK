@@ -786,40 +786,23 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropPremiumLink href="/performance">
-                      <DropPremiumContent>
-                        <DropPremiumTitle>Central de Performance</DropPremiumTitle>
-                        <DropPremiumText>Inteligência da carteira</DropPremiumText>
-                      </DropPremiumContent>
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropPremiumLink>
-                    <DropPremiumLink href="/relatorios-semanais">
-                      <DropPremiumContent>
-                        <DropPremiumTitle>Relatório semanal</DropPremiumTitle>
-                        <DropPremiumText>Sua semana em perspectiva</DropPremiumText>
-                      </DropPremiumContent>
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropPremiumLink>
-                    <DropPremiumLink href="/alertas">
-                      <DropPremiumContent>
-                        <DropPremiumTitle>Alertas avançados</DropPremiumTitle>
-                        <DropPremiumText>Monitore condições estratégicas</DropPremiumText>
-                      </DropPremiumContent>
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropPremiumLink>
-                    <DropPremiumLink href="/simulador">
-                      <DropPremiumContent>
-                        <DropPremiumTitle>Simulador de cenários</DropPremiumTitle>
-                        <DropPremiumText>Teste hipóteses da carteira</DropPremiumText>
-                      </DropPremiumContent>
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropPremiumLink>
-                    <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
                     <DropLink href="/social">Feed</DropLink>
+                    <DropLink href="/performance"> Central de Performance
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropLink>
+                    <DropLink href="/relatorios-semanais"> Relatório semanal
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropLink>
+                    <DropLink href="/alertas"> Alertas avançados
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropLink>
+                    <DropLink href="/simulador"> Simulador de cenários
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropLink>
                     <DropLink href="/convites">Convites</DropLink>
                     <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
                     <DropLink href="/minhas-transacoes">
