@@ -1546,7 +1546,7 @@ const DropPremiumBadge = styled.span`
   color: #fde68a;
   font-size: 0.56rem;
   font-weight: 950;
-  letter-spacing: 0.40em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 `;
 
