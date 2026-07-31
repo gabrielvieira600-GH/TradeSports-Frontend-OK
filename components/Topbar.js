@@ -306,8 +306,8 @@ const meuPerfilHref = meuPerfilId
   const getNotificationTargetUrl = (notificacao) => {
     const metadata = notificacao?.metadata || notificacao?.meta || {};
 
-    if (metadata?.targetUrl) {
-      return String(metadata.targetUrl);
+    if (metadata?.targetUrl || metadata?.url) {
+      return String(metadata.targetUrl || metadata.url);
     }
 
     const clubeId =
@@ -786,9 +786,21 @@ const meuPerfilHref = meuPerfilId
 
                 {bancoAberto && (
                   <Dropdown>
-                    <DropLink href="/performance">Central de Performance
+                    <DropPremiumLink href="/performance">
+                      <DropPremiumContent>
+                        <DropPremiumTitle>Central de Performance</DropPremiumTitle>
+                        <DropPremiumText>Inteligência da carteira</DropPremiumText>
+                      </DropPremiumContent>
                       <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropLink>
+                    </DropPremiumLink>
+                    <DropPremiumLink href="/relatorios-semanais">
+                      <DropPremiumContent>
+                        <DropPremiumTitle>Relatório semanal</DropPremiumTitle>
+                        <DropPremiumText>Sua semana em perspectiva</DropPremiumText>
+                      </DropPremiumContent>
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropPremiumLink>
+                    <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
@@ -1539,7 +1551,7 @@ const DropPremiumText = styled.small`
 
 const DropPremiumBadge = styled.span`
   flex: 0 0 auto;
-  padding: 30px 60px;
+  padding: 3px 6px;
   border: 1px solid rgba(250, 204, 21, 0.28);
   border-radius: 999px;
   background: rgba(250, 204, 21, 0.12);
