@@ -807,6 +807,13 @@ const meuPerfilHref = meuPerfilId
                       </DropPremiumContent>
                       <DropPremiumBadge>Premium</DropPremiumBadge>
                     </DropPremiumLink>
+                    <DropPremiumLink href="/simulador">
+                      <DropPremiumContent>
+                        <DropPremiumTitle>Simulador de cenários</DropPremiumTitle>
+                        <DropPremiumText>Teste hipóteses da carteira</DropPremiumText>
+                      </DropPremiumContent>
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropPremiumLink>
                     <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
