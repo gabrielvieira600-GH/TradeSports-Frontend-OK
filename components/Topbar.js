@@ -800,6 +800,13 @@ const meuPerfilHref = meuPerfilId
                       </DropPremiumContent>
                       <DropPremiumBadge>Premium</DropPremiumBadge>
                     </DropPremiumLink>
+                    <DropPremiumLink href="/alertas">
+                      <DropPremiumContent>
+                        <DropPremiumTitle>Alertas avançados</DropPremiumTitle>
+                        <DropPremiumText>Monitore condições estratégicas</DropPremiumText>
+                      </DropPremiumContent>
+                      <DropPremiumBadge>Premium</DropPremiumBadge>
+                    </DropPremiumLink>
                     <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
