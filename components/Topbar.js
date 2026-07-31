@@ -1539,7 +1539,7 @@ const DropPremiumText = styled.small`
 
 const DropPremiumBadge = styled.span`
   flex: 0 0 auto;
-  padding: 3px 6px;
+  padding: 30px 60px;
   border: 1px solid rgba(250, 204, 21, 0.28);
   border-radius: 999px;
   background: rgba(250, 204, 21, 0.12);
