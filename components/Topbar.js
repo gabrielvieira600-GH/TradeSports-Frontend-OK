@@ -789,7 +789,6 @@ const meuPerfilHref = meuPerfilId
                     <DropLink href="/performance">Central de Performance
                       <DropPremiumBadge>Premium</DropPremiumBadge>
                     </DropLink>
-                    <DropDivider />
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
@@ -1547,7 +1546,7 @@ const DropPremiumBadge = styled.span`
   color: #fde68a;
   font-size: 0.56rem;
   font-weight: 950;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.40em;
   text-transform: uppercase;
 `;
 
