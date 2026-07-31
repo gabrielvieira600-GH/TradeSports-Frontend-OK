@@ -791,23 +791,13 @@ const meuPerfilHref = meuPerfilId
                     <DropLink href="/carteira">Carteira</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
                     <DropLink href="/social">Feed</DropLink>
-                    <DropLink href="/performance"> Central de Performance
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropLink>
-                    <DropLink href="/relatorios-semanais"> Relatório semanal
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropLink>
-                    <DropLink href="/alertas"> Alertas avançados
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropLink>
-                    <DropLink href="/simulador"> Simulador de cenários
-                      <DropPremiumBadge>Premium</DropPremiumBadge>
-                    </DropLink>
+                    <DropLink href="/performance">Central de Performance</DropLink>
+                    <DropLink href="/relatorios-semanais">Relatório semanal</DropLink>
+                    <DropLink href="/alertas">Alertas avançados</DropLink>
+                    <DropLink href="/simulador">Simulador de cenários</DropLink>
                     <DropLink href="/convites">Convites</DropLink>
                     <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
-                    <DropLink href="/minhas-transacoes">
-                      Minhas Transações
-                    </DropLink>
+                    <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
                     <DropLink href="/extrato">Extrato</DropLink>
                     <DropLogout type="button" onClick={handleLogout}>
                       Sair da conta
