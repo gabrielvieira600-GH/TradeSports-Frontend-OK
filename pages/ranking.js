@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
 import EstadoInterface from '../components/EstadoInterface';
+import { RankingsPrivadosPage } from '../components/RankingsPrivadosCompletos';
 
 const ITENS_POR_PAGINA = 50;
 
@@ -26,6 +28,7 @@ function formatarPercentual(valor) {
 }
 
 function RankingPage() {
+  const router = useRouter();
   const [ranking, setRanking] = useState([]);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [categoria, setCategoria] = useState('geral');
@@ -92,6 +95,12 @@ const [pagina, setPagina] = useState(1);
 
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    if (router.isReady && router.query.aba === 'privados') {
+      setAbaPrivadosAtiva(true);
+    }
+  }, [router.isReady, router.query.aba]);
 
   const carregarRanking = async (
   paginaSolicitada = 1,
@@ -691,8 +700,7 @@ const voltarParaListaPrivados = () => {
         </ContadorAba>
       </AbaRanking>
 
-      {planoUsuario === 'premium' && (
-        <AbaRanking
+      <AbaRanking
           type="button"
           $ativa={abaPrivadosAtiva}
           onClick={abrirAbaPrivados}
@@ -703,7 +711,6 @@ const voltarParaListaPrivados = () => {
             {totalPrivados}
           </ContadorAba>
         </AbaRanking>
-      )}
     </AbasRanking>
 
     {usuarioAtual && (
@@ -796,6 +803,8 @@ const voltarParaListaPrivados = () => {
     )}
 
     {abaPrivadosAtiva ? (
+      <RankingsPrivadosPage embedded />
+    ) : false ? (
   <PrivadosSection>
     {rankingPrivadoSelecionado ? (
       <>
