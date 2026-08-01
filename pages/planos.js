@@ -128,7 +128,7 @@ function PlanosPage() {
 
             <Beneficio $muted>
               <Block>×</Block>
-              <span>Sem criação ou participação em rankings privados</span>
+              <span>Participação em até 2 rankings privados</span>
             </Beneficio>
 
             <Beneficio $muted>
@@ -184,13 +184,21 @@ function PlanosPage() {
 
             <Beneficio>
               <Check>✓</Check>
-              <span>Participar de rankings privados por convite</span>
+              <span>Criar e participar de rankings privados sem limite ordinário</span>
             </Beneficio>
 
             <Beneficio>
               <Check>✓</Check>
-              <span>Convidar usuários Premium para ligas privadas</span>
+              <span>Convidar usuários Lite ou Premium por código e link</span>
             </Beneficio>
+
+            <Beneficio><Check>✓</Check><span>Central de Performance completa</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Relatório semanal personalizado e histórico</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Alertas avançados configuráveis</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Simulador individual e da carteira completa</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Feed exclusivo, estatísticas e histórico de campeões</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Administração, moderação e troféus virtuais</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Competições públicas ou somente por convite</span></Beneficio>
 
             <Beneficio>
               <Check>✓</Check>

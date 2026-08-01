@@ -795,6 +795,7 @@ const meuPerfilHref = meuPerfilId
                     <DropLink href="/relatorios-semanais">Relatório semanal</DropLink>
                     <DropLink href="/alertas">Alertas avançados</DropLink>
                     <DropLink href="/simulador">Simulador de cenários</DropLink>
+                    <DropLink href="/rankings-privados">Rankings privados</DropLink>
                     <DropLink href="/convites">Convites</DropLink>
                     <DropLink href="/minhas-ordens">Minhas Ordens</DropLink>
                     <DropLink href="/minhas-transacoes">Minhas Transações</DropLink>
