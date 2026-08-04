@@ -32,6 +32,7 @@ export default function NegociacaoModal({
   const [modo, setModo] = useState(modoInicial);
   const [mensagem, setMensagem] = useState('');
   const [resultadoOrdem, setResultadoOrdem] = useState(null);
+  const [resultadoIpo, setResultadoIpo] = useState(null);
   const [poderCompra, setPoderCompra] = useState(0);
   const [carregando, setCarregando] = useState(false);
   const [ordensCompra, setOrdensCompra] = useState([]);
@@ -179,6 +180,7 @@ export default function NegociacaoModal({
   useEffect(() => {
   setMensagem('');
   setResultadoOrdem(null);
+  setResultadoIpo(null);
 
   if (usuario?.saldo !== undefined) {
     setPoderCompra(Number(usuario.saldo) || 0);
@@ -188,6 +190,12 @@ export default function NegociacaoModal({
   useEffect(() => {
     setModo(modoInicial);
   }, [modoInicial]);
+
+  useEffect(() => {
+    setMensagem('');
+    setResultadoOrdem(null);
+    setResultadoIpo(null);
+  }, [modo]);
 
   const carregarOrdens = async () => {
     try {
@@ -226,8 +234,8 @@ export default function NegociacaoModal({
       const clubeInfo = await buscarClubeInfo(clubeId);
 
       if (!clubeInfo) {
-        console.error('Não foi possível carregar clubeInfo para verificar IPO');
-        setMensagem('❌ Não foi possível verificar status do IPO.');
+        console.error('NÃ£o foi possÃ­vel carregar clubeInfo para verificar IPO');
+        setMensagem('â NÃ£o foi possÃ­vel verificar status do IPO.');
         return;
       }
 
@@ -250,7 +258,7 @@ export default function NegociacaoModal({
       setPrecoInput(precoBase > 0 ? Number(precoBase).toFixed(2) : '');
     } catch (err) {
       console.error('Erro ao verificar IPO:', err);
-      setMensagem('❌ Erro ao verificar status do IPO.');
+      setMensagem('â Erro ao verificar status do IPO.');
     }
   };
 
@@ -293,7 +301,7 @@ export default function NegociacaoModal({
         valid: false,
         suggested:
           Number.isFinite(fallback) && fallback > 0 ? roundToTick(fallback) : null,
-        message: 'Informe um preço válido.',
+        message: 'Informe um preÃ§o vÃ¡lido.',
       };
     }
 
@@ -305,9 +313,9 @@ export default function NegociacaoModal({
       suggested,
       message: valid
         ? ''
-        : `O preço deve respeitar o tick de T$ ${TICK_SIZE.toFixed(
+        : `O preÃ§o deve respeitar o tick de T$ ${TICK_SIZE.toFixed(
             2
-          )}. Sugestão: T$ ${suggested.toFixed(2)}.`,
+          )}. SugestÃ£o: T$ ${suggested.toFixed(2)}.`,
     };
   }, [ipoEncerrado, precoAtual, preco]);
 
@@ -416,7 +424,7 @@ export default function NegociacaoModal({
 
     const mensagemErro =
       err?.response?.data?.erro ||
-      'Não foi possível consultar a franquia de ordens.';
+      'NÃ£o foi possÃ­vel consultar a franquia de ordens.';
 
     setLimiteOrdens((prev) => ({
       ...prev,
@@ -464,7 +472,7 @@ export default function NegociacaoModal({
     setPoderCompra(novoSaldo);
     window.dispatchEvent(new Event('force-topbar-update'));
   } catch (e) {
-    console.error('Erro ao atualizar usuário após ordem:', e);
+    console.error('Erro ao atualizar usuÃ¡rio apÃ³s ordem:', e);
   }
 }
 
@@ -472,17 +480,18 @@ export default function NegociacaoModal({
   setCarregando(true);
   setMensagem('');
   setResultadoOrdem(null);
+  setResultadoIpo(null);
 
     if (!token || !verificarTokenValido(token)) {
-      setMensagem('❌ Você precisa estar logado para enviar ordens.');
-      adicionarToast('❌ Efetue o login para enviar ordens.', 'erro');
+      setMensagem('â VocÃª precisa estar logado para enviar ordens.');
+      adicionarToast('â Efetue o login para enviar ordens.', 'erro');
       setCarregando(false);
       return;
     }
 
     if (!usuario || (!usuario.id && !usuario._id)) {
-      setMensagem('❌ Não foi possível identificar o usuário logado.');
-      adicionarToast('❌ Usuário inválido.', 'erro');
+      setMensagem('â NÃ£o foi possÃ­vel identificar o usuÃ¡rio logado.');
+      adicionarToast('â UsuÃ¡rio invÃ¡lido.', 'erro');
       setCarregando(false);
       return;
     }
@@ -490,7 +499,7 @@ export default function NegociacaoModal({
     if (ipoEncerrado) {
   if (limiteOrdens.carregando) {
     setMensagem(
-      'Aguarde a verificação da franquia de ordens.'
+      'Aguarde a verificaÃ§Ã£o da franquia de ordens.'
     );
 
     setCarregando(false);
@@ -499,11 +508,11 @@ export default function NegociacaoModal({
 
   if (!limiteOrdens.temporadaAtiva) {
     setMensagem(
-      '❌ Não existe uma temporada ativa no momento.'
+      'â NÃ£o existe uma temporada ativa no momento.'
     );
 
     adicionarToast(
-      '❌ Não existe uma temporada ativa no momento.',
+      'â NÃ£o existe uma temporada ativa no momento.',
       'erro'
     );
 
@@ -513,11 +522,11 @@ export default function NegociacaoModal({
 
   if (!limiteOrdens.mercadoAberto) {
   setMensagem(
-    '❌ O mercado está temporariamente fechado para novas ordens.'
+    'â O mercado estÃ¡ temporariamente fechado para novas ordens.'
   );
 
   adicionarToast(
-    '❌ O mercado está temporariamente fechado.',
+    'â O mercado estÃ¡ temporariamente fechado.',
     'erro'
   );
 
@@ -530,11 +539,11 @@ if (
   limiteOrdens.limiteAtingido
 ) {
   setMensagem(
-    '❌ Você atingiu o limite semanal de ordens.'
+    'â VocÃª atingiu o limite semanal de ordens.'
   );
 
   adicionarToast(
-    '❌ Limite semanal de ordens atingido.',
+    'â Limite semanal de ordens atingido.',
     'erro'
   );
 
@@ -573,8 +582,8 @@ if (
   const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
 
   if (quantidade > qtdDisp) {
-    setMensagem('❌ Quantidade acima do disponível na carteira.');
-    adicionarToast('❌ Quantidade acima do disponível.', 'erro');
+    setMensagem('â Quantidade acima do disponÃ­vel na carteira.');
+    adicionarToast('â Quantidade acima do disponÃ­vel.', 'erro');
     setCarregando(false);
     return;
   }
@@ -584,7 +593,19 @@ if (
         const { data } = await api.post(
           `/clube/${clube.id}/comprar`,
           {
-            usuarioId: usuario.id || usuario._id,
+            quantidade: Number(quantidade),
+          },
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+
+        response = data;
+        if (response?.erro) throw new Error(response.erro);
+      } else if (modo === 'venda' && !ipoEncerrado) {
+        const { data } = await api.post(
+          `/clube/${clube.id}/devolver`,
+          {
             quantidade: Number(quantidade),
           },
           {
@@ -596,9 +617,9 @@ if (
         if (response?.erro) throw new Error(response.erro);
       } else {
         if (!isValidTickPrice(Number(precoAtual || 0))) {
-          setMensagem(`❌ Preço inválido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`);
+          setMensagem(`â PreÃ§o invÃ¡lido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`);
           adicionarToast(
-            `❌ Preço inválido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`,
+            `â PreÃ§o invÃ¡lido para o tick de T$ ${TICK_SIZE.toFixed(2)}.`,
             'erro'
           );
           setCarregando(false);
@@ -652,7 +673,29 @@ if (response?.franquiaOrdens) {
 }
       }
 
-      if (ipoEncerrado && response?.ordem) {
+      if (!ipoEncerrado && response?.tipo === 'IPO_RETURN') {
+        const quantidadeDevolvida = Number(
+          response?.investimento?.quantidade || quantidade || 0
+        );
+        const precoUnitario = Number(
+          response?.investimento?.precoUnitario || response?.clube?.preco || precoAtual || 0
+        );
+        const valorLiquido = Number(
+          response?.valorLiquido ?? quantidadeDevolvida * precoUnitario
+        );
+
+        setResultadoIpo({
+          tipo: 'devolucao',
+          titulo: 'Cotas devolvidas ao IPO',
+          quantidade: quantidadeDevolvida,
+          precoUnitario,
+          taxa: 0,
+          valorLiquido,
+        });
+
+        setMensagem('â DevoluÃ§Ã£o realizada imediatamente, sem cobranÃ§a de taxas.');
+        adicionarToast('â Cotas devolvidas ao IPO sem taxas.', 'sucesso');
+      } else if (ipoEncerrado && response?.ordem) {
   const execucoes = Array.isArray(response.execucoes)
     ? response.execucoes
     : [];
@@ -728,12 +771,30 @@ if (response?.franquiaOrdens) {
       null,
   });
 
-  adicionarToast(`✅ ${titulo}.`, 'sucesso');
+  adicionarToast(`â ${titulo}.`, 'sucesso');
 } else {
-  setMensagem('✅ Compra realizada com sucesso no IPO!');
+  const quantidadeComprada = Number(
+    response?.investimento?.quantidade || quantidade || 0
+  );
+  const precoUnitario = Number(
+    response?.investimento?.precoUnitario || response?.clube?.precoAtual || precoAtual || 0
+  );
+
+  setResultadoIpo({
+    tipo: 'compra',
+    titulo: 'Compra realizada no IPO',
+    quantidade: quantidadeComprada,
+    precoUnitario,
+    taxa: 0,
+    valorLiquido: Number(
+      response?.investimento?.totalPago ?? quantidadeComprada * precoUnitario
+    ),
+  });
+
+  setMensagem('â Compra realizada com sucesso no IPO!');
 
   adicionarToast(
-    '✅ Compra realizada com sucesso no IPO!',
+    'â Compra realizada com sucesso no IPO!',
     'sucesso'
   );
 }
@@ -814,9 +875,9 @@ if (response?.franquiaOrdens) {
         erroMsg = error.message;
       }
 
-      setMensagem(`❌ ${erroMsg}`);
-      adicionarToast(`❌ Erro: ${erroMsg}`, 'erro');
-      console.error('❌ [ERRO AO ENVIAR ORDEM]', erroMsg);
+      setMensagem(`â ${erroMsg}`);
+      adicionarToast(`â Erro: ${erroMsg}`, 'erro');
+      console.error('â [ERRO AO ENVIAR ORDEM]', erroMsg);
     } finally {
       setCarregando(false);
     }
@@ -844,7 +905,7 @@ if (response?.franquiaOrdens) {
 
     return usuarioAtualizado;
   } catch (err) {
-    console.error('Erro ao atualizar usuário completo:', err);
+    console.error('Erro ao atualizar usuÃ¡rio completo:', err);
     return null;
   }
 }
@@ -852,7 +913,7 @@ if (response?.franquiaOrdens) {
   async function cancelarMinhaOrdem(ordemOuId) {
     try {
       if (!token || !verificarTokenValido(token)) {
-        adicionarToast('❌ Você precisa estar logado para cancelar ordens.', 'erro');
+        adicionarToast('â VocÃª precisa estar logado para cancelar ordens.', 'erro');
         return;
       }
 
@@ -862,9 +923,9 @@ if (response?.franquiaOrdens) {
           : ordemOuId?.id;
 
       if (!ordemId) {
-        console.error('ID de ordem inválido ao tentar cancelar:', ordemOuId);
+        console.error('ID de ordem invÃ¡lido ao tentar cancelar:', ordemOuId);
         adicionarToast(
-          '❌ Não foi possível identificar a ordem para cancelar.',
+          'â NÃ£o foi possÃ­vel identificar a ordem para cancelar.',
           'erro'
         );
         return;
@@ -878,7 +939,7 @@ if (response?.franquiaOrdens) {
   }
 );
 
-      adicionarToast('✅ Ordem cancelada com sucesso!', 'sucesso');
+      adicionarToast('â Ordem cancelada com sucesso!', 'sucesso');
 
       await carregarOrdens();
       await verificarIPO();
@@ -889,9 +950,9 @@ if (response?.franquiaOrdens) {
       const msg =
         error?.response?.data?.erro ||
         error?.response?.data?.message ||
-        'Não foi possível cancelar a ordem. Tente novamente.';
+        'NÃ£o foi possÃ­vel cancelar a ordem. Tente novamente.';
 
-      adicionarToast(`❌ ${msg}`, 'erro');
+      adicionarToast(`â ${msg}`, 'erro');
     }
   }
 
@@ -984,7 +1045,7 @@ if (!isOpen || !clube) return null;
 return (
   <Overlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-        <FecharX onClick={onClose}>×</FecharX>
+        <FecharX onClick={onClose}>Ã</FecharX>
 
         <ModalContentInner>
           <Header>
@@ -992,7 +1053,7 @@ return (
             <div>
               <h2>{clube.nome}</h2>
               <PrecoAtualTexto>
-                {precoMercado > 0 ? `Preço atual: T$ ${precoMercado.toFixed(2)}` : ''}
+                {precoMercado > 0 ? `PreÃ§o atual: T$ ${precoMercado.toFixed(2)}` : ''}
               </PrecoAtualTexto>
             </div>
           </Header>
@@ -1024,6 +1085,18 @@ return (
               Venda
             </Aba>
           </Acoes>
+
+          {!ipoEncerrado && (
+            <IpoInfo>
+              <strong>Oferta inicial em andamento</strong>
+              <span>
+                {modo === 'venda'
+                  ? 'Durante o IPO, suas cotas podem ser devolvidas imediatamente pelo preÃ§o de aquisiÃ§Ã£o, sem cobranÃ§a de taxas.'
+                  : 'O preÃ§o Ã© fixado pela TradeSports. NÃ£o hÃ¡ tick, livro de ofertas ou cobranÃ§a de taxas nesta fase.'}
+              </span>
+            </IpoInfo>
+          )}
+
            {ipoEncerrado && usuario && (
   <FranquiaCard
     $alerta={
@@ -1060,12 +1133,12 @@ return (
       </FranquiaTexto>
     ) : !limiteOrdens.temporadaAtiva ? (
       <FranquiaTexto>
-        Nenhuma temporada está ativa. Novas ordens serão liberadas quando a
-        próxima competição for publicada.
+        Nenhuma temporada estÃ¡ ativa. Novas ordens serÃ£o liberadas quando a
+        prÃ³xima competiÃ§Ã£o for publicada.
       </FranquiaTexto>
     ) : !limiteOrdens.mercadoAberto ? (
   <FranquiaTexto>
-    O mercado está temporariamente fechado para novas ordens.
+    O mercado estÃ¡ temporariamente fechado para novas ordens.
   </FranquiaTexto>
 ) : limiteOrdens.ordensIlimitadas ? (
   <FranquiaTexto>
@@ -1115,7 +1188,7 @@ return (
             limiteOrdens.restantes || 0
           ) > 0 && (
             <FranquiaAviso>
-  Você está perto do limite semanal.
+  VocÃª estÃ¡ perto do limite semanal.
 </FranquiaAviso>
           )}
 
@@ -1125,7 +1198,7 @@ return (
   {limiteOrdens.periodo?.renovaEm && (
     <>
       {' '}
-      A quota será renovada em{' '}
+      A quota serÃ¡ renovada em{' '}
       {new Date(
         limiteOrdens.periodo.renovaEm
       ).toLocaleString('pt-BR', {
@@ -1145,7 +1218,7 @@ return (
 )}
 
           <Bloco>
-            <label>Preço (T$)</label>
+            <label>{ipoEncerrado ? 'PreÃ§o da ordem (T$)' : 'PreÃ§o fixo do IPO (T$)'}</label>
             <InputNumero
               type="text"
               inputMode="decimal"
@@ -1179,14 +1252,14 @@ return (
             {ipoEncerrado && (
               <>
                 <TickMeta>
-                  <span>Tick mínimo</span>
+                  <span>Tick mÃ­nimo</span>
                   <strong>T$ {TICK_SIZE.toFixed(2)}</strong>
                 </TickMeta>
 
                 {!tickValidation.valid && (
                   <TickAlert>
                     <div>
-                      <strong>Preço inválido para o mercado</strong>
+                      <strong>PreÃ§o invÃ¡lido para o mercado</strong>
                       <span>{tickValidation.message}</span>
                     </div>
 
@@ -1199,7 +1272,7 @@ return (
                 )}
 
                 {tickValidation.valid && Number(precoAtual || 0) > 0 && (
-                  <TickOk>Preço válido para o tick do mercado.</TickOk>
+                  <TickOk>PreÃ§o vÃ¡lido para o tick do mercado.</TickOk>
                 )}
               </>
             )}
@@ -1209,7 +1282,15 @@ return (
             <label>Quantidade</label>
             <InputNumero
               type="number"
-              min="0"
+              min="1"
+              step="1"
+              max={
+                !ipoEncerrado && modo === 'compra'
+                  ? cotasIPO
+                  : modo === 'venda'
+                  ? cotasDisponiveisVenda
+                  : undefined
+              }
               value={quantidade || ''}
               onChange={(e) => {
                 const valor = parseInt(e.target.value, 10);
@@ -1220,22 +1301,35 @@ return (
 
           <Bloco>
             <LinhaInfo>
-              <span>Valor da Ordem</span>
+              <span>
+                {!ipoEncerrado
+                  ? modo === 'compra'
+                    ? 'Valor da compra'
+                    : 'Valor lÃ­quido da devoluÃ§Ã£o'
+                  : 'Valor da ordem'}
+              </span>
               <strong>T$ {precoTotal}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
-              <span>Preço de Mercado</span>
+              <span>{ipoEncerrado ? 'PreÃ§o de mercado' : 'PreÃ§o oficial do IPO'}</span>
               <span>T$ {Number(precoMercado).toFixed(2)}</span>
             </LinhaInfo>
+
+            {!ipoEncerrado && (
+              <LinhaInfo>
+                <span>Taxas</span>
+                <span>T$ 0,00</span>
+              </LinhaInfo>
+            )}
 
             {ipoEncerrado && (
               <>
   
                 <LinhaInfo>
-                  <span>Você será</span>
+                  <span>VocÃª serÃ¡</span>
                   <span>
-                    {tradeRolePreview.role} — taxa{' '}
+                    {tradeRolePreview.role} â taxa{' '}
                     {(tradeRolePreview.feePct * 100).toFixed(2)}%
                   </span>
                 </LinhaInfo>
@@ -1255,12 +1349,12 @@ return (
                 <span>
                   {usuario
                     ? `T$ ${Number(poderCompra || 0).toFixed(2)}`
-                    : 'Faça login para visualizar'}
+                    : 'FaÃ§a login para visualizar'}
                 </span>
               </LinhaInfo>
             ) : (
               <LinhaInfo>
-                <span>Unidades disponíveis</span>
+                <span>Unidades disponÃ­veis</span>
                 <span>
                   {cotasDisponiveisVenda}
                 </span>
@@ -1269,11 +1363,44 @@ return (
 
             {!ipoEncerrado && (
               <LinhaInfo>
-                <span>Unidades iniciais</span>
+                <span>Cotas disponÃ­veis no IPO</span>
                 <span>{cotasIPO}</span>
               </LinhaInfo>
             )}
           </Bloco>
+
+          {resultadoIpo && (
+            <ResultadoIpo>
+              <ResultadoCabecalho>
+                <ResultadoIcone $status="executada">â</ResultadoIcone>
+                <div>
+                  <ResultadoTitulo>{resultadoIpo.titulo}</ResultadoTitulo>
+                  <ResultadoSubtitulo>
+                    ExecuÃ§Ã£o imediata pela oferta inicial
+                  </ResultadoSubtitulo>
+                </div>
+              </ResultadoCabecalho>
+
+              <ResultadoGrade>
+                <ResultadoItem>
+                  <span>Quantidade</span>
+                  <strong>{resultadoIpo.quantidade}</strong>
+                </ResultadoItem>
+                <ResultadoItem>
+                  <span>PreÃ§o unitÃ¡rio</span>
+                  <strong>T$ {resultadoIpo.precoUnitario.toFixed(2)}</strong>
+                </ResultadoItem>
+                <ResultadoItem>
+                  <span>Taxa</span>
+                  <strong>T$ {resultadoIpo.taxa.toFixed(2)}</strong>
+                </ResultadoItem>
+                <ResultadoItem>
+                  <span>{resultadoIpo.tipo === 'devolucao' ? 'Valor creditado' : 'Valor debitado'}</span>
+                  <strong>T$ {resultadoIpo.valorLiquido.toFixed(2)}</strong>
+                </ResultadoItem>
+              </ResultadoGrade>
+            </ResultadoIpo>
+          )}
 
           {resultadoOrdem && (
   <ResultadoOrdem
@@ -1284,10 +1411,10 @@ return (
         $status={resultadoOrdem.status}
       >
         {resultadoOrdem.status === 'executada'
-          ? '✓'
+          ? 'â'
           : resultadoOrdem.status === 'parcial'
-          ? '◐'
-          : '↗'}
+          ? 'â'
+          : 'â'}
       </ResultadoIcone>
 
       <div>
@@ -1327,7 +1454,7 @@ return (
       </ResultadoItem>
 
       <ResultadoItem>
-        <span>Preço limite</span>
+        <span>PreÃ§o limite</span>
         <strong>
           T${' '}
           {resultadoOrdem.precoLimite.toLocaleString(
@@ -1342,7 +1469,7 @@ return (
 
       {resultadoOrdem.precoMedioExecutado !== null && (
         <ResultadoItem>
-          <span>Preço médio executado</span>
+          <span>PreÃ§o mÃ©dio executado</span>
           <strong>
             T${' '}
             {resultadoOrdem.precoMedioExecutado.toLocaleString(
@@ -1377,12 +1504,12 @@ return (
       {resultadoOrdem.ordensIlimitadas
         ? 'Plano Premium: ordens ilimitadas.'
         : resultadoOrdem.ordensRestantes !== null
-        ? `Você ainda pode enviar ${resultadoOrdem.ordensRestantes} ${
+        ? `VocÃª ainda pode enviar ${resultadoOrdem.ordensRestantes} ${
             Number(resultadoOrdem.ordensRestantes) === 1
               ? 'ordem'
               : 'ordens'
           } nesta semana.`
-        : 'Consulte sua franquia semanal antes da próxima ordem.'}
+        : 'Consulte sua franquia semanal antes da prÃ³xima ordem.'}
     </ResultadoFranquia>
 
     {resultadoOrdem.quantidadeRestante > 0 && (
@@ -1412,7 +1539,7 @@ return (
 }
           >
             {!usuario
-  ? 'Faça login para negociar'
+  ? 'FaÃ§a login para negociar'
   : carregando
   ? 'Enviando...'
   : ipoEncerrado &&
@@ -1420,7 +1547,7 @@ return (
   ? 'Verificando franquia...'
   : ipoEncerrado &&
     !limiteOrdens.temporadaAtiva
-  ? 'Temporada indisponível'
+  ? 'Temporada indisponÃ­vel'
   : ipoEncerrado &&
   !limiteOrdens.mercadoAberto
 ? 'Mercado fechado'
@@ -1430,19 +1557,28 @@ return (
   ? 'Limite de ordens atingido'
   : modo === 'compra'
   ? 'Comprar'
+  : !ipoEncerrado
+  ? 'Devolver cotas'
   : 'Vender'}
           </BotaoComprar>
 
-          <LivroDeOrdens
-            clubeId={clube.id}
-            lado={modo}
-            onSelecionarPreco={handleSelecionarPreco}
-            onResumoChange={setResumoBook}
-            ordensCompra={ordensCompra}
-            ordensVenda={ordensVenda}
-            meuId={meuId}
-            onCancelar={cancelarMinhaOrdem}
-          />
+          {ipoEncerrado ? (
+            <LivroDeOrdens
+              clubeId={clube.id}
+              lado={modo}
+              onSelecionarPreco={handleSelecionarPreco}
+              onResumoChange={setResumoBook}
+              ordensCompra={ordensCompra}
+              ordensVenda={ordensVenda}
+              meuId={meuId}
+              onCancelar={cancelarMinhaOrdem}
+            />
+          ) : (
+            <IpoBookNotice>
+              O livro de ofertas e o tick de T$ {TICK_SIZE.toFixed(2)} serÃ£o
+              ativados quando o IPO for encerrado.
+            </IpoBookNotice>
+          )}
         </ModalContentInner>
       </ModalContainer>
     </Overlay>
@@ -1573,6 +1709,35 @@ const Aba = styled.button`
 
   &:first-child {
     border-right: 1px solid #334155;
+  }
+`;
+
+const IpoInfo = styled.div`
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(250, 204, 21, 0.11),
+    rgba(250, 204, 21, 0.05)
+  );
+
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    color: #fde68a;
+    font-size: 0.86rem;
+  }
+
+  span {
+    margin-top: 0.3rem;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    line-height: 1.45;
   }
 `;
 
@@ -1721,6 +1886,11 @@ const ResultadoOrdem = styled.section`
         : 'rgba(59, 130, 246, 0.08)'};
 `;
 
+const ResultadoIpo = styled(ResultadoOrdem)`
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.08);
+`;
+
 const ResultadoCabecalho = styled.div`
   display: flex;
   align-items: center;
@@ -1862,6 +2032,18 @@ const BotaoComprar = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+`;
+
+const IpoBookNotice = styled.div`
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.55);
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: center;
 `;
 
 const BotaoLogin = styled.button`
