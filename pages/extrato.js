@@ -23,6 +23,10 @@ const TIPOS_EXTRATO = [
     label: 'Compras no IPO',
   },
   {
+    id: 'IPO_RETURN',
+    label: 'Devoluções ao IPO',
+  },
+  {
     id: 'COMPRA',
     label: 'Compras',
   },
@@ -91,6 +95,7 @@ function nomeTipo(tipo) {
     DEPOSITO: 'Depósito',
     SAQUE: 'Retirada',
     IPO: 'Compra no IPO',
+    IPO_RETURN: 'Devolução ao IPO',
     COMPRA: 'Compra',
     VENDA: 'Venda',
     DIVIDENDO: 'Dividendos',
@@ -1249,7 +1254,9 @@ const TipoBadge = styled.span`
 
   background: ${({ $tipo }) => {
     if (
-      ['DEPOSITO', 'VENDA', 'DIVIDENDO', 'LIQUIDACAO'].includes($tipo)
+      ['DEPOSITO', 'VENDA', 'IPO_RETURN', 'DIVIDENDO', 'LIQUIDACAO'].includes(
+        $tipo
+      )
     ) {
       return 'rgba(34, 197, 94, 0.12)';
     }
@@ -1269,7 +1276,9 @@ const TipoBadge = styled.span`
 
   color: ${({ $tipo }) => {
     if (
-      ['DEPOSITO', 'VENDA', 'DIVIDENDO', 'LIQUIDACAO'].includes($tipo)
+      ['DEPOSITO', 'VENDA', 'IPO_RETURN', 'DIVIDENDO', 'LIQUIDACAO'].includes(
+        $tipo
+      )
     ) {
       return '#86efac';
     }
