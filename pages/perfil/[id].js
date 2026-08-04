@@ -97,6 +97,8 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [enviandoConvite, setEnviandoConvite] = useState(false);
   const [erroConvite, setErroConvite] = useState('');
   const [sucessoConvite, setSucessoConvite] = useState('');
+  const [salvandoPrivacidade, setSalvandoPrivacidade] = useState(false);
+  const [mensagemPrivacidade, setMensagemPrivacidade] = useState('');
 
   useEffect(() => {
     if (!modalConexoesAberto || typeof document === 'undefined') {
@@ -125,6 +127,8 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
 
   const mercado = usuario?.mercado || {};
   const ranking = usuario?.ranking || {};
+  const carteiraPublica = usuario?.carteiraPublica || {};
+  const analiseCarteira = usuario?.analiseCarteira || {};
 
 const rankingHeroLabel = perfilPremium
   ? 'Ranking Premium'
@@ -139,8 +143,30 @@ const rankingHeroPosicao = perfilPremium
   usuarioLogadoId &&
   usuario?.id &&
   String(usuarioLogadoId) === String(usuario.id);
-  const podeVerPosicoes =
-  Boolean(perfilProprio) || Boolean(usuarioLogadoPremium);
+  const podeVerPosicoes = Boolean(carteiraPublica.podeVerDetalhes);
+
+  async function salvarPrivacidadeCarteira(atualizacoes) {
+    try {
+      setSalvandoPrivacidade(true);
+      setMensagemPrivacidade('');
+      const proxima = {
+        visibilidade: carteiraPublica.visibilidade || 'publica',
+        nivelDetalhe: carteiraPublica.nivelDetalhe || 'detalhada',
+        mostrarValores: carteiraPublica.mostrarValores !== false,
+        ...atualizacoes,
+      };
+      const { data } = await api.put('/social/carteira-publica', proxima);
+      setUsuario((atual) => ({
+        ...atual,
+        carteiraPublica: { ...atual.carteiraPublica, ...data.carteiraPublica },
+      }));
+      setMensagemPrivacidade('Preferências salvas.');
+    } catch (err) {
+      setMensagemPrivacidade(err?.response?.data?.erro || 'Não foi possível salvar as preferências.');
+    } finally {
+      setSalvandoPrivacidade(false);
+    }
+  }
   const podeConvidar = useMemo(() => {
   return (
     !perfilProprio &&
@@ -534,14 +560,14 @@ async function alternarFollowModal(usuarioAlvo) {
   <HeroStat>
     <span>Rentabilidade geral</span>
     <strong className={rentabilidadePositiva ? 'positivo' : 'negativo'}>
-      {formatarPercentual(mercado.rentabilidade)}
+      {mercado.rentabilidade == null ? 'Privado' : formatarPercentual(mercado.rentabilidade)}
     </strong>
   </HeroStat>
 
   <HeroStat>
     <span>Patrimônio</span>
     <strong>
-      {formatarMoeda(mercado.patrimonio)}
+      {mercado.patrimonio == null ? 'Privado' : formatarMoeda(mercado.patrimonio)}
     </strong>
   </HeroStat>
 </HeroRight>
@@ -574,6 +600,53 @@ async function alternarFollowModal(usuarioAlvo) {
   </BotaoSecundario>
 </AcoesTopo>
 
+      {perfilProprio && (
+        <PainelDourado>
+          <PainelHeader>
+            <div>
+              <EyebrowCarteira>Carteira pública</EyebrowCarteira>
+              <PainelTitulo>Controle o que aparece no seu perfil</PainelTitulo>
+            </div>
+            <PremiumMiniBadge>Privacidade</PremiumMiniBadge>
+          </PainelHeader>
+          <PrivacidadeGrid>
+            <CampoPrivacidade>
+              <span>Quem pode ver</span>
+              <SelectPrivacidade
+                value={carteiraPublica.visibilidade || 'publica'}
+                disabled={salvandoPrivacidade}
+                onChange={(e) => salvarPrivacidadeCarteira({ visibilidade: e.target.value })}
+              >
+                <option value="publica">Todos os usuários</option>
+                <option value="seguidores">Somente seguidores</option>
+                <option value="privada">Somente eu</option>
+              </SelectPrivacidade>
+            </CampoPrivacidade>
+            <CampoPrivacidade>
+              <span>Nível de exposição</span>
+              <SelectPrivacidade
+                value={carteiraPublica.nivelDetalhe || 'detalhada'}
+                disabled={salvandoPrivacidade}
+                onChange={(e) => salvarPrivacidadeCarteira({ nivelDetalhe: e.target.value })}
+              >
+                <option value="resumo">Somente resumo</option>
+                <option value="detalhada">Posições detalhadas</option>
+              </SelectPrivacidade>
+            </CampoPrivacidade>
+            <TogglePrivacidade>
+              <input
+                type="checkbox"
+                checked={carteiraPublica.mostrarValores !== false}
+                disabled={salvandoPrivacidade}
+                onChange={(e) => salvarPrivacidadeCarteira({ mostrarValores: e.target.checked })}
+              />
+              <span>Exibir valores monetários</span>
+            </TogglePrivacidade>
+          </PrivacidadeGrid>
+          {mensagemPrivacidade && <MensagemPrivacidade>{mensagemPrivacidade}</MensagemPrivacidade>}
+        </PainelDourado>
+      )}
+
       <GridMetricas>
         <MetricaButton
   type="button"
@@ -597,19 +670,26 @@ async function alternarFollowModal(usuarioAlvo) {
 
         <MetricaCard>
           <span>Posições</span>
-          <strong>
-            {formatarNumero(mercado.quantidadePosicoes)}
-          </strong>
+          <strong>{mercado.quantidadePosicoes == null ? '-' : formatarNumero(mercado.quantidadePosicoes)}</strong>
         </MetricaCard>
 
         <MetricaCard>
           <span>Total de cotas</span>
-          <strong>
-            {formatarNumero(mercado.quantidadeCotas, 0)}
-          </strong>
+          <strong>{mercado.quantidadeCotas == null ? '-' : formatarNumero(mercado.quantidadeCotas, 0)}</strong>
         </MetricaCard>
       </GridMetricas>
 
+      {!carteiraPublica.podeAcessar ? (
+        <PainelBloqueado>
+          <PremiumLockIcon>🔒</PremiumLockIcon>
+          <PremiumLockTitle>Carteira não compartilhada</PremiumLockTitle>
+          <PremiumLockTexto>
+            {carteiraPublica.motivoBloqueio === 'seguidores'
+              ? 'Este usuário compartilha a carteira apenas com seguidores.'
+              : 'Este usuário optou por manter a carteira privada.'}
+          </PremiumLockTexto>
+        </PainelBloqueado>
+      ) : <>
       <GridPrincipal>
         <Painel>
           <PainelTitulo>
@@ -618,30 +698,19 @@ async function alternarFollowModal(usuarioAlvo) {
 
           <PerformanceGrid>
             <LinhaInfo>
-              <span>Saldo disponível</span>
-              <strong>{formatarMoeda(mercado.saldo)}</strong>
-            </LinhaInfo>
-
-            <LinhaInfo>
               <span>Valor em posições</span>
-              <strong>{formatarMoeda(mercado.valorPosicoes)}</strong>
+              <strong>{mercado.valorPosicoes == null ? 'Oculto' : formatarMoeda(mercado.valorPosicoes)}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
               <span>Patrimônio total</span>
-              <strong>{formatarMoeda(mercado.patrimonio)}</strong>
-            </LinhaInfo>
-
-            <LinhaInfo>
-              <span>Capital de referência</span>
-              <strong>{formatarMoeda(mercado.capitalInicial)}</strong>
+              <strong>{mercado.patrimonio == null ? 'Oculto' : formatarMoeda(mercado.patrimonio)}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
               <span>Resultado geral</span>
               <strong className={resultadoPositivo ? 'positivo' : 'negativo'}>
-                {resultadoPositivo ? '+' : ''}
-                {formatarMoeda(mercado.resultado)}
+                {mercado.resultado == null ? 'Oculto' : `${resultadoPositivo ? '+' : ''}${formatarMoeda(mercado.resultado)}`}
               </strong>
             </LinhaInfo>
 
@@ -657,6 +726,37 @@ async function alternarFollowModal(usuarioAlvo) {
         
       </GridPrincipal>
 
+      {(perfilProprio || usuarioLogadoPremium) && analiseCarteira && (
+        <AnaliseGrid>
+          <PainelDourado>
+            <PainelHeader><PainelTitulo>Evolução recente</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+            {Array.isArray(analiseCarteira.historico) && analiseCarteira.historico.length > 1 ? (
+              <HistoricoLista>
+                {analiseCarteira.historico.slice(-12).map((ponto) => (
+                  <HistoricoItem key={ponto.data}>
+                    <span>{formatarData(ponto.data)}</span>
+                    <BarraBase><BarraValor $valor={ponto.rentabilidade} /></BarraBase>
+                    <strong className={Number(ponto.rentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(ponto.rentabilidade)}</strong>
+                  </HistoricoItem>
+                ))}
+              </HistoricoLista>
+            ) : <TextoApoio>Base histórica em formação. A curva crescerá com os snapshots diários.</TextoApoio>}
+          </PainelDourado>
+
+          {analiseCarteira.comparacao && (
+            <PainelDourado>
+              <PainelHeader><PainelTitulo>Comparação com você</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+              <ComparacaoGrid>
+                <MiniMetrica><span>Diferença de rentabilidade</span><strong className={Number(analiseCarteira.comparacao.diferencaRentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(analiseCarteira.comparacao.diferencaRentabilidade)}</strong></MiniMetrica>
+                <MiniMetrica><span>Concentração deste usuário</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoUsuario).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>Sua concentração</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoVisitante).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>Clubes em comum</span><strong>{formatarNumero(analiseCarteira.comparacao.clubesEmComum)}</strong></MiniMetrica>
+              </ComparacaoGrid>
+            </PainelDourado>
+          )}
+        </AnaliseGrid>
+      )}
+
       <Painel>
   <PainelHeader>
     <PainelTitulo>
@@ -670,59 +770,24 @@ async function alternarFollowModal(usuarioAlvo) {
     )}
   </PainelHeader>
 
-  {!Array.isArray(mercado.topPosicoes) ||
-  mercado.topPosicoes.length === 0 ? (
+  {!podeVerPosicoes ? (
+    carteiraPublica.motivoBloqueio === 'resumo' ? (
+      <EstadoCard>Este usuário optou por compartilhar somente o resumo da carteira.</EstadoCard>
+    ) : (
+    <PremiumLockedArea>
+      <BlurredPositions aria-hidden="true">
+        {[1, 2, 3].map((item) => <BlurCard key={item}><ClubeResumo><BlurAvatar /><div><BlurLine $width="120px" /><BlurLine $width="72px" $small /></div></ClubeResumo><BlurGrid><BlurMetric /><BlurMetric /><BlurMetric /><BlurMetric /></BlurGrid></BlurCard>)}
+      </BlurredPositions>
+      <PremiumOverlay><PremiumLockIcon>🔒</PremiumLockIcon><PremiumLockTitle>Análise detalhada exclusiva Premium</PremiumLockTitle><PremiumLockTexto>Faça upgrade para analisar composição, pesos, preços médios e resultados por clube.</PremiumLockTexto><UpgradeButton type="button" onClick={() => router.push('/planos')}>Fazer upgrade</UpgradeButton></PremiumOverlay>
+    </PremiumLockedArea>
+    )
+  ) : !Array.isArray(mercado.posicoes) || mercado.posicoes.length === 0 ? (
     <EstadoCard>
       Este usuário ainda não possui posições em carteira.
     </EstadoCard>
-  ) : !podeVerPosicoes ? (
-    <PremiumLockedArea>
-      <BlurredPositions aria-hidden="true">
-        {[1, 2, 3].map((item) => (
-          <BlurCard key={item}>
-            <ClubeResumo>
-              <BlurAvatar />
-
-              <div>
-                <BlurLine $width="120px" />
-                <BlurLine $width="72px" $small />
-              </div>
-            </ClubeResumo>
-
-            <BlurGrid>
-              <BlurMetric />
-              <BlurMetric />
-              <BlurMetric />
-              <BlurMetric />
-            </BlurGrid>
-          </BlurCard>
-        ))}
-      </BlurredPositions>
-
-      <PremiumOverlay>
-        <PremiumLockIcon>
-          🔒
-        </PremiumLockIcon>
-
-        <PremiumLockTitle>
-          Posições disponíveis apenas para Premium
-        </PremiumLockTitle>
-
-        <PremiumLockTexto>
-          Usuários Lite não podem ver a carteira detalhada de outros usuários.
-        </PremiumLockTexto>
-
-        <UpgradeButton
-          type="button"
-          onClick={() => router.push('/planos')}
-        >
-          Fazer upgrade
-        </UpgradeButton>
-      </PremiumOverlay>
-    </PremiumLockedArea>
   ) : (
     <ListaPosicoes>
-      {mercado.topPosicoes.map((posicao) => (
+      {mercado.posicoes.map((posicao) => (
         <PosicaoItem key={posicao.clubeId}>
           <ClubeResumo>
             <ClubBadge
@@ -736,7 +801,7 @@ async function alternarFollowModal(usuarioAlvo) {
               </strong>
 
               <span>
-                {formatarNumero(posicao.quantidade)} cotas
+                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas · ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
               </span>
             </div>
           </ClubeResumo>
@@ -744,17 +809,17 @@ async function alternarFollowModal(usuarioAlvo) {
           <PosicaoMetricas>
             <MiniMetrica>
               <span>Preço médio</span>
-              <strong>{formatarMoeda(posicao.precoMedio)}</strong>
+              <strong>{posicao.precoMedio == null ? 'Oculto' : formatarMoeda(posicao.precoMedio)}</strong>
             </MiniMetrica>
 
             <MiniMetrica>
               <span>Preço atual</span>
-              <strong>{formatarMoeda(posicao.precoAtual)}</strong>
+              <strong>{posicao.precoAtual == null ? 'Oculto' : formatarMoeda(posicao.precoAtual)}</strong>
             </MiniMetrica>
 
             <MiniMetrica>
               <span>Valor atual</span>
-              <strong>{formatarMoeda(posicao.valorAtual)}</strong>
+              <strong>{posicao.valorAtual == null ? 'Oculto' : formatarMoeda(posicao.valorAtual)}</strong>
             </MiniMetrica>
 
             <MiniMetrica>
@@ -775,6 +840,7 @@ async function alternarFollowModal(usuarioAlvo) {
     </ListaPosicoes>
   )}
 </Painel>
+      </>}
 
 {modalConexoesAberto && (
   <ModalOverlay
@@ -2222,4 +2288,137 @@ const MensagemSucesso = styled.div`
   background: rgba(34, 197, 94, 0.08);
   color: #86efac;
   font-size: 0.84rem;
+`;
+
+const PainelDourado = styled.section`
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid rgba(250, 204, 21, 0.2);
+  border-radius: 18px;
+  background: radial-gradient(circle at top right, rgba(250, 204, 21, 0.09), transparent 38%), rgba(15, 23, 42, 0.78);
+
+  .positivo { color: #86efac; }
+  .negativo { color: #fca5a5; }
+`;
+
+const EyebrowCarteira = styled.span`
+  display: block;
+  margin-bottom: 5px;
+  color: #facc15;
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+`;
+
+const PrivacidadeGrid = styled.div`
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+
+  @media (max-width: 760px) { grid-template-columns: 1fr; }
+`;
+
+const CampoPrivacidade = styled.label`
+  span { display: block; margin-bottom: 7px; color: #94a3b8; font-size: 0.76rem; font-weight: 800; }
+`;
+
+const SelectPrivacidade = styled.select`
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 11px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-weight: 750;
+`;
+
+const TogglePrivacidade = styled.label`
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  input { accent-color: #eab308; width: 17px; height: 17px; }
+`;
+
+const MensagemPrivacidade = styled.div`
+  margin-top: 10px;
+  color: #fde68a;
+  font-size: 0.8rem;
+`;
+
+const PainelBloqueado = styled.section`
+  margin-bottom: 16px;
+  min-height: 230px;
+  padding: 28px;
+  border: 1px solid rgba(250, 204, 21, 0.18);
+  border-radius: 20px;
+  background: radial-gradient(circle at center, rgba(250, 204, 21, 0.08), transparent 52%), #0f172a;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+`;
+
+const AnaliseGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  @media (max-width: 860px) { grid-template-columns: 1fr; }
+`;
+
+const HistoricoLista = styled.div`
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+`;
+
+const HistoricoItem = styled.div`
+  display: grid;
+  grid-template-columns: 78px minmax(70px, 1fr) 72px;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  strong { text-align: right; }
+`;
+
+const BarraBase = styled.div`
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+`;
+
+const BarraValor = styled.div`
+  width: ${({ $valor }) => `${Math.max(7, Math.min(100, 50 + Number($valor || 0) * 2))}%`};
+  height: 100%;
+  border-radius: inherit;
+  background: ${({ $valor }) => Number($valor || 0) >= 0 ? '#22c55e' : '#ef4444'};
+`;
+
+const TextoApoio = styled.p`
+  margin: 16px 0 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.55;
+`;
+
+const ComparacaoGrid = styled.div`
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 `;

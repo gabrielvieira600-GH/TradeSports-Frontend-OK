@@ -207,8 +207,14 @@ function PlanosPage() {
 
             <Beneficio>
               <Check>✓</Check>
-              <span>Análise de carteiras públicas</span>
+              <span>Análise avançada de carteiras públicas</span>
             </Beneficio>
+
+            <Beneficio><Check>✓</Check><span>Composição, pesos e concentração por clube</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Preço médio, resultado e rentabilidade por posição</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Evolução histórica da carteira pública</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Comparação direta com outros usuários</span></Beneficio>
+            <Beneficio><Check>✓</Check><span>Controles de privacidade da própria carteira</span></Beneficio>
 
             <Beneficio>
               <Check>✓</Check>
