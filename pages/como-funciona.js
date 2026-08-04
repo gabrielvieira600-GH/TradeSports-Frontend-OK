@@ -283,6 +283,18 @@ function ComoFunciona() {
             <RuleCard>
               <RuleIcon>3</RuleIcon>
               <div>
+                <h3>Saída sem bloqueio</h3>
+                <p>
+                  Enquanto o IPO estiver aberto, o usuário pode devolver suas
+                  cotas imediatamente pelo mesmo preço fixo. Não há taxa, tick
+                  ou ordem no livro, e as unidades retornam ao estoque inicial.
+                </p>
+              </div>
+            </RuleCard>
+
+            <RuleCard>
+              <RuleIcon>4</RuleIcon>
+              <div>
                 <h3>Transição automática</h3>
                 <p>
                   Quando as {PARAMETROS.cotasPorClube.toLocaleString("pt-BR")}{" "}
