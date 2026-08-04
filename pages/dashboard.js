@@ -74,16 +74,17 @@ function saudacaoAtual() {
 
 function labelAtividade(item) {
   const clube = item?.clubeNome
-    ? ` · ${item.clubeNome}`
+    ? ` Â· ${item.clubeNome}`
     : '';
 
   const labels = {
     IPO: 'Compra no mercado inicial',
+    IPO_RETURN: 'DevoluÃ§Ã£o ao mercado inicial',
     COMPRA: 'Compra de cotas',
     VENDA: 'Venda de cotas',
-    LIQUIDACAO: 'Liquidação',
-    DIVIDENDO: 'Bonificação por desempenho',
-    DEPOSITO: 'Crédito de saldo simulado',
+    LIQUIDACAO: 'LiquidaÃ§Ã£o',
+    DIVIDENDO: 'BonificaÃ§Ã£o por desempenho',
+    DEPOSITO: 'CrÃ©dito de saldo simulado',
     SAQUE: 'Retirada de saldo simulado',
     AJUSTE: 'Ajuste de saldo',
     ORDEM_COMPRA: 'Ordem de compra criada',
@@ -97,6 +98,7 @@ function sinalAtividade(item) {
   if (
     [
       'VENDA',
+      'IPO_RETURN',
       'LIQUIDACAO',
       'DIVIDENDO',
       'DEPOSITO',
@@ -167,7 +169,7 @@ function DashboardPage() {
       } catch (err) {
         setErro(
           err?.response?.data?.erro ||
-            'Não foi possível carregar sua visão geral.'
+            'NÃ£o foi possÃ­vel carregar sua visÃ£o geral.'
         );
       } finally {
         setCarregando(false);
@@ -244,9 +246,9 @@ function DashboardPage() {
   const proximoPasso = useMemo(() => {
     if (!mercado?.temporadaAtiva) {
       return {
-        titulo: 'Prepare sua estratégia',
+        titulo: 'Prepare sua estratÃ©gia',
         texto:
-          'Não há uma temporada ativa agora. Use este momento para conhecer os mercados e montar sua watchlist.',
+          'NÃ£o hÃ¡ uma temporada ativa agora. Use este momento para conhecer os mercados e montar sua watchlist.',
         href: '/brasileirao-a',
         acao: 'Explorar clubes',
       };
@@ -256,7 +258,7 @@ function DashboardPage() {
       return {
         titulo: 'Mercado temporariamente fechado',
         texto:
-          'Suas posições continuam visíveis. Acompanhe a classificação enquanto aguarda a reabertura.',
+          'Suas posiÃ§Ãµes continuam visÃ­veis. Acompanhe a classificaÃ§Ã£o enquanto aguarda a reabertura.',
         href: '/carteira',
         acao: 'Ver carteira',
       };
@@ -268,9 +270,9 @@ function DashboardPage() {
       ) === 0
     ) {
       return {
-        titulo: 'Faça sua primeira análise',
+        titulo: 'FaÃ§a sua primeira anÃ¡lise',
         texto:
-          'Compare os clubes, observe os preços e escolha onde iniciar sua carteira simulada.',
+          'Compare os clubes, observe os preÃ§os e escolha onde iniciar sua carteira simulada.',
         href: '/brasileirao-a',
         acao: 'Explorar mercado',
       };
@@ -279,18 +281,18 @@ function DashboardPage() {
     if (Number(ordensAbertas.total || 0) > 0) {
       return {
         titulo: 'Acompanhe suas ordens',
-        texto: `Você tem ${Number(
+        texto: `VocÃª tem ${Number(
           ordensAbertas.total
-        )} ordem(ns) aguardando execução total ou parcial.`,
+        )} ordem(ns) aguardando execuÃ§Ã£o total ou parcial.`,
         href: '/minhas-ordens',
         acao: 'Revisar ordens',
       };
     }
 
     return {
-      titulo: 'Mercado pronto para você',
+      titulo: 'Mercado pronto para vocÃª',
       texto:
-        'Revise suas posições e procure oportunidades para a próxima decisão.',
+        'Revise suas posiÃ§Ãµes e procure oportunidades para a prÃ³xima decisÃ£o.',
       href: '/brasileirao-a',
       acao: 'Analisar mercados',
     };
@@ -345,7 +347,7 @@ function DashboardPage() {
       <Container>
         <ErroCard role="alert">
           <ErroIcone>!</ErroIcone>
-          <h1>Não conseguimos abrir seu dashboard</h1>
+          <h1>NÃ£o conseguimos abrir seu dashboard</h1>
           <p>{erro}</p>
           <RetryButton
             type="button"
@@ -362,12 +364,12 @@ function DashboardPage() {
     <Container>
       <Cabecalho>
         <div>
-          <Eyebrow>VISÃO GERAL DA CONTA</Eyebrow>
+          <Eyebrow>VISÃO GERAL DA CONTA</Eyebrow>
           <Titulo>
             {saudacaoAtual()}, {primeiroNome}.
           </Titulo>
           <Subtitulo>
-            Seu desempenho e os próximos passos em um só lugar.
+            Seu desempenho e os prÃ³ximos passos em um sÃ³ lugar.
           </Subtitulo>
         </div>
 
@@ -399,7 +401,7 @@ function DashboardPage() {
 
       {erro && (
         <AvisoAtualizacao role="alert">
-          {erro} Os últimos dados carregados continuam visíveis.
+          {erro} Os Ãºltimos dados carregados continuam visÃ­veis.
         </AvisoAtualizacao>
       )}
 
@@ -420,12 +422,12 @@ function DashboardPage() {
 
           <HeroTitulo>
             {mercado?.temporada?.nome ||
-              'Próxima temporada TradeSports'}
+              'PrÃ³xima temporada TradeSports'}
           </HeroTitulo>
 
           <HeroTexto>
             {mercado?.temporada?.descricao ||
-              'Acompanhe o status operacional e organize sua estratégia antes da próxima decisão.'}
+              'Acompanhe o status operacional e organize sua estratÃ©gia antes da prÃ³xima decisÃ£o.'}
           </HeroTexto>
 
           <HeroMeta>
@@ -437,12 +439,12 @@ function DashboardPage() {
                   {mercado?.rodada
                     ? `${mercado.rodada.numero}${
                         mercado.rodada.nome
-                          ? ` · ${mercado.rodada.nome}`
+                          ? ` Â· ${mercado.rodada.nome}`
                           : ''
                       }`
                     : mercado?.temporada?.rodadaAtual
                     ? `Rodada ${mercado.temporada.rodadaAtual}`
-                    : 'Não aberta'}
+                    : 'NÃ£o aberta'}
                 </strong>
               </span>
             </MetaItem>
@@ -450,7 +452,7 @@ function DashboardPage() {
             <MetaItem>
               <FiClock />
               <span>
-                <small>Próxima referência</small>
+                <small>PrÃ³xima referÃªncia</small>
                 <strong>
                   {formatarData(
                     mercado?.rodada?.fimPrevisto ||
@@ -506,7 +508,7 @@ function DashboardPage() {
               </QuotaBarra>
 
               <QuotaAjuda>
-                {Number(quota?.utilizadas || 0)} usadas · renova em{' '}
+                {Number(quota?.utilizadas || 0)} usadas Â· renova em{' '}
                 {formatarData(
                   quota?.periodo?.renovaEm,
                   true
@@ -524,22 +526,22 @@ function DashboardPage() {
       <KpiGrid>
         <KpiCard
           icone={<FiBriefcase />}
-          rotulo="Patrimônio total"
+          rotulo="PatrimÃ´nio total"
           valor={formatarTS(
             patrimonio.patrimonio
           )}
           detalhe={`${formatarTS(
             patrimonio.valorPosicoes
-          )} em posições`}
+          )} em posiÃ§Ãµes`}
           tom="azul"
-          destaque="Saldo + posições"
+          destaque="Saldo + posiÃ§Ãµes"
         />
 
         <KpiCard
           icone={<FiShoppingCart />}
-          rotulo="Saldo disponível"
+          rotulo="Saldo disponÃ­vel"
           valor={formatarTS(patrimonio.saldo)}
-          detalhe="Disponível para operações simuladas"
+          detalhe="DisponÃ­vel para operaÃ§Ãµes simuladas"
           tom="verde"
           destaque="T$"
         />
@@ -558,7 +560,7 @@ function DashboardPage() {
           )}
           detalhe={`${formatarPercentual(
             patrimonio.rentabilidade
-          )} sobre o patrimônio inicial`}
+          )} sobre o patrimÃ´nio inicial`}
           tom={
             resultadoPositivo
               ? 'verde'
@@ -576,13 +578,13 @@ function DashboardPage() {
           rotulo="Ranking geral"
           valor={
             dados?.ranking?.geral?.posicao
-              ? `${dados.ranking.geral.posicao}º`
-              : '—'
+              ? `${dados.ranking.geral.posicao}Âº`
+              : 'â'
           }
           detalhe={
             dados?.ranking?.geral?.posicao
-              ? `${dados.ranking.geral.total} participantes · ${dados?.ranking?.plano?.posicao || '—'}º no plano`
-              : 'Você ainda não aparece no ranking'
+              ? `${dados.ranking.geral.total} participantes Â· ${dados?.ranking?.plano?.posicao || 'â'}Âº no plano`
+              : 'VocÃª ainda nÃ£o aparece no ranking'
           }
           tom="roxo"
           destaque={
@@ -601,7 +603,7 @@ function DashboardPage() {
               <div>
                 <CardEyebrow>SUA CARTEIRA</CardEyebrow>
                 <CardTitulo>
-                  Principais posições
+                  Principais posiÃ§Ãµes
                 </CardTitulo>
               </div>
 
@@ -615,9 +617,9 @@ function DashboardPage() {
                 <EmptyIcone>
                   <FiBriefcase />
                 </EmptyIcone>
-                <h3>Sua carteira está vazia</h3>
+                <h3>Sua carteira estÃ¡ vazia</h3>
                 <p>
-                  Analise os clubes e faça sua primeira operação com T$.
+                  Analise os clubes e faÃ§a sua primeira operaÃ§Ã£o com T$.
                 </p>
                 <EmptyLink href="/brasileirao-a">
                   Explorar mercado
@@ -649,7 +651,7 @@ function DashboardPage() {
                             {Number(
                               posicao.quantidade || 0
                             ).toLocaleString('pt-BR')}{' '}
-                            cotas · preço médio{' '}
+                            cotas Â· preÃ§o mÃ©dio{' '}
                             {formatarTS(
                               posicao.precoMedio
                             )}
@@ -684,7 +686,7 @@ function DashboardPage() {
                     dados?.carteira
                       ?.quantidadePosicoes || 0
                   )}{' '}
-                  posições
+                  posiÃ§Ãµes
                 </span>
                 <span>
                   {Number(
@@ -700,7 +702,7 @@ function DashboardPage() {
           <Card>
             <CardCabecalho>
               <div>
-                <CardEyebrow>HISTÓRICO</CardEyebrow>
+                <CardEyebrow>HISTÃRICO</CardEyebrow>
                 <CardTitulo>
                   Atividades recentes
                 </CardTitulo>
@@ -718,7 +720,7 @@ function DashboardPage() {
                 </EmptyIcone>
                 <h3>Nenhuma atividade ainda</h3>
                 <p>
-                  Suas ordens e movimentações aparecerão aqui.
+                  Suas ordens e movimentaÃ§Ãµes aparecerÃ£o aqui.
                 </p>
               </EmptyState>
             ) : (
@@ -750,9 +752,9 @@ function DashboardPage() {
                           {formatarData(
                             item.data,
                             true
-                          ) || 'Data não informada'}
+                          ) || 'Data nÃ£o informada'}
                           {item.status
-                            ? ` · ${item.status}`
+                            ? ` Â· ${item.status}`
                             : ''}
                         </span>
                       </AtividadeTexto>
@@ -775,7 +777,7 @@ function DashboardPage() {
             <ProximoIcone>
               <FiZap />
             </ProximoIcone>
-            <CardEyebrow>PRÓXIMA AÇÃO</CardEyebrow>
+            <CardEyebrow>PRÃXIMA AÃÃO</CardEyebrow>
             <ProximoTitulo>
               {proximoPasso.titulo}
             </ProximoTitulo>
@@ -862,8 +864,8 @@ function DashboardPage() {
       </ConteudoGrid>
 
       <RodapeNota>
-        <span>Simulação educacional</span>
-        Os valores são expressos em T$ e não representam dinheiro real,
+        <span>SimulaÃ§Ã£o educacional</span>
+        Os valores sÃ£o expressos em T$ e nÃ£o representam dinheiro real,
         investimento ou promessa de retorno.
       </RodapeNota>
     </Container>
