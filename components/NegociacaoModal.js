@@ -1252,7 +1252,7 @@ return (
             {ipoEncerrado && (
               <>
                 <TickMeta>
-                  <span>Tick mÃ­nimo</span>
+                  <span>Tick mínimo</span>
                   <strong>T$ {TICK_SIZE.toFixed(2)}</strong>
                 </TickMeta>
 
