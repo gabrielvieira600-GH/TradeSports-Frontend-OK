@@ -51,12 +51,12 @@ const mercados = [
   },
   {
     href: '/nfloeste',
-    nome: 'NFL Oeste',
+    nome: 'NFL — AFC',
     badge: 'nfl',
   },
   {
     href: '/nflleste',
-    nome: 'NFL Leste',
+    nome: 'NFL — NFC',
     badge: 'nfl',
   },
 ];

@@ -5,10 +5,9 @@ import styled from 'styled-components';
 import axios from 'axios';
 import NegociacaoModal from '../../components/NegociacaoModal';
 import ClubBadge from '../../components/ClubBadge';
+import mercados from '../../Data/mercados';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const LIGA_ID = 'brasileirao-a';
-const LIGA_NOME = 'Brasileirão Série A';
 
 const Wrapper = styled.div`
   padding: 28px 24px;
@@ -151,9 +150,9 @@ const Btn = styled.button`
   font-weight: 700;
 `;
 
-function formatBRL(v) {
+function formatTrade(v) {
   const n = Number(v || 0);
-  return `R$ ${n.toFixed(2)}`;
+  return `T$ ${n.toFixed(2)}`;
 }
 
 // SVG line chart (sem libs), “linha por operação”
@@ -258,6 +257,8 @@ export default function ClubeDetalhe() {
     }
 
     const clubeId = clube.id ?? clube.legacyId;
+    const ligaId = clube.metadata?.ligaId || 'brasileirao-a';
+    const ligaNome = clube.metadata?.ligaNome || 'Brasileirão Série A';
 
     const { data } = await axios.post(
       `${API_BASE}/watchlist/toggle`,
@@ -265,8 +266,8 @@ export default function ClubeDetalhe() {
         entityType: 'clube',
         entityId: clubeId,
         nome: clube.nome,
-        ligaId: LIGA_ID,
-        ligaNome: LIGA_NOME,
+        ligaId,
+        ligaNome,
       },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -317,6 +318,7 @@ export default function ClubeDetalhe() {
         cotasDisponiveis: Number(clubeData.cotasDisponiveis || 0),
         cotasEmitidas: Number(clubeData.cotasEmitidas || 0),
         ipoEncerrado: Boolean(clubeData.ipoEncerrado),
+        metadata: clubeData.metadata || {},
       });
 
       setHist(resHist?.data || null);
@@ -342,12 +344,14 @@ export default function ClubeDetalhe() {
   const pontos = hist?.pontos || [];
 
   const variacaoCor = (resumo?.variacaoAbs ?? 0) >= 0 ? '#22c55e' : '#ef4444';
+  const ligaId = clube?.metadata?.ligaId || 'brasileirao-a';
+  const liga = mercados[ligaId] || mercados['brasileirao-a'];
 
   return (
     <Wrapper>
       <Header>
   <HeaderMain>
-    {clube && <ClubBadge clube={clube.nome} size={54} />}
+    {clube && <ClubBadge clube={clube.nome} escudo={clube.escudo} size={54} />}
 
     <TitleBox>
       <FavoriteHeader>
@@ -362,8 +366,8 @@ export default function ClubeDetalhe() {
       </FavoriteHeader>
 
       <Sub>
-        <Link href="/brasileirao-a" style={{ color: "#60a5fa" }}>
-          Voltar ao Brasileirão A
+        <Link href={liga.rota} style={{ color: "#60a5fa" }}>
+          Voltar para {liga.nome}
         </Link>
       </Sub>
     </TitleBox>
@@ -401,25 +405,25 @@ export default function ClubeDetalhe() {
         <Card>
           <Row>
             <Label>Preço IPO/Liquidação (estático)</Label>
-            <Value>{formatBRL(hist?.ipoLiquidacao ?? clube?.preco)}</Value>
+            <Value>{formatTrade(hist?.ipoLiquidacao ?? clube?.preco)}</Value>
           </Row>
 
           <Row>
             <Label>Preço de Mercado (último negócio)</Label>
-            <Value>{formatBRL(hist?.precoMercado ?? clube?.precoAtual ?? clube?.preco)}</Value>
+            <Value>{formatTrade(hist?.precoMercado ?? clube?.precoAtual ?? clube?.preco)}</Value>
           </Row>
 
           <Row>
             <Label>Variação no período</Label>
             <Value style={{ color: variacaoCor }}>
-              {formatBRL(resumo?.variacaoAbs)} ({(resumo?.variacaoPct ?? 0).toFixed(2)}%)
+              {formatTrade(resumo?.variacaoAbs)} ({(resumo?.variacaoPct ?? 0).toFixed(2)}%)
             </Value>
           </Row>
 
           <Row>
             <Label>Máxima / Mínima</Label>
             <Value>
-              {formatBRL(resumo?.max)} / {formatBRL(resumo?.min)}
+              {formatTrade(resumo?.max)} / {formatTrade(resumo?.min)}
             </Value>
           </Row>
 

@@ -1014,7 +1014,14 @@ function getBackground(style) {
   }
 }
 
-export default function ClubBadge({ clube, size = 34 }) {
+const ExternalShield = styled.img`
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+`;
+
+export default function ClubBadge({ clube, escudo, size = 34 }) {
   const key = normalizeClubName(clube);
 
   const style = CLUB_STYLES[key] || {
@@ -1035,7 +1042,9 @@ export default function ClubBadge({ clube, size = 34 }) {
       title={clube}
       aria-label={`Símbolo de ${clube || 'clube'}`}
     >
-      <Inner $bg={bg}>
+      {escudo ? (
+        <ExternalShield src={escudo} alt="" aria-hidden="true" />
+      ) : <Inner $bg={bg}>
         {style.pattern === 'star' && <Star $size={size} />}
 
         {style.pattern === 'stars' && (
@@ -1049,7 +1058,7 @@ export default function ClubBadge({ clube, size = 34 }) {
         )}
 
         {style.center && <Center $color={style.center} />}
-      </Inner>
+      </Inner>}
     </Wrap>
   );
 
