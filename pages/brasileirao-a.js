@@ -5,17 +5,17 @@ import axios from 'axios';
 import NegociacaoModal from '../components/NegociacaoModal';
 import ClubBadge, { LeagueBadge } from '../components/ClubBadge';
 import EstadoInterface from '../components/EstadoInterface';
+import mercados from '../Data/mercados';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const LIGA_ID = 'brasileirao-a';
-const LIGA_NOME = 'Brasileirão Série A';
-
-function calcularPrecoLiquidacao(posicao) {
+function calcularPrecoLiquidacao(posicao, totalParticipantes) {
   const precoBase = 5;
-  return precoBase * Math.pow(1.05, 20 - posicao);
+  return precoBase * Math.pow(1.05, totalParticipantes - posicao);
 }
 
-export default function BrasileiraoA() {
+export function MercadoCompeticao({ mercado }) {
+  const LIGA_ID = mercado.id;
+  const LIGA_NOME = mercado.nome;
   const router = useRouter();
   const [clubes, setClubes] = useState([]);
   const [watchlist, setWatchlist] = useState({ clubes: [], ligas: [] });
@@ -158,46 +158,16 @@ export default function BrasileiraoA() {
         throw new Error('Endereço da API não configurado.');
       }
 
-      const [resTabela, resClubes] = await Promise.all([
-        axios.get(`${API_BASE}/api/tabela-brasileirao`),
-        axios.get(`${API_BASE}/clube/clubes`),
-      ]);
+      const resTabela = await axios.get(`${API_BASE}${mercado.endpoint}`);
 
       const clubesApi = Array.isArray(resTabela?.data?.data)
         ? resTabela.data.data
         : [];
-      const clubesJson = Array.isArray(resClubes?.data) ? resClubes.data : [];
-
-      const clubesCruzados = clubesApi
-        .map((clubeApi) => {
-          const clubeLocal = clubesJson.find(
-            (c) => canon(c.nome || '') === canon(clubeApi.nome || '')
-          );
-
-          if (!clubeLocal) return null;
-
-          return {
-            id: clubeLocal.id ?? clubeLocal.legacyId,
-            legacyId: clubeLocal.legacyId ?? clubeLocal.id,
-            nome: clubeLocal.nome,
-            escudo: clubeLocal.escudo || clubeApi.escudo || '',
-            posicao: clubeApi.posicao,
-            preco: Number(clubeLocal.preco || 0),
-            precoAtual:
-              clubeLocal.precoAtual != null
-                ? Number(clubeLocal.precoAtual)
-                : undefined,
-            cotasDisponiveis: clubeLocal.cotasDisponiveis,
-            ipoEncerrado: clubeLocal.ipoEncerrado,
-          };
-        })
-        .filter(Boolean);
-
-      setClubes(clubesCruzados);
+      setClubes(clubesApi);
     } catch (e) {
       console.error('Erro ao buscar dados:', e);
       setClubes([]);
-      setErro('Não foi possível carregar os clubes deste mercado.');
+      setErro(`Não foi possível carregar os ${mercado.entidade === 'time' ? 'times' : 'clubes'} deste mercado.`);
     } finally {
       setCarregando(false);
     }
@@ -227,7 +197,7 @@ export default function BrasileiraoA() {
 
   const limparBusca = () => {
     setFiltro('');
-    router.replace('/brasileirao-a', undefined, { shallow: true });
+    router.replace(mercado.rota, undefined, { shallow: true });
   };
 
   return (
@@ -235,13 +205,13 @@ export default function BrasileiraoA() {
       <Hero>
         <LeagueMain>
           <LeagueMark>
-          <LeagueBadge liga="brasileirao-serie-a" size={38} />
+          <LeagueBadge liga={mercado.badge} size={38} />
           </LeagueMark>
 
           <LeagueCopy>
             <Titulo>{LIGA_NOME}</Titulo>
             <LeagueMeta>
-              <span>20 clubes</span>
+              <span>{mercado.participantes} {mercado.entidade === 'time' ? 'times' : 'clubes'}</span>
               <span>•</span>
               <span>IPO + secundário</span>
             </LeagueMeta>
@@ -265,9 +235,9 @@ export default function BrasileiraoA() {
         <SearchInlineInput
           type="search"
           value={filtro}
-          placeholder="Buscar clube neste mercado"
+          placeholder={`Buscar ${mercado.entidade} neste mercado`}
           onChange={(e) => setFiltro(e.target.value)}
-          aria-label="Buscar clube no Brasileirão Série A"
+          aria-label={`Buscar ${mercado.entidade} em ${LIGA_NOME}`}
         />
       </SearchInline>
 
@@ -285,7 +255,7 @@ export default function BrasileiraoA() {
         <EstadoInterface
           variante="carregando"
           titulo="Carregando o mercado"
-          descricao="Estamos reunindo clubes, classificação e preços atuais em T$."
+          descricao={`Estamos reunindo ${mercado.entidade === 'time' ? 'times' : 'clubes'}, classificação e preços atuais em T$.`}
         />
       ) : erro ? (
         <EstadoInterface
@@ -301,7 +271,7 @@ export default function BrasileiraoA() {
         filtro.trim() ? (
           <EstadoInterface
             variante="busca"
-            titulo="Nenhum clube corresponde à busca"
+            titulo={`Nenhum ${mercado.entidade} corresponde à busca`}
             descricao={`Não encontramos resultados para “${filtro.trim()}” neste mercado.`}
             acao="Limpar busca"
             onAcao={limparBusca}
@@ -309,8 +279,8 @@ export default function BrasileiraoA() {
         ) : (
           <EstadoInterface
             variante="indisponivel"
-            titulo="Nenhum clube está disponível neste mercado"
-            descricao="A competição está cadastrada, mas ainda não possui clubes publicados para negociação."
+            titulo={`Nenhum ${mercado.entidade} está disponível neste mercado`}
+            descricao={`A competição está cadastrada, mas ainda não possui ${mercado.entidade === 'time' ? 'times publicados' : 'clubes publicados'} para negociação.`}
             acao="Tentar novamente"
             onAcao={fetchDados}
             acaoSecundaria="Voltar ao dashboard"
@@ -326,8 +296,8 @@ export default function BrasileiraoA() {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Clube</th>
-                  <th>R$ p/ Posição</th>
+                  <th>{mercado.entidade === 'time' ? 'Time' : 'Clube'}</th>
+                  <th>T$ p/ posição</th>
                   <th>Mercado</th>
                   <th>Status</th>
                   <th></th>
@@ -336,8 +306,8 @@ export default function BrasileiraoA() {
 
               <tbody>
                 {clubesFiltrados.map((clube) => {
-                  const mercado = clube.precoAtual ?? clube.preco ?? 0;
-                  const liquidation = calcularPrecoLiquidacao(clube.posicao);
+                  const valorMercado = clube.precoAtual ?? clube.preco ?? 0;
+                  const liquidation = calcularPrecoLiquidacao(clube.posicao, mercado.participantes);
                   const inWatchlist = favoritosClubes.has(String(clube.id));
 
                   return (
@@ -362,7 +332,7 @@ export default function BrasileiraoA() {
 
                           <ClubNameWrap onClick={() => abrirPaginaClube(clube.id)}>
                             <EscudoWrapDesktop>
-                              <ClubBadge clube={clube.nome} size={28} />
+                              <ClubBadge clube={clube.nome} escudo={clube.escudo} size={28} />
                             </EscudoWrapDesktop>
 
                             <ClubText>
@@ -380,7 +350,7 @@ export default function BrasileiraoA() {
 
                       <td>
                         <NumberCol>
-                          <span>{mercado.toFixed(2)}</span>
+                          <span>{valorMercado.toFixed(2)}</span>
                         </NumberCol>
                       </td>
 
@@ -406,7 +376,7 @@ export default function BrasileiraoA() {
         <TableCard>
           <TableHeader>
             <HeaderCellSmall>#</HeaderCellSmall>
-            <HeaderCellClub>Clube</HeaderCellClub>
+            <HeaderCellClub>{mercado.entidade === 'time' ? 'Time' : 'Clube'}</HeaderCellClub>
             <HeaderCellPrice>Liq./IPO</HeaderCellPrice>
             <HeaderCellPrice>Mercado</HeaderCellPrice>
             <HeaderCellTrade>Negociar</HeaderCellTrade>
@@ -414,8 +384,8 @@ export default function BrasileiraoA() {
 
           <Rows>
             {clubesFiltrados.map((clube) => {
-              const mercado = clube.precoAtual ?? clube.preco ?? 0;
-              const liquidation = calcularPrecoLiquidacao(clube.posicao);
+              const valorMercado = clube.precoAtual ?? clube.preco ?? 0;
+              const liquidation = calcularPrecoLiquidacao(clube.posicao, mercado.participantes);
               const inWatchlist = favoritosClubes.has(String(clube.id));
 
               return (
@@ -439,7 +409,7 @@ export default function BrasileiraoA() {
 
                     <ClubTap onClick={() => abrirPaginaClube(clube.id)}>
                       <EscudoWrapMobile>
-                        <ClubBadge clube={clube.nome} size={25} />
+                        <ClubBadge clube={clube.nome} escudo={clube.escudo} size={25} />
                       </EscudoWrapMobile>
                       <ClubName>{clube.nome}</ClubName>
                     </ClubTap>
@@ -450,7 +420,7 @@ export default function BrasileiraoA() {
                   </ColPrice>
 
                   <ColPrice>
-                    <PriceValue>{mercado.toFixed(2)}</PriceValue>
+                    <PriceValue>{valorMercado.toFixed(2)}</PriceValue>
                   </ColPrice>
 
                   <ColTrade>
@@ -468,6 +438,10 @@ export default function BrasileiraoA() {
       )}
     </Container>
   );
+}
+
+export default function BrasileiraoA() {
+  return <MercadoCompeticao mercado={mercados['brasileirao-a']} />;
 }
 
 const Container = styled.div`
