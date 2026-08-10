@@ -18,7 +18,6 @@ import {
 } from 'react-icons/fi';
 
 import api from '../lib/api';
-import ClubBadge from '../components/ClubBadge';
 import withAuth from '../components/withAuth';
 
 function moeda(valor) {
