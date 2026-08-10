@@ -38,6 +38,7 @@ export default function NegociacaoModal({
   const [ordensCompra, setOrdensCompra] = useState([]);
   const [ordensVenda, setOrdensVenda] = useState([]);
   const [ipoEncerrado, setIpoEncerrado] = useState(false);
+  const [marketMode, setMarketMode] = useState('UNIFIED_LIQUIDITY');
   const [cotasIPO, setCotasIPO] = useState(0);
   const [mostrarRisco, setMostrarRisco] = useState(false);
   const [resumoBook, setResumoBook] = useState({
@@ -231,7 +232,10 @@ export default function NegociacaoModal({
     try {
       if (!clubeId) return;
 
-      const clubeInfo = await buscarClubeInfo(clubeId);
+      const [clubeInfo, configResponse] = await Promise.all([
+        buscarClubeInfo(clubeId),
+        api.get('/mercado/configuracao').catch(() => ({ data: { marketMode: 'IPO' } })),
+      ]);
 
       if (!clubeInfo) {
         console.error('Não foi possí­vel carregar clubeInfo para verificar IPO');
@@ -239,9 +243,12 @@ export default function NegociacaoModal({
         return;
       }
 
+      const mode = configResponse?.data?.marketMode || 'IPO';
+      const unified = mode === 'UNIFIED_LIQUIDITY';
       const cotas = Number(clubeInfo.cotasDisponiveis ?? 0);
-      const encerrado = cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
+      const encerrado = unified || cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
 
+      setMarketMode(mode);
       setCotasIPO(cotas);
       setIpoEncerrado(encerrado);
 

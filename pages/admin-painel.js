@@ -426,6 +426,12 @@ export default function AdminPainel() {
         </div>
       </header>
 
+      <div style={{ marginBottom: 18 }}>
+        <a href="/admin-liquidez-institucional" style={styles.primaryButton}>
+          Abrir liquidez institucional
+        </a>
+      </div>
+
       <div style={styles.metricsGrid}>
         <MetricCard title="Usuários" value={counts.usuarios ?? 0} />
         <MetricCard title="Clubes" value={counts.clubes ?? 0} />

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import styled from "styled-components";
 
+const IPO_ATIVO = process.env.NEXT_PUBLIC_MARKET_MODE === "IPO";
+
 const PARAMETROS = {
   cotasPorClube: 1000,
   precoBase: "T$ 5,00",
   variacaoPorPosicao: "5%",
-  taxaMaker: "0,20%",
+  taxaMaker: IPO_ATIVO ? "0,20%" : "0%",
   taxaTaker: "0,50%",
   rodadasDividendos: 4,
 };
@@ -13,7 +15,7 @@ const PARAMETROS = {
 const TOPICOS = [
   { id: "visao-geral", label: "Visão geral" },
   { id: "precos", label: "Preços" },
-  { id: "ipo", label: "IPO" },
+  ...(IPO_ATIVO ? [{ id: "ipo", label: "IPO" }] : []),
   { id: "mercado", label: "Mercado" },
   { id: "ordens", label: "Ordens e taxas" },
   { id: "carteira", label: "Carteira" },
@@ -38,7 +40,9 @@ const FLUXO = [
     numero: "03",
     titulo: "Negocie cotas",
     texto:
-      "Compre no IPO ou envie ordens ao livro de ofertas quando o clube estiver no mercado secundário.",
+      IPO_ATIVO
+        ? "Compre no IPO ou envie ordens ao livro de ofertas quando o clube estiver no mercado secundário."
+        : "Envie uma ordem ao livro único e negocie qualquer clube desde o primeiro dia.",
   },
   {
     numero: "04",
@@ -168,8 +172,9 @@ function ComoFunciona() {
               <ConceptTag $green>Mercado</ConceptTag>
               <h3>Usuários negociam entre si</h3>
               <p>
-                Após o fim do IPO, compradores e vendedores enviam ofertas. Uma
-                negociação ocorre quando preços compatíveis se encontram.
+                Compradores e vendedores enviam ofertas ao mesmo livro desde o
+                primeiro dia. Uma negociação ocorre quando preços compatíveis
+                se encontram.
               </p>
             </ConceptCard>
 
@@ -239,7 +244,7 @@ function ComoFunciona() {
           </ExampleBox>
         </Section>
 
-        <Section id="ipo">
+        {IPO_ATIVO ? <Section id="ipo">
           <SectionHead>
             <SectionIndex>03</SectionIndex>
             <div>
@@ -304,7 +309,31 @@ function ComoFunciona() {
               </div>
             </RuleCard>
           </RuleGrid>
-        </Section>
+        </Section> : (
+          <Section id="distribuicao">
+            <SectionHead>
+              <SectionIndex>03</SectionIndex>
+              <div>
+                <SectionEyebrow>Distribuição e liquidez</SectionEyebrow>
+                <H2>Um único mercado desde o primeiro dia</H2>
+              </div>
+            </SectionHead>
+            <Intro>
+              Cada clube possui no máximo <Strong>1.000 cotas</Strong>. Durante
+              a fase inicial, a TradeSports pode inserir ordens próprias e
+              limitadas de compra e venda para disponibilizar cotas e apoiar a
+              liquidez. Essas ordens participam do mesmo livro, obedecem ao
+              melhor preço e perdem prioridade para ordens de usuários em caso
+              de igualdade de preço.
+            </Intro>
+            <RuleGrid>
+              <RuleCard><RuleIcon>1</RuleIcon><div><h3>Livro único</h3><p>Não há espera pelo encerramento de uma etapa inicial: todos os clubes podem ser negociados.</p></div></RuleCard>
+              <RuleCard><RuleIcon>2</RuleIcon><div><h3>Oferta limitada</h3><p>Nenhum clube ultrapassa 1.000 cotas emitidas. Depois disso, não existem novas emissões.</p></div></RuleCard>
+              <RuleCard><RuleIcon>3</RuleIcon><div><h3>Melhor preço primeiro</h3><p>O motor sempre executa o melhor preço e, no empate, prioriza a ordem do usuário.</p></div></RuleCard>
+              <RuleCard><RuleIcon>4</RuleIcon><div><h3>Liquidez controlada</h3><p>Compras institucionais são limitadas e podem ser suspensas; o mercado entre usuários permanece aberto.</p></div></RuleCard>
+            </RuleGrid>
+          </Section>
+        )}
 
         <Section id="mercado">
           <SectionHead>
