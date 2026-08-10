@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import api from '../../lib/api';
 import withAuth from '../../components/withAuth';
 import ClubBadge from '../../components/ClubBadge';
+import UserAvatar from '../../components/UserAvatar';
 
 function formatarMoeda(valor) {
   return `T$ ${Number(valor || 0).toLocaleString('pt-BR', {
@@ -514,9 +515,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
       <HeroCard>
         <HeroLeft>
-          <AvatarGrande>
-            {nomeExibicao(usuario).charAt(0).toUpperCase()}
-          </AvatarGrande>
+          <UserAvatar usuario={usuario} size={88} />
 
           <NomeArea>
             <NomePrincipal>
@@ -575,8 +574,8 @@ async function alternarFollowModal(usuarioAlvo) {
 
       <AcoesTopo>
   {perfilProprio ? (
-    <BotaoSecundario type="button" disabled>
-      Meu perfil
+    <BotaoSecundario type="button" onClick={() => router.push('/editarperfil')}>
+      Editar perfil e foto
     </BotaoSecundario>
   ) : (
     <BotaoPrimario
@@ -934,12 +933,7 @@ async function alternarFollowModal(usuarioAlvo) {
                       router.push(`/perfil/${pessoa.id}`);
                     }}
                   >
-                    <UsuarioModalAvatar>
-                      {String(nomePessoa)
-                        .replace('@', '')
-                        .charAt(0)
-                        .toUpperCase()}
-                    </UsuarioModalAvatar>
+                    <UserAvatar usuario={pessoa} nome={nomePessoa} size={44} />
 
                     <UsuarioModalInfo>
                       <strong>

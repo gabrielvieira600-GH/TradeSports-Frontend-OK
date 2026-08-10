@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import UserAvatar from '../components/UserAvatar';
 import EstadoInterface from '../components/EstadoInterface';
 import { RankingsPrivadosPage } from '../components/RankingsPrivadosCompletos';
 
@@ -963,15 +964,7 @@ const voltarParaListaPrivados = () => {
                 {membrosPrivados.map((membro) => (
                   <MembroItem key={membro.usuarioId}>
                     <UsuarioCelula>
-                      <AvatarPequeno>
-                        {String(
-                          membro.nomeUsuario ||
-                            membro.nome ||
-                            'U'
-                        )
-                          .charAt(0)
-                          .toUpperCase()}
-                      </AvatarPequeno>
+                      <UserAvatar usuario={membro} size={36} />
 
                       <UsuarioInfo>
                         <strong>
@@ -1092,15 +1085,7 @@ const voltarParaListaPrivados = () => {
 
                           <td>
                             <UsuarioCelula>
-                              <AvatarPequeno>
-                                {String(
-                                  usuario.nomeUsuario ||
-                                    usuario.nome ||
-                                    'U'
-                                )
-                                  .charAt(0)
-                                  .toUpperCase()}
-                              </AvatarPequeno>
+                              <UserAvatar usuario={usuario} size={36} />
 
                               <UsuarioInfo>
                                 <strong>
@@ -1181,15 +1166,7 @@ const voltarParaListaPrivados = () => {
                         </PosicaoMobile>
 
                         <UsuarioMobile>
-                          <AvatarPequeno>
-                            {String(
-                              usuario.nomeUsuario ||
-                                usuario.nome ||
-                                'U'
-                            )
-                              .charAt(0)
-                              .toUpperCase()}
-                          </AvatarPequeno>
+                          <UserAvatar usuario={usuario} size={36} />
 
                           <div>
                             <strong>
@@ -1566,15 +1543,7 @@ const voltarParaListaPrivados = () => {
 
                 <td>
                   <UsuarioCelula>
-                    <AvatarPequeno>
-                      {String(
-                        usuario.nomeUsuario ||
-                          usuario.nome ||
-                          'U'
-                      )
-                        .charAt(0)
-                        .toUpperCase()}
-                    </AvatarPequeno>
+                    <UserAvatar usuario={usuario} size={36} />
 
                     <UsuarioLiga>
                       <strong>

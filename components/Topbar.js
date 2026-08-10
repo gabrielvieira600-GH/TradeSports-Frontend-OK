@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import ClubBadge from './ClubBadge';
+import UserAvatar from './UserAvatar';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -604,12 +605,7 @@ const meuPerfilHref = meuPerfilId
                       irParaPerfil(usuarioPerfil);
                     }}
                   >
-                    <SearchUserAvatar>
-                      {String(nomePerfil)
-                        .replace('@', '')
-                        .charAt(0)
-                        .toUpperCase()}
-                    </SearchUserAvatar>
+                    <UserAvatar usuario={usuarioPerfil} nome={nomePerfil} size={34} />
 
                     <SearchOptionText>
                       <strong>{nomePerfil}</strong>
@@ -779,7 +775,8 @@ const meuPerfilHref = meuPerfilId
                 >
                   <UserAndSaldo>
                     <SaldoInline>
-                      👤 R$ {parseFloat(saldo || 0).toFixed(2)}
+                      <UserAvatar usuario={usuario} size={26} />
+                      T$ {parseFloat(saldo || 0).toFixed(2)}
                     </SaldoInline>
                   </UserAndSaldo>
                 </BotaoVerde>
@@ -1640,5 +1637,8 @@ const UserAndSaldo = styled.div`
 `;
 
 const SaldoInline = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 800;
 `;

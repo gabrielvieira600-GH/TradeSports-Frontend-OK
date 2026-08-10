@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import UserAvatar from '../components/UserAvatar';
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function EditarPerfil() {
   const [usuario, setUsuario] = useState(null);
@@ -10,6 +13,9 @@ export default function EditarPerfil() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const [foto, setFoto] = useState(null);
+  const [previewFoto, setPreviewFoto] = useState('');
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
   const router = useRouter();
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
@@ -23,6 +29,73 @@ export default function EditarPerfil() {
       setEmail(u.email || '');
     }
   }, []);
+
+  useEffect(() => () => {
+    if (previewFoto) URL.revokeObjectURL(previewFoto);
+  }, [previewFoto]);
+
+  const selecionarFoto = (event) => {
+    const arquivo = event.target.files?.[0] || null;
+    setMensagem('');
+    if (!arquivo) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type)) {
+      setMensagem('Envie uma imagem JPG, PNG ou WebP.');
+      return;
+    }
+    if (arquivo.size > 5 * 1024 * 1024) {
+      setMensagem('A foto deve ter no máximo 5 MB.');
+      return;
+    }
+    if (previewFoto) URL.revokeObjectURL(previewFoto);
+    setFoto(arquivo);
+    setPreviewFoto(URL.createObjectURL(arquivo));
+  };
+
+  const atualizarUsuarioLocal = (atualizacoes) => {
+    const atualizado = { ...usuario, ...atualizacoes };
+    setUsuario(atualizado);
+    localStorage.setItem('usuario', JSON.stringify(atualizado));
+    window.dispatchEvent(new Event('force-topbar-update'));
+  };
+
+  const enviarFoto = async () => {
+    if (!foto) return;
+    try {
+      setEnviandoFoto(true);
+      setMensagem('');
+      const dados = new FormData();
+      dados.append('foto', foto);
+      const { data } = await axios.put(`${API}/usuario/foto-perfil`, dados, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      atualizarUsuarioLocal({ fotoPerfilUrl: data.fotoPerfilUrl });
+      setFoto(null);
+      setPreviewFoto('');
+      setMensagem('Foto de perfil atualizada com sucesso!');
+    } catch (err) {
+      setMensagem(err?.response?.data?.erro || 'Erro ao atualizar a foto de perfil.');
+    } finally {
+      setEnviandoFoto(false);
+    }
+  };
+
+  const removerFoto = async () => {
+    try {
+      setEnviandoFoto(true);
+      setMensagem('');
+      await axios.delete(`${API}/usuario/foto-perfil`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      atualizarUsuarioLocal({ fotoPerfilUrl: '' });
+      setFoto(null);
+      setPreviewFoto('');
+      setMensagem('Foto de perfil removida.');
+    } catch (err) {
+      setMensagem(err?.response?.data?.erro || 'Erro ao remover a foto de perfil.');
+    } finally {
+      setEnviandoFoto(false);
+    }
+  };
 
   const atualizarPerfil = async (e) => {
     e.preventDefault();
@@ -71,6 +144,28 @@ export default function EditarPerfil() {
       <h1>Editar Perfil</h1>
 
       {mensagem && <Mensagem>{mensagem}</Mensagem>}
+
+      <Form as="section">
+        <h2>Foto de perfil</h2>
+        <FotoArea>
+          <UserAvatar usuario={usuario} src={previewFoto || usuario.fotoPerfilUrl} size={112} />
+          <FotoControles>
+            <label htmlFor="foto-perfil">Escolher foto</label>
+            <input id="foto-perfil" type="file" accept="image/jpeg,image/png,image/webp" onChange={selecionarFoto} />
+            <small>JPG, PNG ou WebP. Tamanho máximo: 5 MB.</small>
+            <BotoesFoto>
+              <Botao type="button" onClick={enviarFoto} disabled={!foto || enviandoFoto}>
+                {enviandoFoto ? 'Enviando...' : 'Salvar foto'}
+              </Botao>
+              {usuario.fotoPerfilUrl && (
+                <BotaoRemover type="button" onClick={removerFoto} disabled={enviandoFoto}>
+                  Remover foto
+                </BotaoRemover>
+              )}
+            </BotoesFoto>
+          </FotoControles>
+        </FotoArea>
+      </Form>
 
       <Form onSubmit={atualizarPerfil}>
         <h2>Dados Pessoais</h2>
@@ -155,4 +250,37 @@ const Botao = styled.button`
 const Mensagem = styled.p`
   margin-top: 1rem;
   color: #22c55e;
+`;
+
+const FotoArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+`;
+
+const FotoControles = styled.div`
+  display: grid;
+  gap: 0.55rem;
+  label { color: #fff; font-weight: 700; cursor: pointer; }
+  input { color: #cbd5e1; }
+  small { color: #94a3b8; }
+`;
+
+const BotoesFoto = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const BotaoRemover = styled.button`
+  margin-top: 1.5rem;
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #fca5a5;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
 `;

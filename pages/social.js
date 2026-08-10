@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
+import UserAvatar from '../components/UserAvatar';
 import EstadoInterface from '../components/EstadoInterface';
 
 function formatarDataRelativa(data) {
@@ -393,9 +394,7 @@ function SocialPage() {
 
                       {usuario?.id || usuario?._id ? (
                         <FeedUsuario>
-                          <MiniAvatar>
-                            {nomeUsuario.charAt(0).toUpperCase()}
-                          </MiniAvatar>
+                          <UserAvatar usuario={usuario} nome={nomeUsuario} size={32} />
 
                           <span>
                             {usuario.nomeUsuario
