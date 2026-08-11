@@ -807,6 +807,7 @@ if (response?.franquiaOrdens) {
 }
 
       await carregarOrdens();
+      await carregarLimiteOrdens();
       await verificarIPO();
       await atualizarSaldoDoUsuario();
       if (ipoEncerrado) {

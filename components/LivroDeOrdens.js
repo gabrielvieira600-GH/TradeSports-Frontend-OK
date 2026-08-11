@@ -166,7 +166,7 @@ export default function LivroDeOrdens({
             <>
               <h4 style={{ marginTop: 10 }}>Suas ordens de compra</h4>
               {ordensCompra.map((o) => {
-                const minha = meuId && String(o.usuarioId) === String(meuId);
+                const minha = Boolean(o.minhaOrdem) || (meuId && String(o.usuarioId) === String(meuId));
                 if (!minha) return null;
 
                 return (
@@ -206,7 +206,7 @@ export default function LivroDeOrdens({
             <>
               <h4 style={{ marginTop: 10 }}>Suas ordens de venda</h4>
               {ordensVenda.map((o) => {
-                const minha = meuId && String(o.usuarioId) === String(meuId);
+                const minha = Boolean(o.minhaOrdem) || (meuId && String(o.usuarioId) === String(meuId));
                 if (!minha) return null;
 
                 return (
