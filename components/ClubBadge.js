@@ -1,5 +1,5 @@
 // components/ClubBadge.js
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 const CLUB_STYLES = {
@@ -1021,8 +1021,64 @@ const ExternalShield = styled.img`
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
 `;
 
+function getClubData(clube, escudo) {
+  if (clube && typeof clube === 'object') {
+    return {
+      nome: clube.nome || clube.name || clube.nomeApi || 'Clube',
+      escudo:
+        escudo ||
+        clube.escudo ||
+        clube.logo ||
+        clube.crest ||
+        clube.team?.logo ||
+        '',
+    };
+  }
+
+  return {
+    nome: String(clube || 'Clube'),
+    escudo: escudo || '',
+  };
+}
+
+function getShieldSource(value) {
+  let source = String(value || '').trim();
+
+  if (!source || ['null', 'undefined'].includes(source.toLowerCase())) return '';
+  if (source.startsWith('/api/escudo?')) return source;
+  if (source.startsWith('//')) source = `https:${source}`;
+  if (source.startsWith('http://')) source = `https://${source.slice(7)}`;
+  if (source.startsWith('/')) return source;
+
+  try {
+    const url = new URL(source);
+
+    if (url.protocol !== 'https:') return '';
+
+    // O Safari/iOS pode falhar ao carregar diretamente as imagens do host
+    // da API-Sports. O proxy same-origin também permite cache na Vercel.
+    if (url.hostname === 'media.api-sports.io') {
+      return `/api/escudo?url=${encodeURIComponent(url.toString())}`;
+    }
+
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
 export default function ClubBadge({ clube, escudo, size = 34 }) {
-  const key = normalizeClubName(clube);
+  const clubData = useMemo(() => getClubData(clube, escudo), [clube, escudo]);
+  const shieldSource = useMemo(
+    () => getShieldSource(clubData.escudo),
+    [clubData.escudo]
+  );
+  const [shieldFailed, setShieldFailed] = useState(false);
+  const key = normalizeClubName(clubData.nome);
+
+  useEffect(() => {
+    setShieldFailed(false);
+  }, [shieldSource]);
 
   const style = CLUB_STYLES[key] || {
     outer: '#1f2937',
@@ -1039,11 +1095,17 @@ export default function ClubBadge({ clube, escudo, size = 34 }) {
       $size={size}
       $outer={style.outer}
       $glow={style.glow}
-      title={clube}
-      aria-label={`Símbolo de ${clube || 'clube'}`}
+      title={clubData.nome}
+      aria-label={`Símbolo de ${clubData.nome || 'clube'}`}
     >
-      {escudo ? (
-        <ExternalShield src={escudo} alt="" aria-hidden="true" />
+      {shieldSource && !shieldFailed ? (
+        <ExternalShield
+          src={shieldSource}
+          alt={`Escudo de ${clubData.nome}`}
+          loading="lazy"
+          decoding="async"
+          onError={() => setShieldFailed(true)}
+        />
       ) : <Inner $bg={bg}>
         {style.pattern === 'star' && <Star $size={size} />}
 
