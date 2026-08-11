@@ -5,6 +5,7 @@ const mercados = {
   'la-liga': { id: 'la-liga', nome: 'La Liga', badge: 'la-liga', rota: '/laliga-a', endpoint: '/api/tabelas/la-liga', participantes: 20, entidade: 'clube' },
   bundesliga: { id: 'bundesliga', nome: 'Bundesliga', badge: 'bundesliga', rota: '/bundesliga', endpoint: '/api/tabelas/bundesliga', participantes: 18, entidade: 'clube' },
   'ligue-1': { id: 'ligue-1', nome: 'Ligue 1', badge: 'ligue-1', rota: '/ligue-1', endpoint: '/api/tabelas/ligue-1', participantes: 18, entidade: 'clube' },
+  'serie-a': { id: 'serie-a', nome: 'Serie A', badge: 'serie-a', rota: '/serie-a', endpoint: '/api/tabelas/serie-a', participantes: 20, entidade: 'clube' },
   eredivisie: { id: 'eredivisie', nome: 'Eredivisie', badge: 'eredivisie', rota: '/eredivisie', endpoint: '/api/tabelas/eredivisie', participantes: 18, entidade: 'clube' },
   'nba-oeste': { id: 'nba-oeste', nome: 'NBA — Conferência Oeste', badge: 'nba', rota: '/nbaoeste', endpoint: '/api/tabelas/nba-oeste', participantes: 15, entidade: 'time' },
   'nba-leste': { id: 'nba-leste', nome: 'NBA — Conferência Leste', badge: 'nba', rota: '/nbaleste', endpoint: '/api/tabelas/nba-leste', participantes: 15, entidade: 'time' },

@@ -37,7 +37,7 @@ const mercados = [
   {
     href: '/serie-a',
     nome: 'Serie A',
-    badge: 'ligue-1',
+    badge: 'serie-a',
   },
   {
     href: '/eredivisie',

@@ -571,6 +571,20 @@ nfl: {
     colors: ['#1d4ed8', '#ffffff', '#ef4444'],
   },
 
+  italia: {
+    outer: '#166534',
+    glow: '#ef4444',
+    pattern: 'flag-france',
+    colors: ['#15803d', '#ffffff', '#dc2626'],
+  },
+
+  seriea: {
+    outer: '#166534',
+    glow: '#ef4444',
+    pattern: 'flag-france',
+    colors: ['#15803d', '#ffffff', '#dc2626'],
+  },
+
   holanda: {
     outer: '#1d4ed8',
     glow: '#f97316',
@@ -660,6 +674,10 @@ function normalizeLeagueName(nome = '') {
     france: 'franca',
     franca: 'franca',
     ligueone: 'ligue1',
+
+    italy: 'italia',
+    italiano: 'italia',
+    italianseriea: 'seriea',
 
     netherlands: 'holanda',
     holland: 'holanda',
