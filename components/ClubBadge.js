@@ -204,6 +204,274 @@ const CLUB_STYLES = {
   },
 };
 
+/*
+ * Catálogo autoral TradeSports
+ * ----------------------------
+ * Estes badges são tokens gráficos próprios: combinam padrões abstratos,
+ * placas geométricas e monogramas. Não utilizam arquivos, URLs, contornos,
+ * mascotes ou elementos dos escudos oficiais dos clubes.
+ *
+ * Formato de cada item:
+ * [chave, monograma, cor principal, cor secundária, cor do monograma,
+ *  padrão, formato da placa, aliases]
+ */
+const AUTHORIAL_CLUB_BADGES = [
+  // Brasileirão Série A — 2026 (os estilos já existentes são preservados).
+  ['flamengo', 'FL', '#f31222', '#050505', '#ffffff', 'horizontal-stripes', 'hex', ['crflamengo', 'flamengorj']],
+  ['palmeiras', 'PA', '#006b3f', '#ffffff', '#ffffff', 'rings', 'circle', ['sep', 'sociedadeesportivapalmeiras']],
+  ['saopaulo', 'SP', '#ffffff', '#e01822', '#050505', 'cross', 'shield', ['saopaulofc', 'spfc']],
+  ['santos', 'SA', '#ffffff', '#050505', '#050505', 'vertical-stripes-clean', 'diamond', ['santosfc']],
+  ['vasco', 'VA', '#050505', '#ffffff', '#e01822', 'diagonal', 'shield', ['vascodagama', 'crvascodagama']],
+  ['botafogo', 'BF', '#050505', '#ffffff', '#ffffff', 'radial-burst', 'circle', ['botafogorj', 'botafogofr']],
+  ['fluminense', 'FLU', '#00613a', '#8b1232', '#ffffff', 'vertical-stripes', 'hex', ['fluminensefc']],
+  ['gremio', 'GRE', '#00a3e0', '#050505', '#ffffff', 'vertical-stripes', 'circle', ['gremiofbpa']],
+  ['internacional', 'INT', '#e30613', '#ffffff', '#ffffff', 'target', 'circle', ['scinternacional', 'internacionalrs']],
+  ['cruzeiro', 'CRU', '#003da5', '#ffffff', '#ffffff', 'conic', 'diamond', ['cruzeiroec']],
+  ['bahia', 'BAH', '#0057b8', '#e30613', '#ffffff', 'horizontal-band', 'hex', ['ecbahia']],
+  ['coritiba', 'CFC', '#006b3f', '#ffffff', '#ffffff', 'horizontal-band', 'circle', ['coritibafc', 'coritibasaf']],
+  ['vitoria', 'VIT', '#e30613', '#050505', '#ffffff', 'half-horizontal', 'shield', ['ecvitoria', 'vitoriaba']],
+  ['atleticomineiro', 'CAM', '#050505', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'hex', ['atleticomg', 'atleticomineiro', 'cam']],
+  ['corinthians', 'COR', '#ffffff', '#050505', '#e30613', 'cross', 'circle', ['sccorinthians', 'corinthianspaulista']],
+  ['mirassol', 'MIR', '#ffd400', '#006b3f', '#006b3f', 'chevron', 'diamond', ['mirassolfc']],
+  ['remo', 'REM', '#001f4e', '#ffffff', '#ffffff', 'horizontal-band', 'shield', ['clubedoremo', 'remopa']],
+  ['chapecoense', 'CHA', '#007a3d', '#ffffff', '#ffffff', 'waves', 'hex', ['associacaochapecoense', 'chapecoenseaf']],
+  ['redbullbragantino', 'RBB', '#ffffff', '#e30613', '#001f4e', 'diagonal-stripes', 'circle', ['rbbragantino', 'bragantino']],
+  ['athleticoparanaense', 'CAP', '#e30613', '#050505', '#ffffff', 'diagonal-stripes', 'shield', ['athleticopr', 'atleticopr', 'atleticoparanaense', 'cap']],
+
+  // Brasileirão Série B — 2026.
+  ['americamineiro', 'AMG', '#0b6b3a', '#111827', '#ffffff', 'diagonal', 'hex', ['americamg', 'americafutebolclubemg', 'americamineiro']],
+  ['athleticclubmg', 'ATH', '#111827', '#f4f4f5', '#ffffff', 'quarters', 'diamond', ['athletic', 'athleticmg', 'athleticminasgerais']],
+  ['atleticogoianiense', 'ACG', '#d71920', '#111111', '#ffffff', 'horizontal-stripes', 'shield', ['atleticogo', 'atleticogoianiense', 'atleticogoiás']],
+  ['avai', 'AVA', '#1f66b1', '#ffffff', '#ffffff', 'vertical-stripes', 'circle', ['avaifc', 'avaisc']],
+  ['botafogosp', 'BSP', '#d71920', '#111827', '#ffffff', 'horizontal-band', 'hex', ['botafogoribeiraopreto', 'botafogofcsp']],
+  ['ceara', 'CEA', '#111111', '#f8fafc', '#ffffff', 'diagonal-stripes', 'diamond', ['cearasc', 'cearace']],
+  ['crb', 'CRB', '#d71920', '#ffffff', '#ffffff', 'cross', 'circle', ['clubederegatasbrasil', 'crbal']],
+  ['criciuma', 'CRI', '#f5c400', '#111111', '#111111', 'chevron', 'hex', ['criciumaec', 'criciumasc']],
+  ['cuiaba', 'CUI', '#f3c600', '#0a6b3c', '#0a6b3c', 'conic', 'diamond', ['cuiabaec', 'cuiabamt']],
+  ['fortaleza', 'FOR', '#1646a0', '#d71920', '#ffffff', 'vertical-stripes', 'shield', ['fortalezaec', 'fortalezasaf']],
+  ['goias', 'GOI', '#0a7a3f', '#ffffff', '#ffffff', 'rings', 'hex', ['goiasec', 'goiasgo']],
+  ['juventude', 'JUV', '#128047', '#ffffff', '#ffffff', 'quarters', 'circle', ['ecjuventude', 'juventuders']],
+  ['londrina', 'LON', '#1771b8', '#ffffff', '#ffffff', 'diagonal', 'diamond', ['londrinaec', 'londrinapr']],
+  ['nautico', 'NAU', '#d71920', '#ffffff', '#ffffff', 'waves', 'shield', ['nauticocapibaribe', 'nauticope']],
+  ['novorizontino', 'NOV', '#f5b800', '#111111', '#111111', 'horizontal-stripes', 'hex', ['gremionovorizontino']],
+  ['operariopr', 'OPE', '#111111', '#ffffff', '#ffffff', 'target', 'circle', ['operario', 'operarioferroviario', 'operarioferroviarioec']],
+  ['pontepreta', 'PON', '#111111', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'shield', ['associacaoatléticapontpreta', 'aacpontepreta']],
+  ['saobernardo', 'SBE', '#f5c400', '#111827', '#111827', 'half-horizontal', 'diamond', ['saobernardofc', 'saobernardosp']],
+  ['sportrecife', 'SCR', '#d71920', '#111111', '#ffffff', 'radial-burst', 'hex', ['sport', 'sportclubdorecife', 'sportpe']],
+  ['vilanova', 'VNO', '#d71920', '#ffffff', '#ffffff', 'cross', 'circle', ['vilanovafc', 'vilanovago']],
+
+  // Premier League — 2026/27.
+  ['arsenal', 'ARS', '#d71920', '#f8fafc', '#ffffff', 'diagonal', 'shield', ['arsenalfc']],
+  ['astonvilla', 'AVL', '#7a1740', '#73b9e6', '#ffffff', 'quarters', 'hex', ['astonvillafc']],
+  ['bournemouth', 'BOU', '#d71920', '#111111', '#ffffff', 'diagonal-stripes', 'diamond', ['afcbournemouth']],
+  ['brentford', 'BRE', '#d71920', '#ffffff', '#ffffff', 'vertical-stripes', 'circle', ['brentfordfc']],
+  ['brighton', 'BHA', '#1769aa', '#ffffff', '#ffffff', 'waves', 'hex', ['brightonhovealbion', 'brightonandhovealbion']],
+  ['chelsea', 'CHE', '#1346a0', '#f8fafc', '#ffffff', 'rings', 'shield', ['chelseafc']],
+  ['coventrycity', 'COV', '#68b9df', '#15213a', '#ffffff', 'chevron', 'diamond', ['coventry', 'coventrycityfc']],
+  ['crystalpalace', 'CRY', '#1e40af', '#d71920', '#ffffff', 'vertical-stripes', 'hex', ['palace', 'crystalpalacefc']],
+  ['everton', 'EVE', '#1746a2', '#ffffff', '#ffffff', 'target', 'circle', ['evertonfc']],
+  ['fulham', 'FUL', '#ffffff', '#111111', '#d71920', 'cross', 'shield', ['fulhamfc']],
+  ['hullcity', 'HUL', '#f59e0b', '#111111', '#111111', 'diagonal-stripes', 'hex', ['hull', 'hullcityafc']],
+  ['ipswichtown', 'IPS', '#1d4ed8', '#ffffff', '#ffffff', 'horizontal-band', 'diamond', ['ipswich', 'ipswichtownfc']],
+  ['leedsunited', 'LEE', '#ffffff', '#1e3a8a', '#f4c430', 'chevron', 'shield', ['leeds', 'leedsunitedfc']],
+  ['liverpool', 'LIV', '#c8102e', '#ffffff', '#ffffff', 'radial-burst', 'circle', ['liverpoolfc']],
+  ['manchestercity', 'MCI', '#6cabdd', '#ffffff', '#193b6a', 'conic', 'hex', ['mancity', 'manchestercityfc']],
+  ['manchesterunited', 'MUN', '#da291c', '#f4c430', '#ffffff', 'half-horizontal', 'shield', ['manunited', 'manutd', 'manchesterunitedfc']],
+  ['newcastleunited', 'NEW', '#111111', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'diamond', ['newcastle', 'nufc']],
+  ['nottinghamforest', 'NFO', '#d71920', '#ffffff', '#ffffff', 'waves', 'circle', ['nottingham', 'forest', 'nottinghamforestfc']],
+  ['sunderland', 'SUN', '#d71920', '#ffffff', '#ffffff', 'horizontal-stripes', 'hex', ['sunderlandafc']],
+  ['tottenhamhotspur', 'TOT', '#ffffff', '#132257', '#132257', 'rings', 'shield', ['tottenham', 'spurs', 'tottenhamhotspurfc']],
+
+  // La Liga — 2026/27.
+  ['athleticclub', 'ATH', '#d71920', '#ffffff', '#ffffff', 'vertical-stripes', 'shield', ['athleticbilbao', 'athleticclubbilbao']],
+  ['atleticomadrid', 'ATM', '#d71920', '#ffffff', '#ffffff', 'diagonal-stripes', 'hex', ['atleticodemadrid', 'clubatleticodemadrid']],
+  ['osasuna', 'OSA', '#b5122b', '#14213d', '#ffffff', 'half-horizontal', 'diamond', ['caosasuna']],
+  ['celtavigo', 'CEL', '#83c5e8', '#ffffff', '#9b1c31', 'cross', 'circle', ['celta', 'rcceltadevigo']],
+  ['deportivoalaves', 'ALA', '#1769aa', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'shield', ['alaves', 'deportivoalaves']],
+  ['elche', 'ELC', '#ffffff', '#138a4b', '#138a4b', 'horizontal-band', 'hex', ['elchecf']],
+  ['barcelona', 'BAR', '#1e3a8a', '#a50044', '#f4c430', 'quarters', 'diamond', ['fcbarcelona', 'barca']],
+  ['getafe', 'GET', '#1646a0', '#ffffff', '#ffffff', 'target', 'circle', ['getafecf']],
+  ['levante', 'LEV', '#1e3a8a', '#b5122b', '#ffffff', 'vertical-stripes', 'shield', ['levanteud']],
+  ['malaga', 'MAL', '#69b6df', '#ffffff', '#ffffff', 'waves', 'hex', ['malagacf']],
+  ['racingsantander', 'RAC', '#138a4b', '#ffffff', '#ffffff', 'chevron', 'diamond', ['racingclub', 'realracingsantander', 'rracingclub']],
+  ['rayovallecano', 'RAY', '#ffffff', '#d71920', '#d71920', 'diagonal', 'circle', ['rayo', 'rayovallecanodemadrid']],
+  ['deportivolacoruna', 'DEP', '#1769aa', '#ffffff', '#ffffff', 'diagonal-stripes', 'shield', ['deportivo', 'rcdeportivo', 'rcdeportivolacoruna']],
+  ['espanyol', 'ESP', '#1769aa', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'hex', ['rcdespanyol', 'espanyolbarcelona']],
+  ['realbetis', 'BET', '#159447', '#ffffff', '#ffffff', 'vertical-stripes', 'diamond', ['betis', 'realbetisbalompie']],
+  ['realmadrid', 'RMA', '#ffffff', '#d4af37', '#172554', 'rings', 'circle', ['realmadridcf']],
+  ['realsociedad', 'RSO', '#1769aa', '#ffffff', '#ffffff', 'waves', 'shield', ['realsociedaddefootball']],
+  ['sevilla', 'SEV', '#ffffff', '#d71920', '#d71920', 'cross', 'hex', ['sevillafc']],
+  ['valencia', 'VAL', '#ffffff', '#111111', '#f59e0b', 'half-horizontal', 'diamond', ['valenciacf']],
+  ['villarreal', 'VIL', '#f6d743', '#1e3a8a', '#1e3a8a', 'conic', 'circle', ['villarrealcf']],
+
+  // Bundesliga — 2026/27.
+  ['bayernmunich', 'FCB', '#d71920', '#1d4ed8', '#ffffff', 'conic', 'circle', ['bayernmunchen', 'fcbayern', 'fcbayernmunchen', 'fcbayernmunich']],
+  ['borussiadortmund', 'BVB', '#facc15', '#111111', '#111111', 'rings', 'hex', ['dortmund', 'bvb09']],
+  ['rbleipzig', 'RBL', '#ffffff', '#d71920', '#1e3a8a', 'diagonal', 'shield', ['rasenballsportleipzig', 'leipzig']],
+  ['vfstuttgart', 'VFB', '#ffffff', '#d71920', '#d71920', 'horizontal-band', 'diamond', ['stuttgart']],
+  ['hoffenheim', 'TSG', '#1769aa', '#ffffff', '#ffffff', 'diagonal-stripes', 'circle', ['tsghoffenheim', '1899hoffenheim']],
+  ['bayerleverkusen', 'B04', '#d71920', '#111111', '#ffffff', 'quarters', 'hex', ['leverkusen', 'bayer04leverkusen']],
+  ['freiburg', 'SCF', '#d71920', '#111111', '#ffffff', 'chevron', 'shield', ['scfreiburg']],
+  ['eintrachtfrankfurt', 'SGE', '#111111', '#d71920', '#ffffff', 'radial-burst', 'diamond', ['frankfurt', 'eintracht']],
+  ['augsburg', 'FCA', '#b5122b', '#0a7a3f', '#ffffff', 'vertical-stripes', 'circle', ['fcaugsburg']],
+  ['mainz', 'M05', '#d71920', '#ffffff', '#ffffff', 'target', 'hex', ['mainz05', 'fsvmainz05']],
+  ['unionberlin', 'FCU', '#d71920', '#facc15', '#ffffff', 'half-horizontal', 'shield', ['union', 'fcunionberlin', '1fcunionberlin']],
+  ['borussiamonchengladbach', 'BMG', '#111111', '#ffffff', '#ffffff', 'diagonal-stripes', 'diamond', ['monchengladbach', 'mgladbach', 'borussiamgladbach']],
+  ['hamburg', 'HSV', '#1769aa', '#ffffff', '#111111', 'rings', 'circle', ['hamburgersv', 'hsv']],
+  ['cologne', 'KOE', '#ffffff', '#d71920', '#d71920', 'cross', 'hex', ['koln', 'fckoln', '1fckoln', 'colognefc']],
+  ['werderbremen', 'SVW', '#0a7a3f', '#ffffff', '#ffffff', 'chevron', 'shield', ['bremen', 'werder']],
+  ['schalke', 'S04', '#1769aa', '#ffffff', '#ffffff', 'waves', 'diamond', ['schalke04', 'fcschalke04']],
+  ['elversberg', 'ELV', '#111111', '#ffffff', '#facc15', 'vertical-stripes-clean', 'circle', ['svelversberg']],
+  ['paderborn', 'SCP', '#1769aa', '#111111', '#ffffff', 'horizontal-stripes', 'hex', ['scpaderborn', 'scpaderborn07']],
+
+  // Ligue 1 — 2026/27.
+  ['angers', 'ANG', '#111111', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'shield', ['angerssco']],
+  ['auxerre', 'AJA', '#ffffff', '#1769aa', '#1769aa', 'cross', 'diamond', ['ajauxerre']],
+  ['brest', 'BRE', '#d71920', '#ffffff', '#ffffff', 'horizontal-band', 'circle', ['stadebrestois', 'stadebrestois29']],
+  ['lehavre', 'HAC', '#6ab4df', '#14213d', '#ffffff', 'quarters', 'hex', ['lehavreac', 'havreac']],
+  ['lens', 'RCL', '#facc15', '#d71920', '#111111', 'vertical-stripes', 'shield', ['rclens']],
+  ['lille', 'LOSC', '#d71920', '#14213d', '#ffffff', 'diagonal', 'diamond', ['losc', 'losclille']],
+  ['lorient', 'FCL', '#f97316', '#111111', '#ffffff', 'chevron', 'circle', ['fclorient']],
+  ['lyon', 'OL', '#ffffff', '#1646a0', '#d71920', 'diagonal-stripes', 'hex', ['olympiquelyonnais', 'olympiquelyon']],
+  ['lemans', 'LM', '#d71920', '#facc15', '#ffffff', 'half-horizontal', 'shield', ['lemansfc']],
+  ['marseille', 'OM', '#60b7df', '#ffffff', '#ffffff', 'waves', 'diamond', ['olympiquemarseille', 'olympiquedemarseille']],
+  ['monaco', 'ASM', '#ffffff', '#d71920', '#d71920', 'diagonal', 'circle', ['asmonaco']],
+  ['nice', 'OGC', '#111111', '#d71920', '#ffffff', 'horizontal-stripes', 'hex', ['ogcnice']],
+  ['parisfc', 'PFC', '#1f3a73', '#6ab4df', '#ffffff', 'rings', 'shield', ['parisfootballclub']],
+  ['parissaintgermain', 'PSG', '#14213d', '#d71920', '#ffffff', 'target', 'diamond', ['psg', 'parissaintgermainfc']],
+  ['rennes', 'REN', '#d71920', '#111111', '#ffffff', 'quarters', 'circle', ['staderennais', 'staderennaisfc']],
+  ['strasbourg', 'RCS', '#1769aa', '#ffffff', '#ffffff', 'conic', 'hex', ['rcstrasbourg', 'rcstrasbourgalsace']],
+  ['toulouse', 'TFC', '#6d28d9', '#ffffff', '#ffffff', 'chevron', 'shield', ['toulousefc']],
+  ['troyes', 'EST', '#1769aa', '#ffffff', '#ffffff', 'radial-burst', 'diamond', ['estac', 'estactroyes']],
+
+  // Eredivisie — 2026/27.
+  ['adodenhaag', 'ADO', '#f6d743', '#168454', '#111111', 'half-horizontal', 'circle', ['ado', 'denhaag']],
+  ['ajax', 'AJA', '#ffffff', '#d71920', '#d71920', 'vertical-stripes', 'hex', ['afcajax']],
+  ['azalkmaar', 'AZ', '#d71920', '#ffffff', '#ffffff', 'diagonal', 'shield', ['az', 'alkmaar']],
+  ['excelsiorrotterdam', 'EXC', '#111111', '#d71920', '#ffffff', 'horizontal-stripes', 'diamond', ['excelsior', 'sbvexcelsior']],
+  ['fcgroningen', 'GRO', '#168454', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'circle', ['groningen']],
+  ['fctwente', 'TWE', '#d71920', '#ffffff', '#ffffff', 'target', 'hex', ['twente']],
+  ['fcutrecht', 'UTR', '#d71920', '#ffffff', '#111111', 'diagonal-stripes', 'shield', ['utrecht']],
+  ['feyenoord', 'FEY', '#d71920', '#ffffff', '#111111', 'quarters', 'diamond', ['feyenoordrotterdam']],
+  ['fortunasittard', 'FOR', '#facc15', '#168454', '#111111', 'chevron', 'circle', ['fortuna']],
+  ['goaheadeagles', 'GAE', '#d71920', '#facc15', '#ffffff', 'vertical-stripes', 'hex', ['goahead']],
+  ['necnijmegen', 'NEC', '#d71920', '#168454', '#ffffff', 'half-horizontal', 'shield', ['nec', 'nijmegen']],
+  ['peczwolle', 'PEC', '#1769aa', '#ffffff', '#ffffff', 'waves', 'diamond', ['zwolle']],
+  ['psv', 'PSV', '#d71920', '#ffffff', '#ffffff', 'horizontal-stripes', 'circle', ['psveindhoven']],
+  ['sccambuur', 'CAM', '#facc15', '#1769aa', '#111111', 'cross', 'hex', ['cambuur']],
+  ['scheerenveen', 'HEE', '#1769aa', '#ffffff', '#ffffff', 'radial-burst', 'shield', ['heerenveen']],
+  ['spartarotterdam', 'SPA', '#d71920', '#ffffff', '#111111', 'rings', 'diamond', ['sparta']],
+  ['telstar', 'TEL', '#ffffff', '#1769aa', '#1769aa', 'conic', 'circle', ['scTelstar']],
+  ['willemii', 'WII', '#d71920', '#1769aa', '#ffffff', 'vertical-stripes', 'hex', ['willem2', 'willemiiTilburg']],
+
+  // NBA — 30 franquias.
+  ['atlantahawks', 'ATL', '#c8102e', '#fdb927', '#ffffff', 'radial-burst', 'circle', ['hawks']],
+  ['bostonceltics', 'BOS', '#007a33', '#ffffff', '#ffffff', 'rings', 'hex', ['celtics']],
+  ['brooklynnets', 'BKN', '#111111', '#ffffff', '#ffffff', 'cross', 'shield', ['nets']],
+  ['charlottehornets', 'CHA', '#1d1160', '#00788c', '#ffffff', 'diagonal-stripes', 'diamond', ['hornets']],
+  ['chicagobulls', 'CHI', '#ce1141', '#111111', '#ffffff', 'half-horizontal', 'circle', ['bulls']],
+  ['clevelandcavaliers', 'CLE', '#6f263d', '#ffb81c', '#ffffff', 'chevron', 'hex', ['cavaliers', 'cavs']],
+  ['dallasmavericks', 'DAL', '#00538c', '#b8c4ca', '#ffffff', 'waves', 'shield', ['mavericks', 'mavs']],
+  ['denvernuggets', 'DEN', '#0e2240', '#fec524', '#ffffff', 'conic', 'diamond', ['nuggets']],
+  ['detroitpistons', 'DET', '#c8102e', '#1d42ba', '#ffffff', 'target', 'circle', ['pistons']],
+  ['goldenstatewarriors', 'GSW', '#1d428a', '#ffc72c', '#ffffff', 'rings', 'hex', ['warriors', 'goldenstate']],
+  ['houstonrockets', 'HOU', '#ce1141', '#111111', '#ffffff', 'radial-burst', 'shield', ['rockets']],
+  ['indianapacers', 'IND', '#002d62', '#fdbb30', '#ffffff', 'horizontal-band', 'diamond', ['pacers']],
+  ['laclippers', 'LAC', '#c8102e', '#1d428a', '#ffffff', 'quarters', 'circle', ['losangelesclippers', 'clippers']],
+  ['losangeleslakers', 'LAL', '#552583', '#fdb927', '#ffffff', 'diagonal', 'hex', ['lalakers', 'lakers']],
+  ['memphisgrizzlies', 'MEM', '#5d76a9', '#12173f', '#ffffff', 'chevron', 'shield', ['grizzlies']],
+  ['miamiheat', 'MIA', '#98002e', '#f9a01b', '#ffffff', 'half-horizontal', 'diamond', ['heat']],
+  ['milwaukeebucks', 'MIL', '#00471b', '#eee1c6', '#ffffff', 'rings', 'circle', ['bucks']],
+  ['minnesotatimberwolves', 'MIN', '#0c2340', '#78be20', '#ffffff', 'radial-burst', 'hex', ['timberwolves', 'wolves']],
+  ['neworleanspelicans', 'NOP', '#0c2340', '#c8102e', '#ffffff', 'vertical-stripes', 'shield', ['pelicans']],
+  ['newyorkknicks', 'NYK', '#006bb6', '#f58426', '#ffffff', 'conic', 'diamond', ['knicks']],
+  ['oklahomacitythunder', 'OKC', '#007ac1', '#ef3b24', '#ffffff', 'diagonal-stripes', 'circle', ['thunder', 'oklahomacity']],
+  ['orlandomagic', 'ORL', '#0077c0', '#c4ced4', '#ffffff', 'waves', 'hex', ['magic']],
+  ['philadelphia76ers', 'PHI', '#006bb6', '#ed174c', '#ffffff', 'target', 'shield', ['sixers', '76ers', 'philadelphiaers']],
+  ['phoenixsuns', 'PHX', '#1d1160', '#e56020', '#ffffff', 'radial-burst', 'diamond', ['suns']],
+  ['portlandtrailblazers', 'POR', '#e03a3e', '#111111', '#ffffff', 'diagonal', 'circle', ['trailblazers', 'blazers']],
+  ['sacramentokings', 'SAC', '#5a2d81', '#63727a', '#ffffff', 'rings', 'hex', ['kings']],
+  ['sanantoniospurs', 'SAS', '#111111', '#c4ced4', '#ffffff', 'cross', 'shield', ['spurs']],
+  ['torontoraptors', 'TOR', '#ce1141', '#111111', '#ffffff', 'chevron', 'diamond', ['raptors']],
+  ['utahjazz', 'UTA', '#002b5c', '#f9a01b', '#ffffff', 'horizontal-band', 'circle', ['jazz']],
+  ['washingtonwizards', 'WAS', '#002b5c', '#e31837', '#ffffff', 'quarters', 'hex', ['wizards']],
+
+  // NFL — 32 franquias.
+  ['arizonacardinals', 'ARI', '#97233f', '#111111', '#ffffff', 'diagonal', 'shield', ['cardinals']],
+  ['atlantafalcons', 'ATL', '#a71930', '#111111', '#ffffff', 'chevron', 'diamond', ['falcons']],
+  ['baltimoreravens', 'BAL', '#241773', '#9e7c0c', '#ffffff', 'radial-burst', 'circle', ['ravens']],
+  ['buffalobills', 'BUF', '#00338d', '#c60c30', '#ffffff', 'horizontal-band', 'hex', ['bills']],
+  ['carolinapanthers', 'CAR', '#0085ca', '#101820', '#ffffff', 'diagonal-stripes', 'shield', ['panthers']],
+  ['chicagobears', 'CHI', '#0b162a', '#c83803', '#ffffff', 'half-horizontal', 'diamond', ['bears']],
+  ['cincinnatibengals', 'CIN', '#fb4f14', '#111111', '#ffffff', 'diagonal-stripes', 'circle', ['bengals']],
+  ['clevelandbrowns', 'CLE', '#311d00', '#ff3c00', '#ffffff', 'quarters', 'hex', ['browns']],
+  ['dallascowboys', 'DAL', '#041e42', '#869397', '#ffffff', 'rings', 'shield', ['cowboys']],
+  ['denverbroncos', 'DEN', '#fb4f14', '#002244', '#ffffff', 'chevron', 'diamond', ['broncos']],
+  ['detroitlions', 'DET', '#0076b6', '#b0b7bc', '#ffffff', 'waves', 'circle', ['lions']],
+  ['greenbaypackers', 'GB', '#203731', '#ffb612', '#ffffff', 'target', 'hex', ['packers']],
+  ['houstontexans', 'HOU', '#03202f', '#a71930', '#ffffff', 'cross', 'shield', ['texans']],
+  ['indianapoliscolts', 'IND', '#002c5f', '#ffffff', '#ffffff', 'rings', 'diamond', ['colts']],
+  ['jacksonvillejaguars', 'JAX', '#006778', '#d7a22a', '#ffffff', 'conic', 'circle', ['jaguars', 'jags']],
+  ['kansascitychiefs', 'KC', '#e31837', '#ffb81c', '#ffffff', 'radial-burst', 'hex', ['chiefs']],
+  ['lasvegasraiders', 'LV', '#111111', '#a5acaf', '#ffffff', 'vertical-stripes-clean', 'shield', ['raiders', 'oaklandraiders']],
+  ['losangeleschargers', 'LAC', '#0080c6', '#ffc20e', '#ffffff', 'diagonal', 'diamond', ['chargers', 'lachargers']],
+  ['losangelesrams', 'LAR', '#003594', '#ffa300', '#ffffff', 'waves', 'circle', ['rams', 'larams']],
+  ['miamidolphins', 'MIA', '#008e97', '#fc4c02', '#ffffff', 'conic', 'hex', ['dolphins']],
+  ['minnesotavikings', 'MIN', '#4f2683', '#ffc62f', '#ffffff', 'chevron', 'shield', ['vikings']],
+  ['newenglandpatriots', 'NE', '#002244', '#c60c30', '#ffffff', 'horizontal-band', 'diamond', ['patriots']],
+  ['neworleanssaints', 'NO', '#101820', '#d3bc8d', '#ffffff', 'rings', 'circle', ['saints']],
+  ['newyorkgiants', 'NYG', '#0b2265', '#a71930', '#ffffff', 'quarters', 'hex', ['giants']],
+  ['newyorkjets', 'NYJ', '#125740', '#ffffff', '#ffffff', 'target', 'shield', ['jets']],
+  ['philadelphiaeagles', 'PHI', '#004c54', '#a5acaf', '#ffffff', 'diagonal-stripes', 'diamond', ['eagles']],
+  ['pittsburghsteelers', 'PIT', '#101820', '#ffb612', '#ffffff', 'radial-burst', 'circle', ['steelers']],
+  ['sanfrancisco49ers', 'SF', '#aa0000', '#b3995d', '#ffffff', 'half-horizontal', 'hex', ['49ers', 'sanfranciscoers', 'niners']],
+  ['seattleseahawks', 'SEA', '#002244', '#69be28', '#ffffff', 'waves', 'shield', ['seahawks']],
+  ['tampabaybuccaneers', 'TB', '#d50a0a', '#34302b', '#ffffff', 'diagonal', 'diamond', ['buccaneers', 'bucs']],
+  ['tennesseetitans', 'TEN', '#0c2340', '#4b92db', '#ffffff', 'cross', 'circle', ['titans']],
+  ['washingtoncommanders', 'WAS', '#5a1414', '#ffb612', '#ffffff', 'chevron', 'hex', ['commanders', 'washingtonfootballteam']],
+];
+
+function compactClubKey(value = '') {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+const CLUB_ALIASES = {};
+
+AUTHORIAL_CLUB_BADGES.forEach(([
+  canonical,
+  mark,
+  primary,
+  secondary,
+  markColor,
+  pattern,
+  markShape,
+  aliases = [],
+]) => {
+  const key = compactClubKey(canonical);
+
+  if (!CLUB_STYLES[key]) {
+    CLUB_STYLES[key] = {
+      outer: primary,
+      glow: secondary,
+      pattern,
+      colors: [primary, secondary, markColor],
+      center: null,
+      mark,
+      markColor,
+      markShape,
+    };
+  }
+
+  [canonical, ...aliases].forEach((alias) => {
+    CLUB_ALIASES[compactClubKey(alias)] = key;
+  });
+});
+
 const LEAGUE_STYLES = {
   brasil: {
   outer: '#0b7a3b',
@@ -319,13 +587,18 @@ nfl: {
 
 };
 
-function normalizeClubName(nome = '') {
-  const base = String(nome)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toLowerCase()
-    .trim();
+function normalizeClubName(nome = '', liga = '') {
+  const base = compactClubKey(nome);
+  const leagueKey = compactClubKey(liga);
+
+  // "Athletic Club" existe simultaneamente na Série B e na La Liga.
+  // Quando o mercado é informado, a identificação permanece inequívoca.
+  if (
+    base === 'athleticclub' &&
+    ['brasileiraob', 'brasileiraoserieb', 'brasilserieb', 'serieb'].includes(leagueKey)
+  ) {
+    return 'athleticclubmg';
+  }
 
   const aliases = {
   sao: 'saopaulo',
@@ -355,7 +628,7 @@ function normalizeClubName(nome = '') {
   atleticomineiro: 'atleticomineiro',
 };
 
-  return aliases[base] || base;
+  return CLUB_ALIASES[base] || aliases[base] || base;
 }
 
 function normalizeLeagueName(nome = '') {
@@ -444,6 +717,51 @@ const Center = styled.div`
     0 0 0 2px rgba(0,0,0,0.35),
     inset 0 0 8px rgba(255,255,255,0.24);
   z-index: 3;
+`;
+
+const MarkPlate = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54%;
+  height: 54%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  color: ${({ $color }) => $color};
+  background: rgba(3, 8, 20, 0.7);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.52),
+    0 2px 8px rgba(0,0,0,0.38);
+  backdrop-filter: blur(1px);
+  clip-path: ${({ $shape }) => {
+    switch ($shape) {
+      case 'diamond':
+        return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+      case 'hex':
+        return 'polygon(25% 7%, 75% 7%, 100% 50%, 75% 93%, 25% 93%, 0% 50%)';
+      case 'shield':
+        return 'polygon(10% 8%, 90% 8%, 86% 67%, 50% 100%, 14% 67%)';
+      default:
+        return 'circle(50% at 50% 50%)';
+    }
+  }};
+`;
+
+const MarkText = styled.span`
+  display: block;
+  max-width: 88%;
+  overflow: hidden;
+  color: inherit;
+  font-size: ${({ $size, $length }) =>
+    Math.max(7, Math.floor($size * ($length > 2 ? 0.19 : 0.22)))}px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: ${({ $length }) => ($length > 2 ? '-0.07em' : '-0.02em')};
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 `;
 
 const Star = styled.div`
@@ -1009,13 +1327,90 @@ function getBackground(style) {
     radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 32%),
     linear-gradient(180deg, ${a}, #0b1220)
   `;
+
+    case 'split-vertical':
+      return `linear-gradient(90deg, ${a} 0%, ${a} 50%, ${b} 50%, ${b} 100%)`;
+
+    case 'diagonal-stripes':
+      return `repeating-linear-gradient(
+        135deg,
+        ${a} 0%,
+        ${a} 18%,
+        ${b} 18%,
+        ${b} 35%,
+        ${c || a} 35%,
+        ${c || a} 42%
+      )`;
+
+    case 'quarters':
+      return `conic-gradient(
+        from 45deg,
+        ${a} 0deg 90deg,
+        ${b} 90deg 180deg,
+        ${a} 180deg 270deg,
+        ${b} 270deg 360deg
+      )`;
+
+    case 'chevron':
+      return `
+        linear-gradient(135deg, transparent 0 38%, ${b} 38% 54%, transparent 54%),
+        linear-gradient(225deg, transparent 0 38%, ${b} 38% 54%, transparent 54%),
+        ${a}
+      `;
+
+    case 'conic':
+      return `conic-gradient(
+        from 18deg,
+        ${a} 0deg 72deg,
+        ${b} 72deg 144deg,
+        ${a} 144deg 216deg,
+        ${b} 216deg 288deg,
+        ${a} 288deg 360deg
+      )`;
+
+    case 'cross':
+      return `
+        linear-gradient(90deg, transparent 0 40%, ${b} 40% 60%, transparent 60%),
+        linear-gradient(180deg, transparent 0 40%, ${b} 40% 60%, transparent 60%),
+        ${a}
+      `;
+
+    case 'waves':
+      return `
+        radial-gradient(circle at 15% 100%, transparent 0 30%, ${b} 31% 39%, transparent 40%),
+        radial-gradient(circle at 85% 0%, transparent 0 30%, ${b} 31% 39%, transparent 40%),
+        ${a}
+      `;
+
+    case 'radial-burst':
+      return `repeating-conic-gradient(
+        from 8deg,
+        ${a} 0deg 28deg,
+        ${b} 28deg 43deg
+      )`;
+
     default:
       return a;
   }
 }
 
-export default function ClubBadge({ clube, size = 34 }) {
-  const key = normalizeClubName(clube);
+export default function ClubBadge({ clube, liga, mercado, size = 34 }) {
+  const clubName =
+    clube && typeof clube === 'object'
+      ? clube.nome || clube.name || clube.nomeApi || clube.clubeNome || 'Clube'
+      : clube;
+  const leagueName =
+    liga ||
+    mercado ||
+    (clube && typeof clube === 'object'
+      ? clube.ligaId ||
+        clube.liga ||
+        clube.mercadoId ||
+        clube.campeonato ||
+        clube.metadata?.ligaId ||
+        clube.metadata?.ligaNome
+      : '');
+  const key = normalizeClubName(clubName, leagueName);
 
   const style = CLUB_STYLES[key] || {
     outer: '#1f2937',
@@ -1032,8 +1427,8 @@ export default function ClubBadge({ clube, size = 34 }) {
       $size={size}
       $outer={style.outer}
       $glow={style.glow}
-      title={clube}
-      aria-label={`Símbolo de ${clube || 'clube'}`}
+      title={clubName}
+      aria-label={`Símbolo de ${clubName || 'clube'}`}
     >
       <Inner $bg={bg}>
         {style.pattern === 'star' && <Star $size={size} />}
@@ -1049,6 +1444,14 @@ export default function ClubBadge({ clube, size = 34 }) {
         )}
 
         {style.center && <Center $color={style.center} />}
+
+        {style.mark && (
+          <MarkPlate $shape={style.markShape} $color={style.markColor || '#ffffff'}>
+            <MarkText $size={size} $length={style.mark.length}>
+              {style.mark}
+            </MarkText>
+          </MarkPlate>
+        )}
       </Inner>
     </Wrap>
   );
