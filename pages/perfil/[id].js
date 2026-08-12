@@ -724,13 +724,6 @@ async function alternarFollowModal(usuarioAlvo) {
         </MetricaCard>
       </GridMetricas>
 
-      <TrophyRoom
-        trofeus={trofeus}
-        resumo={resumoTrofeus}
-        carregando={carregandoTrofeus}
-        erro={erroTrofeus}
-      />
-
       {!carteiraPublica.podeAcessar ? (
         <PainelBloqueado>
           <PremiumLockIcon>🔒</PremiumLockIcon>
@@ -853,7 +846,7 @@ async function alternarFollowModal(usuarioAlvo) {
               </strong>
 
               <span>
-                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas · ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
+                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas Â· ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
               </span>
             </div>
           </ClubeResumo>
@@ -894,6 +887,48 @@ async function alternarFollowModal(usuarioAlvo) {
 </Painel>
       </>}
 
+{modalTrofeusAberto && (
+  <ModalOverlay
+    onClick={() => setModalTrofeusAberto(false)}
+  >
+    <TrophyModalCard
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-modal-trofeus"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <TrophyModalTopo>
+        <TrophyModalIdentidade>
+          <span id="titulo-modal-trofeus">Sala de troféus</span>
+          <strong>
+            {usuario.nomeUsuario
+              ? `@${usuario.nomeUsuario}`
+              : nomeExibicao(usuario)}
+          </strong>
+        </TrophyModalIdentidade>
+
+        <BotaoFecharTrofeus
+          type="button"
+          aria-label="Fechar Sala de Troféus"
+          autoFocus
+          onClick={() => setModalTrofeusAberto(false)}
+        >
+          X
+        </BotaoFecharTrofeus>
+      </TrophyModalTopo>
+
+      <TrophyModalConteudo>
+        <TrophyRoom
+          trofeus={trofeus}
+          resumo={resumoTrofeus}
+          carregando={carregandoTrofeus}
+          erro={erroTrofeus}
+        />
+      </TrophyModalConteudo>
+    </TrophyModalCard>
+  </ModalOverlay>
+)}
+
 {modalConexoesAberto && (
   <ModalOverlay
     onClick={fecharModalConexoes}
@@ -906,7 +941,7 @@ async function alternarFollowModal(usuarioAlvo) {
           type="button"
           onClick={fecharModalConexoes}
         >
-          ‹
+          â¹
         </BotaoVoltarModal>
 
         <ModalTituloCentro>
