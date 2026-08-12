@@ -644,54 +644,6 @@ async function alternarFollowModal(usuarioAlvo) {
     Ver convites
   </BotaoSecundario>
 </AcoesTopo>
-
-      {perfilProprio && (
-        <PainelDourado>
-          <PainelHeader>
-            <div>
-              <EyebrowCarteira>Carteira pública</EyebrowCarteira>
-              <PainelTitulo>Controle o que aparece no seu perfil</PainelTitulo>
-            </div>
-            <PremiumMiniBadge>Privacidade</PremiumMiniBadge>
-          </PainelHeader>
-          <PrivacidadeGrid>
-            <CampoPrivacidade>
-              <span>Quem pode ver</span>
-              <SelectPrivacidade
-                value={carteiraPublica.visibilidade || 'publica'}
-                disabled={salvandoPrivacidade}
-                onChange={(e) => salvarPrivacidadeCarteira({ visibilidade: e.target.value })}
-              >
-                <option value="publica">Todos os usuários</option>
-                <option value="seguidores">Somente seguidores</option>
-                <option value="privada">Somente eu</option>
-              </SelectPrivacidade>
-            </CampoPrivacidade>
-            <CampoPrivacidade>
-              <span>Nível de exposição</span>
-              <SelectPrivacidade
-                value={carteiraPublica.nivelDetalhe || 'detalhada'}
-                disabled={salvandoPrivacidade}
-                onChange={(e) => salvarPrivacidadeCarteira({ nivelDetalhe: e.target.value })}
-              >
-                <option value="resumo">Somente resumo</option>
-                <option value="detalhada">Posições detalhadas</option>
-              </SelectPrivacidade>
-            </CampoPrivacidade>
-            <TogglePrivacidade>
-              <input
-                type="checkbox"
-                checked={carteiraPublica.mostrarValores !== false}
-                disabled={salvandoPrivacidade}
-                onChange={(e) => salvarPrivacidadeCarteira({ mostrarValores: e.target.checked })}
-              />
-              <span>Exibir valores monetários</span>
-            </TogglePrivacidade>
-          </PrivacidadeGrid>
-          {mensagemPrivacidade && <MensagemPrivacidade>{mensagemPrivacidade}</MensagemPrivacidade>}
-        </PainelDourado>
-      )}
-
       <GridMetricas>
         <MetricaButton
   type="button"
@@ -846,7 +798,7 @@ async function alternarFollowModal(usuarioAlvo) {
               </strong>
 
               <span>
-                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas Â· ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
+                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas · ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
               </span>
             </div>
           </ClubeResumo>
