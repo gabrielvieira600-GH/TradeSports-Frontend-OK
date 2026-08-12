@@ -60,9 +60,18 @@ function RecargaRecuperacaoPage() {
     };
   }, [carregarResumo]);
 
-  const maximo = Number(resumo?.maximoTs || 0);
   const minimo = Number(resumo?.minimoTs || 100);
   const passo = Number(resumo?.passoTs || 10);
+  const patrimonio = Number(resumo?.patrimonio || 0);
+  const maximoPermitido = Number(resumo?.maximoTs || 0);
+  const modoDemonstracao = patrimonio >= 900;
+  const maximo = modoDemonstracao
+    ? Number(resumo?.alvoPatrimonio || 1000)
+    : maximoPermitido;
+  const podeConcluir = Boolean(resumo?.elegivel) && patrimonio < 900;
+  const motivoBloqueio = modoDemonstracao
+    ? 'O pagamento será liberado quando seu patrimônio total ficar abaixo de T$ 900.'
+    : resumo?.motivoInelegibilidade || 'Complete os requisitos da conta para liberar o pagamento.';
   const valorReais = useMemo(
     () => (Number(quantidade || 0) * Number(resumo?.centavosPorTs || 5)) / 100,
     [quantidade, resumo]
@@ -104,7 +113,7 @@ function RecargaRecuperacaoPage() {
   }, [adicionarToast, carregarResumo, refreshSaldo, refreshUsuario]);
 
   const iniciarPagamento = async () => {
-    if (!resumo?.elegivel || processando) return;
+    if (!podeConcluir || processando) return;
     if (!resumo.pixConfigurado || !resumo.stripePublishableKey) {
       adicionarToast('O pagamento PIX ainda não foi ativado pela TradeSports.', 'erro');
       return;
@@ -194,18 +203,26 @@ function RecargaRecuperacaoPage() {
       <SummaryGrid>
         <SummaryCard><span>Patrimônio total</span><strong>{formatTs(resumo?.patrimonio)}</strong><small>saldo, ordens e posições a mercado</small></SummaryCard>
         <SummaryCard><span>Rentabilidade preservada</span><strong className={Number(resumo?.rentabilidade) < 0 ? 'negative' : 'positive'}>{formatPercent(resumo?.rentabilidade)}</strong><small>a recarga não altera este percentual</small></SummaryCard>
-        <SummaryCard><span>Limite disponível</span><strong>{formatTs(maximo)}</strong><small>diferença permitida até T$ 1.000</small></SummaryCard>
+        <SummaryCard>
+          <span>Limite disponível</span>
+          <strong>{podeConcluir ? formatTs(maximoPermitido) : 'Bloqueado'}</strong>
+          <small>{podeConcluir ? 'diferença permitida até T$ 1.000' : motivoBloqueio}</small>
+        </SummaryCard>
       </SummaryGrid>
 
-      {!resumo?.elegivel ? (
+      {!podeConcluir && (
         <Unavailable>
           <FiInfo />
-          <div><strong>Recarga indisponível agora</strong><p>{resumo?.motivoInelegibilidade}</p></div>
+          <div>
+            <strong>Explore a recuperação em modo de demonstração</strong>
+            <p>Você pode mover a barra, testar valores e entender a conversão. {motivoBloqueio}</p>
+          </div>
         </Unavailable>
-      ) : (
-        <CheckoutGrid>
+      )}
+
+      <CheckoutGrid>
           <BuilderCard>
-            <SectionHead><div><span>Escolha sua recarga</span><h2>{formatTs(quantidade)}</h2></div><Price><span>Você pagará</span><strong>{formatBrl(valorReais)}</strong></Price></SectionHead>
+            <SectionHead><div><span>{modoDemonstracao ? 'Simule sua recarga' : 'Escolha sua recarga'}</span><h2>{formatTs(quantidade)}</h2></div><Price><span>{modoDemonstracao ? 'Valor simulado' : 'Você pagará'}</span><strong>{formatBrl(valorReais)}</strong></Price></SectionHead>
 
             <SliderLabels><span>{formatTs(minimo)}</span><span>{formatTs(maximo)}</span></SliderLabels>
             <Slider
@@ -240,13 +257,21 @@ function RecargaRecuperacaoPage() {
               <Arrow>+</Arrow>
               <div><span>Recarga</span><strong>{formatTs(quantidade)}</strong></div>
               <Arrow>=</Arrow>
-              <div><span>Patrimônio projetado</span><strong>{formatTs(patrimonioProjetado)}</strong></div>
+              <div><span>{modoDemonstracao ? 'Patrimônio simulado' : 'Patrimônio projetado'}</span><strong>{formatTs(patrimonioProjetado)}</strong></div>
             </Projection>
 
-            <PayButton type="button" onClick={iniciarPagamento} disabled={processando || !resumo.pixConfigurado}>
-              {processando ? 'Gerando PIX...' : resumo.pixConfigurado ? `Pagar ${formatBrl(valorReais)} via PIX` : 'PIX aguardando ativação'}
+            <PayButton type="button" onClick={iniciarPagamento} disabled={processando || !resumo.pixConfigurado || !podeConcluir}>
+              {processando
+                ? 'Gerando PIX...'
+                : !podeConcluir
+                  ? 'Pagamento disponível abaixo de T$ 900'
+                  : resumo.pixConfigurado
+                    ? `Pagar ${formatBrl(valorReais)} via PIX`
+                    : 'PIX aguardando ativação'}
             </PayButton>
-            {!resumo.pixConfigurado && <ConfigHint>O ambiente está pronto; falta cadastrar as chaves PIX da conta TradeSports.</ConfigHint>}
+            {!podeConcluir
+              ? <ConfigHint>Esta simulação não cria cobrança nem altera seu saldo.</ConfigHint>
+              : !resumo.pixConfigurado && <ConfigHint>O ambiente está pronto; falta cadastrar as chaves PIX da conta TradeSports.</ConfigHint>}
           </BuilderCard>
 
           <RulesCard>
@@ -258,8 +283,7 @@ function RecargaRecuperacaoPage() {
             <Rule><FiCheck /><span>O limite é conferido novamente quando o PIX é confirmado.</span></Rule>
             <Risk><FiAlertTriangle /><span>Recarga não garante recuperação. Suas decisões podem reduzir novamente o saldo.</span></Risk>
           </RulesCard>
-        </CheckoutGrid>
-      )}
+      </CheckoutGrid>
 
       {(pix || recarga) && (
         <PaymentCard>

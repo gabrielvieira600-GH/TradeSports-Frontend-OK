@@ -786,6 +786,7 @@ const meuPerfilHref = meuPerfilId
                     <DropLink href="/como-funciona">Como funciona</DropLink>
                     <DropLink href={meuPerfilHref}>Meu perfil</DropLink>
                     <DropLink href="/carteira">Carteira</DropLink>
+                    <DropLink href="/deposito">Recuperação</DropLink>
                     <DropLink href="/ranking">Ranking</DropLink>
                     <DropLink href="/social">Feed</DropLink>
                     <DropLink href="/performance">Central de Performance</DropLink>
