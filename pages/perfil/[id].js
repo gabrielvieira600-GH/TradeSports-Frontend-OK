@@ -45,7 +45,7 @@ function nomeExibicao(usuario) {
     usuario?.nomePublico ||
     usuario?.nomeUsuario ||
     usuario?.nome ||
-    'Usuário'
+    'UsuÃ¡rio'
   );
 }
 
@@ -83,6 +83,7 @@ function PerfilPage() {
   const [usuarioLogadoId, setUsuarioLogadoId] = useState('');
   const [processandoFollow, setProcessandoFollow] = useState(false);
   const [modalConexoesAberto, setModalConexoesAberto] = useState(false);
+  const [modalTrofeusAberto, setModalTrofeusAberto] = useState(false);
 const [abaConexoes, setAbaConexoes] = useState('seguidores');
 const [usuariosConexoes, setUsuariosConexoes] = useState([]);
 const [buscaConexoes, setBuscaConexoes] = useState('');
@@ -107,13 +108,19 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [erroTrofeus, setErroTrofeus] = useState('');
 
   useEffect(() => {
-    if (!modalConexoesAberto || typeof document === 'undefined') {
+    if (
+      (!modalConexoesAberto && !modalTrofeusAberto) ||
+      typeof document === 'undefined'
+    ) {
       return undefined;
     }
 
     const overflowAnterior = document.body.style.overflow;
     const fecharComEscape = (event) => {
-      if (event.key === 'Escape') setModalConexoesAberto(false);
+      if (event.key !== 'Escape') return;
+
+      setModalConexoesAberto(false);
+      setModalTrofeusAberto(false);
     };
 
     document.body.style.overflow = 'hidden';
@@ -123,7 +130,7 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
       document.body.style.overflow = overflowAnterior;
       document.removeEventListener('keydown', fecharComEscape);
     };
-  }, [modalConexoesAberto]);
+  }, [modalConexoesAberto, modalTrofeusAberto]);
 
   const usuarioLogadoPremium = planoUsuarioLogado === 'premium';
 
@@ -166,9 +173,9 @@ const rankingHeroPosicao = perfilPremium
         ...atual,
         carteiraPublica: { ...atual.carteiraPublica, ...data.carteiraPublica },
       }));
-      setMensagemPrivacidade('Preferências salvas.');
+      setMensagemPrivacidade('PreferÃªncias salvas.');
     } catch (err) {
-      setMensagemPrivacidade(err?.response?.data?.erro || 'Não foi possível salvar as preferências.');
+      setMensagemPrivacidade(err?.response?.data?.erro || 'NÃ£o foi possÃ­vel salvar as preferÃªncias.');
     } finally {
       setSalvandoPrivacidade(false);
     }
@@ -206,7 +213,7 @@ const rankingHeroPosicao = perfilPremium
 
       setErroPerfil(
         err?.response?.data?.erro ||
-          'Não foi possível carregar este perfil.'
+          'NÃ£o foi possÃ­vel carregar este perfil.'
       );
 
       setUsuario(null);
@@ -227,11 +234,11 @@ const rankingHeroPosicao = perfilPremium
       setTrofeus(Array.isArray(data?.trofeus) ? data.trofeus : []);
       setResumoTrofeus(data?.resumo || {});
     } catch (err) {
-      console.error('Erro ao carregar Sala de Troféus:', err);
+      console.error('Erro ao carregar Sala de TrofÃ©us:', err);
       setTrofeus([]);
       setResumoTrofeus({});
       setErroTrofeus(
-        err?.response?.data?.erro || 'Não foi possível carregar a Sala de Troféus.'
+        err?.response?.data?.erro || 'NÃ£o foi possÃ­vel carregar a Sala de TrofÃ©us.'
       );
     } finally {
       setCarregandoTrofeus(false);
@@ -250,7 +257,7 @@ const rankingHeroPosicao = perfilPremium
 
       setPlanoUsuarioLogado(plano);
     } catch (err) {
-      console.error('Erro ao carregar plano do usuário:', err);
+      console.error('Erro ao carregar plano do usuÃ¡rio:', err);
       setPlanoUsuarioLogado('lite');
     }
   }
@@ -324,7 +331,7 @@ const rankingHeroPosicao = perfilPremium
 
       setErroPerfil(
         err?.response?.data?.erro ||
-          'Não foi possível atualizar a relação social.'
+          'NÃ£o foi possÃ­vel atualizar a relaÃ§Ã£o social.'
       );
     } finally {
       setProcessandoFollow(false);
@@ -354,11 +361,11 @@ const rankingHeroPosicao = perfilPremium
       Array.isArray(data?.usuarios) ? data.usuarios : []
     );
   } catch (err) {
-    console.error('Erro ao carregar conexões:', err);
+    console.error('Erro ao carregar conexÃµes:', err);
 
     setErroConexoes(
       err?.response?.data?.erro ||
-        'Não foi possível carregar esta lista.'
+        'NÃ£o foi possÃ­vel carregar esta lista.'
     );
 
     setUsuariosConexoes([]);
@@ -424,7 +431,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
     setErroConexoes(
       err?.response?.data?.erro ||
-        'Não foi possível atualizar a relação social.'
+        'NÃ£o foi possÃ­vel atualizar a relaÃ§Ã£o social.'
     );
   } finally {
     setProcessandoConexaoId('');
@@ -459,7 +466,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
       setErroConvite(
         err?.response?.data?.erro ||
-          'Não foi possível enviar o convite.'
+          'NÃ£o foi possÃ­vel enviar o convite.'
       );
     } finally {
       setEnviandoConvite(false);
@@ -508,7 +515,7 @@ async function alternarFollowModal(usuarioAlvo) {
     return (
       <Container>
         <VoltarBotao type="button" onClick={() => router.push('/social')}>
-          ← Voltar para Comunidade
+          â Voltar para Comunidade
         </VoltarBotao>
 
         <MensagemErro>
@@ -522,7 +529,7 @@ async function alternarFollowModal(usuarioAlvo) {
     return (
       <Container>
         <EstadoCard>
-          Perfil não encontrado.
+          Perfil nÃ£o encontrado.
         </EstadoCard>
       </Container>
     );
@@ -533,7 +540,7 @@ async function alternarFollowModal(usuarioAlvo) {
   return (
     <Container>
       <VoltarBotao type="button" onClick={() => router.push('/social')}>
-        ← Voltar para Comunidade
+        â Voltar para Comunidade
       </VoltarBotao>
 
       {erroPerfil && (
@@ -566,7 +573,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
               {usuario.relacao?.segueVoce && (
                 <SegueVoceBadge>
-                  Segue você
+                  Segue vocÃª
                 </SegueVoceBadge>
               )}
 
@@ -580,7 +587,7 @@ async function alternarFollowModal(usuarioAlvo) {
     <span>{rankingHeroLabel}</span>
     <strong>
       {rankingHeroPosicao
-        ? `${rankingHeroPosicao}º`
+        ? `${rankingHeroPosicao}Âº`
         : '-'}
     </strong>
   </HeroStat>
@@ -593,7 +600,7 @@ async function alternarFollowModal(usuarioAlvo) {
   </HeroStat>
 
   <HeroStat>
-    <span>Patrimônio</span>
+    <span>PatrimÃ´nio</span>
     <strong>
       {mercado.patrimonio == null ? 'Privado' : formatarMoeda(mercado.patrimonio)}
     </strong>
@@ -620,6 +627,16 @@ async function alternarFollowModal(usuarioAlvo) {
     </BotaoPrimario>
   )}
 
+  <BotaoTrofeus
+    type="button"
+    aria-haspopup="dialog"
+    aria-expanded={modalTrofeusAberto}
+    onClick={() => setModalTrofeusAberto(true)}
+  >
+    <IconeBotao aria-hidden="true">ð</IconeBotao>
+    <span>Sala de trofÃ©us</span>
+  </BotaoTrofeus>
+
   <BotaoSecundario
     type="button"
     onClick={() => router.push('/convites')}
@@ -632,7 +649,7 @@ async function alternarFollowModal(usuarioAlvo) {
         <PainelDourado>
           <PainelHeader>
             <div>
-              <EyebrowCarteira>Carteira pública</EyebrowCarteira>
+              <EyebrowCarteira>Carteira pÃºblica</EyebrowCarteira>
               <PainelTitulo>Controle o que aparece no seu perfil</PainelTitulo>
             </div>
             <PremiumMiniBadge>Privacidade</PremiumMiniBadge>
@@ -645,20 +662,20 @@ async function alternarFollowModal(usuarioAlvo) {
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ visibilidade: e.target.value })}
               >
-                <option value="publica">Todos os usuários</option>
+                <option value="publica">Todos os usuÃ¡rios</option>
                 <option value="seguidores">Somente seguidores</option>
                 <option value="privada">Somente eu</option>
               </SelectPrivacidade>
             </CampoPrivacidade>
             <CampoPrivacidade>
-              <span>Nível de exposição</span>
+              <span>NÃ­vel de exposiÃ§Ã£o</span>
               <SelectPrivacidade
                 value={carteiraPublica.nivelDetalhe || 'detalhada'}
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ nivelDetalhe: e.target.value })}
               >
                 <option value="resumo">Somente resumo</option>
-                <option value="detalhada">Posições detalhadas</option>
+                <option value="detalhada">PosiÃ§Ãµes detalhadas</option>
               </SelectPrivacidade>
             </CampoPrivacidade>
             <TogglePrivacidade>
@@ -668,7 +685,7 @@ async function alternarFollowModal(usuarioAlvo) {
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ mostrarValores: e.target.checked })}
               />
-              <span>Exibir valores monetários</span>
+              <span>Exibir valores monetÃ¡rios</span>
             </TogglePrivacidade>
           </PrivacidadeGrid>
           {mensagemPrivacidade && <MensagemPrivacidade>{mensagemPrivacidade}</MensagemPrivacidade>}
@@ -697,7 +714,7 @@ async function alternarFollowModal(usuarioAlvo) {
 </MetricaButton>
 
         <MetricaCard>
-          <span>Posições</span>
+          <span>PosiÃ§Ãµes</span>
           <strong>{mercado.quantidadePosicoes == null ? '-' : formatarNumero(mercado.quantidadePosicoes)}</strong>
         </MetricaCard>
 
@@ -707,38 +724,31 @@ async function alternarFollowModal(usuarioAlvo) {
         </MetricaCard>
       </GridMetricas>
 
-      <TrophyRoom
-        trofeus={trofeus}
-        resumo={resumoTrofeus}
-        carregando={carregandoTrofeus}
-        erro={erroTrofeus}
-      />
-
       {!carteiraPublica.podeAcessar ? (
         <PainelBloqueado>
-          <PremiumLockIcon>🔒</PremiumLockIcon>
-          <PremiumLockTitle>Carteira não compartilhada</PremiumLockTitle>
+          <PremiumLockIcon>ð</PremiumLockIcon>
+          <PremiumLockTitle>Carteira nÃ£o compartilhada</PremiumLockTitle>
           <PremiumLockTexto>
             {carteiraPublica.motivoBloqueio === 'seguidores'
-              ? 'Este usuário compartilha a carteira apenas com seguidores.'
-              : 'Este usuário optou por manter a carteira privada.'}
+              ? 'Este usuÃ¡rio compartilha a carteira apenas com seguidores.'
+              : 'Este usuÃ¡rio optou por manter a carteira privada.'}
           </PremiumLockTexto>
         </PainelBloqueado>
       ) : <>
       <GridPrincipal>
         <Painel>
           <PainelTitulo>
-            Performance do usuário
+            Performance do usuÃ¡rio
           </PainelTitulo>
 
           <PerformanceGrid>
             <LinhaInfo>
-              <span>Valor em posições</span>
+              <span>Valor em posiÃ§Ãµes</span>
               <strong>{mercado.valorPosicoes == null ? 'Oculto' : formatarMoeda(mercado.valorPosicoes)}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
-              <span>Patrimônio total</span>
+              <span>PatrimÃ´nio total</span>
               <strong>{mercado.patrimonio == null ? 'Oculto' : formatarMoeda(mercado.patrimonio)}</strong>
             </LinhaInfo>
 
@@ -764,7 +774,7 @@ async function alternarFollowModal(usuarioAlvo) {
       {(perfilProprio || usuarioLogadoPremium) && analiseCarteira && (
         <AnaliseGrid>
           <PainelDourado>
-            <PainelHeader><PainelTitulo>Evolução recente</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+            <PainelHeader><PainelTitulo>EvoluÃ§Ã£o recente</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
             {Array.isArray(analiseCarteira.historico) && analiseCarteira.historico.length > 1 ? (
               <HistoricoLista>
                 {analiseCarteira.historico.slice(-12).map((ponto) => (
@@ -775,16 +785,16 @@ async function alternarFollowModal(usuarioAlvo) {
                   </HistoricoItem>
                 ))}
               </HistoricoLista>
-            ) : <TextoApoio>Base histórica em formação. A curva crescerá com os snapshots diários.</TextoApoio>}
+            ) : <TextoApoio>Base histÃ³rica em formaÃ§Ã£o. A curva crescerÃ¡ com os snapshots diÃ¡rios.</TextoApoio>}
           </PainelDourado>
 
           {analiseCarteira.comparacao && (
             <PainelDourado>
-              <PainelHeader><PainelTitulo>Comparação com você</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+              <PainelHeader><PainelTitulo>ComparaÃ§Ã£o com vocÃª</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
               <ComparacaoGrid>
-                <MiniMetrica><span>Diferença de rentabilidade</span><strong className={Number(analiseCarteira.comparacao.diferencaRentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(analiseCarteira.comparacao.diferencaRentabilidade)}</strong></MiniMetrica>
-                <MiniMetrica><span>Concentração deste usuário</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoUsuario).replace('+', '')}</strong></MiniMetrica>
-                <MiniMetrica><span>Sua concentração</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoVisitante).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>DiferenÃ§a de rentabilidade</span><strong className={Number(analiseCarteira.comparacao.diferencaRentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(analiseCarteira.comparacao.diferencaRentabilidade)}</strong></MiniMetrica>
+                <MiniMetrica><span>ConcentraÃ§Ã£o deste usuÃ¡rio</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoUsuario).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>Sua concentraÃ§Ã£o</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoVisitante).replace('+', '')}</strong></MiniMetrica>
                 <MiniMetrica><span>Clubes em comum</span><strong>{formatarNumero(analiseCarteira.comparacao.clubesEmComum)}</strong></MiniMetrica>
               </ComparacaoGrid>
             </PainelDourado>
@@ -795,7 +805,7 @@ async function alternarFollowModal(usuarioAlvo) {
       <Painel>
   <PainelHeader>
     <PainelTitulo>
-      Principais posições
+      Principais posiÃ§Ãµes
     </PainelTitulo>
 
     {!podeVerPosicoes && (
@@ -807,18 +817,18 @@ async function alternarFollowModal(usuarioAlvo) {
 
   {!podeVerPosicoes ? (
     carteiraPublica.motivoBloqueio === 'resumo' ? (
-      <EstadoCard>Este usuário optou por compartilhar somente o resumo da carteira.</EstadoCard>
+      <EstadoCard>Este usuÃ¡rio optou por compartilhar somente o resumo da carteira.</EstadoCard>
     ) : (
     <PremiumLockedArea>
       <BlurredPositions aria-hidden="true">
         {[1, 2, 3].map((item) => <BlurCard key={item}><ClubeResumo><BlurAvatar /><div><BlurLine $width="120px" /><BlurLine $width="72px" $small /></div></ClubeResumo><BlurGrid><BlurMetric /><BlurMetric /><BlurMetric /><BlurMetric /></BlurGrid></BlurCard>)}
       </BlurredPositions>
-      <PremiumOverlay><PremiumLockIcon>🔒</PremiumLockIcon><PremiumLockTitle>Análise detalhada exclusiva Premium</PremiumLockTitle><PremiumLockTexto>Faça upgrade para analisar composição, pesos, preços médios e resultados por clube.</PremiumLockTexto><UpgradeButton type="button" onClick={() => router.push('/planos')}>Fazer upgrade</UpgradeButton></PremiumOverlay>
+      <PremiumOverlay><PremiumLockIcon>ð</PremiumLockIcon><PremiumLockTitle>AnÃ¡lise detalhada exclusiva Premium</PremiumLockTitle><PremiumLockTexto>FaÃ§a upgrade para analisar composiÃ§Ã£o, pesos, preÃ§os mÃ©dios e resultados por clube.</PremiumLockTexto><UpgradeButton type="button" onClick={() => router.push('/planos')}>Fazer upgrade</UpgradeButton></PremiumOverlay>
     </PremiumLockedArea>
     )
   ) : !Array.isArray(mercado.posicoes) || mercado.posicoes.length === 0 ? (
     <EstadoCard>
-      Este usuário ainda não possui posições em carteira.
+      Este usuÃ¡rio ainda nÃ£o possui posiÃ§Ãµes em carteira.
     </EstadoCard>
   ) : (
     <ListaPosicoes>
@@ -836,19 +846,19 @@ async function alternarFollowModal(usuarioAlvo) {
               </strong>
 
               <span>
-                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas · ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
+                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas Â· ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
               </span>
             </div>
           </ClubeResumo>
 
           <PosicaoMetricas>
             <MiniMetrica>
-              <span>Preço médio</span>
+              <span>PreÃ§o mÃ©dio</span>
               <strong>{posicao.precoMedio == null ? 'Oculto' : formatarMoeda(posicao.precoMedio)}</strong>
             </MiniMetrica>
 
             <MiniMetrica>
-              <span>Preço atual</span>
+              <span>PreÃ§o atual</span>
               <strong>{posicao.precoAtual == null ? 'Oculto' : formatarMoeda(posicao.precoAtual)}</strong>
             </MiniMetrica>
 
@@ -877,6 +887,48 @@ async function alternarFollowModal(usuarioAlvo) {
 </Painel>
       </>}
 
+{modalTrofeusAberto && (
+  <ModalOverlay
+    onClick={() => setModalTrofeusAberto(false)}
+  >
+    <TrophyModalCard
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-modal-trofeus"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <TrophyModalTopo>
+        <TrophyModalIdentidade>
+          <span id="titulo-modal-trofeus">Sala de trofÃ©us</span>
+          <strong>
+            {usuario.nomeUsuario
+              ? `@${usuario.nomeUsuario}`
+              : nomeExibicao(usuario)}
+          </strong>
+        </TrophyModalIdentidade>
+
+        <BotaoFecharTrofeus
+          type="button"
+          aria-label="Fechar Sala de TrofÃ©us"
+          autoFocus
+          onClick={() => setModalTrofeusAberto(false)}
+        >
+          Ã
+        </BotaoFecharTrofeus>
+      </TrophyModalTopo>
+
+      <TrophyModalConteudo>
+        <TrophyRoom
+          trofeus={trofeus}
+          resumo={resumoTrofeus}
+          carregando={carregandoTrofeus}
+          erro={erroTrofeus}
+        />
+      </TrophyModalConteudo>
+    </TrophyModalCard>
+  </ModalOverlay>
+)}
+
 {modalConexoesAberto && (
   <ModalOverlay
     onClick={fecharModalConexoes}
@@ -889,7 +941,7 @@ async function alternarFollowModal(usuarioAlvo) {
           type="button"
           onClick={fecharModalConexoes}
         >
-          ‹
+          â¹
         </BotaoVoltarModal>
 
         <ModalTituloCentro>
@@ -942,17 +994,17 @@ async function alternarFollowModal(usuarioAlvo) {
         ) : usuariosConexoes.length === 0 ? (
           <ModalEstado>
             {buscaConexoes.trim()
-              ? 'Nenhum usuário encontrado para essa busca.'
+              ? 'Nenhum usuÃ¡rio encontrado para essa busca.'
               : abaConexoes === 'seguidores'
-              ? 'Este perfil ainda não possui seguidores.'
-              : 'Este perfil ainda não segue ninguém.'}
+              ? 'Este perfil ainda nÃ£o possui seguidores.'
+              : 'Este perfil ainda nÃ£o segue ninguÃ©m.'}
           </ModalEstado>
         ) : (
           <ListaUsuariosModal>
             {usuariosConexoes.map((pessoa) => {
               const nomePessoa = pessoa.nomeUsuario
                 ? `@${pessoa.nomeUsuario}`
-                : pessoa.nomePublico || pessoa.nome || 'Usuário';
+                : pessoa.nomePublico || pessoa.nome || 'UsuÃ¡rio';
 
               const ehMeuPerfil =
                 usuarioLogadoId &&
@@ -980,8 +1032,8 @@ async function alternarFollowModal(usuarioAlvo) {
                         {pessoa.nome && pessoa.nomeUsuario
                           ? pessoa.nome
                           : pessoa.plano === 'premium'
-                          ? 'Usuário Premium'
-                          : 'Usuário Lite'}
+                          ? 'UsuÃ¡rio Premium'
+                          : 'UsuÃ¡rio Lite'}
                       </span>
                     </UsuarioModalInfo>
                   </UsuarioModalConteudo>
@@ -1294,19 +1346,19 @@ const HeroStat = styled.div`
 
 const AcoesTopo = styled.div`
   margin-bottom: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, max-content));
+  gap: 8px;
 
   @media (max-width: 640px) {
     margin-bottom: 10px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 `;
 
 const BotaoPrimario = styled.button`
+  min-width: 0;
   min-height: 44px;
   border: 1px solid rgba(59, 130, 246, 0.34);
   border-radius: 13px;
@@ -1315,6 +1367,7 @@ const BotaoPrimario = styled.button`
   background: rgba(59, 130, 246, 0.16);
   color: #bfdbfe;
   font-weight: 950;
+  line-height: 1.15;
   cursor: pointer;
 
   &:disabled {
@@ -1327,13 +1380,16 @@ const BotaoPrimario = styled.button`
   }
 
   @media (max-width: 640px) {
-    padding: 9px 10px;
-    border-radius: 11px;
-    font-size: 0.82rem;
+    min-height: 48px;
+    padding: 7px 5px;
+    border-radius: 10px;
+    font-size: clamp(0.68rem, 2.9vw, 0.78rem);
+    overflow-wrap: anywhere;
   }
 `;
 
 const BotaoSecundario = styled.button`
+  min-width: 0;
   min-height: 44px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 13px;
@@ -1342,6 +1398,7 @@ const BotaoSecundario = styled.button`
   background: rgba(255, 255, 255, 0.045);
   color: #cbd5e1;
   font-weight: 900;
+  line-height: 1.15;
   cursor: pointer;
 
   &:hover {
@@ -1355,9 +1412,46 @@ const BotaoSecundario = styled.button`
   }
 
   @media (max-width: 640px) {
-    padding: 9px 10px;
-    border-radius: 11px;
-    font-size: 0.82rem;
+    min-height: 48px;
+    padding: 7px 5px;
+    border-radius: 10px;
+    font-size: clamp(0.68rem, 2.9vw, 0.78rem);
+    overflow-wrap: anywhere;
+  }
+`;
+
+const BotaoTrofeus = styled(BotaoSecundario)`
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.09);
+  color: #fde68a;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  &:hover {
+    border-color: rgba(250, 204, 21, 0.45);
+    background: rgba(250, 204, 21, 0.15);
+    color: #fef3c7;
+  }
+
+  @media (max-width: 640px) {
+    gap: 4px;
+
+    span {
+      min-width: 0;
+    }
+  }
+`;
+
+const IconeBotao = styled.span`
+  flex: 0 0 auto;
+  font-size: 0.92rem;
+  line-height: 1;
+
+  @media (max-width: 380px) {
+    display: none;
   }
 `;
 
@@ -2035,6 +2129,115 @@ const ModalOverlay = styled.div`
   @media (max-width: 640px) {
     align-items: stretch;
     justify-content: stretch;
+  }
+`;
+
+const TrophyModalCard = styled.div`
+  width: min(1180px, calc(100vw - 40px));
+  height: min(88vh, 880px);
+  height: min(88dvh, 880px);
+  overflow: hidden;
+
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  border-radius: 24px;
+  background: #08111f;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
+
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+`;
+
+const TrophyModalTopo = styled.div`
+  min-height: 66px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(7, 15, 28, 0.96);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  @media (max-width: 640px) {
+    min-height: calc(62px + env(safe-area-inset-top));
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px 15px;
+  }
+`;
+
+const TrophyModalIdentidade = styled.div`
+  min-width: 0;
+
+  span {
+    display: block;
+    margin-bottom: 3px;
+    color: #facc15;
+    font-size: 0.7rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    display: block;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const BotaoFecharTrofeus = styled.button`
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #e2e8f0;
+  font-size: 1.55rem;
+  line-height: 1;
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(250, 204, 21, 0.34);
+    background: rgba(250, 204, 21, 0.1);
+    color: #fde68a;
+    outline: none;
+  }
+`;
+
+const TrophyModalConteudo = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 18px 18px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  > #sala-de-trofeus {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 640px) {
+    padding: 0 8px calc(8px + env(safe-area-inset-bottom));
+
+    > #sala-de-trofeus {
+      margin-top: 8px;
+    }
   }
 `;
 
