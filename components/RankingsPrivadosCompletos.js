@@ -396,7 +396,7 @@ export function RankingsPrivadosPage({ embedded = false }) {
               <Field><span>Descrição</span><textarea maxLength={500} value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Explique a proposta da competição" /></Field>
               <TwoColumns>
                 <Field><span>Visibilidade</span><select value={form.visibilidade} onChange={(e) => setForm({ ...form, visibilidade: e.target.value })}><option value="convite">Somente por convite</option><option value="publico">Pública</option></select></Field>
-                <Field><span>Critério</span><select value={form.criterioClassificacao} onChange={(e) => setForm({ ...form, criterioClassificacao: e.target.value })}><option value="rentabilidade">Rentabilidade</option><option value="patrimonio">Patrimônio</option><option value="resultado">Resultado</option></select></Field>
+                <Field><span>Critério</span><select value="rentabilidade" disabled><option value="rentabilidade">Rentabilidade</option></select></Field>
               </TwoColumns>
               <TwoColumns>
                 <Field><span>Início</span><input type="date" value={form.dataInicio} onChange={(e) => setForm({ ...form, dataInicio: e.target.value })} /></Field>

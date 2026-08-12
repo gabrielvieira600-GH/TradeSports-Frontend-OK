@@ -147,8 +147,7 @@ import withAuth from '../components/withAuth';
       <AcoesRapidas>
         <Botao onClick={() => router.push('/carteira')}>Ver Carteira</Botao>
         <Botao onClick={() => router.push('/minhas-ordens')}>Ver Ordens</Botao>
-        <Botao onClick={() => router.push('/deposito')}>Depositar</Botao>
-        <Botao onClick={() => router.push('/saque')}>Sacar</Botao>
+        <Botao onClick={() => router.push('/deposito')}>Recarga de Recuperação</Botao>
       </AcoesRapidas>
     </Container>
   );

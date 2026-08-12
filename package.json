@@ -24,6 +24,8 @@
 
     "@fontsource/poppins": "^5.2.5",
 
+    "@stripe/stripe-js": "^9.13.0",
+
     "axios": "^1.8.4",
 
     "bcrypt": "^5.1.1",
@@ -75,3 +77,4 @@
   "proxy": "http://localhost:3001"
 
 }
+

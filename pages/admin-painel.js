@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 function getApiBase() {
   return process.env.NEXT_PUBLIC_API_URL;
@@ -427,9 +428,9 @@ export default function AdminPainel() {
       </header>
 
       <div style={{ marginBottom: 18 }}>
-        <a href="/admin-liquidez-institucional" style={styles.primaryButton}>
+        <Link href="/admin-liquidez-institucional" style={styles.primaryButton}>
           Abrir liquidez institucional
-        </a>
+        </Link>
       </div>
 
       <div style={styles.metricsGrid}>
@@ -437,6 +438,7 @@ export default function AdminPainel() {
         <MetricCard title="Clubes" value={counts.clubes ?? 0} />
         <MetricCard title="Investimentos" value={counts.investimentos ?? 0} />
         <MetricCard title="Dividendos" value={counts.dividendos ?? 0} />
+        <MetricCard title="Recargas confirmadas" value={counts.recargasRecuperacao ?? 0} />
       </div>
 
       {msg && (
@@ -583,16 +585,39 @@ export default function AdminPainel() {
                 previous={metricasAnteriores.crescimento?.novosUsuarios || 0}
               />
               <ComparisonMetric
-                title="Depósitos confirmados"
-                value={metricas.crescimento?.depositos || 0}
-                previous={metricasAnteriores.crescimento?.depositos || 0}
+                title="Receita com recargas"
+                value={metricas.recargasRecuperacao?.receita || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.receita || 0}
                 currency
               />
               <ComparisonMetric
-                title="Saques confirmados"
-                value={metricas.crescimento?.saques || 0}
-                previous={metricasAnteriores.crescimento?.saques || 0}
+                title="T$ emitidos por recuperação"
+                value={metricas.recargasRecuperacao?.tsEmitidos || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.tsEmitidos || 0}
+                suffix=" T$"
+              />
+              <ComparisonMetric
+                title="Recargas confirmadas"
+                value={metricas.recargasRecuperacao?.confirmadas || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.confirmadas || 0}
+              />
+              <ComparisonMetric
+                title="Usuários que recarregaram"
+                value={metricas.recargasRecuperacao?.usuarios || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.usuarios || 0}
+              />
+              <ComparisonMetric
+                title="Ticket médio da recarga"
+                value={metricas.recargasRecuperacao?.ticketMedio || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.ticketMedio || 0}
                 currency
+              />
+              <ComparisonMetric
+                title="Valor reembolsado"
+                value={metricas.recargasRecuperacao?.valorReembolsado || 0}
+                previous={metricasAnteriores.recargasRecuperacao?.valorReembolsado || 0}
+                currency
+                inverse
               />
             </div>
 
