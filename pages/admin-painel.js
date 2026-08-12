@@ -46,6 +46,19 @@ const statusColors = {
   cancelada: ["#fca5a5", "rgba(239,68,68,.13)"],
 };
 
+const RESET_CONFIRMATION = "RESETAR_AMBIENTE_DE_TESTES";
+const RESTORE_CONFIRMATION = "RESTAURAR_BACKUP_DE_TESTES";
+
+const backupStatusLabels = {
+  BACKING_UP: "Criando backup",
+  BACKUP_COMPLETE: "Backup concluído",
+  BACKUP_FAILED: "Falha no backup",
+  RESET_COMPLETE: "Reset concluído",
+  RESET_FAILED: "Falha no reset",
+  RESET_VERIFICATION_FAILED: "Falha na verificação",
+  RESTORED: "Restaurado",
+};
+
 function formatDate(value) {
   if (!value) return "Não definida";
   const date = new Date(value);
@@ -77,6 +90,12 @@ export default function AdminPainel() {
   const [clubes, setClubes] = useState([]);
   const [clubeIdSplit, setClubeIdSplit] = useState("");
   const [ratioSplit, setRatioSplit] = useState("2");
+  const [maintenancePreview, setMaintenancePreview] = useState(null);
+  const [backups, setBackups] = useState([]);
+  const [backupSelecionadoId, setBackupSelecionadoId] = useState("");
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+  const [maintenanceModal, setMaintenanceModal] = useState(null);
+  const [maintenanceConfirmation, setMaintenanceConfirmation] = useState("");
   const [novaTemporada, setNovaTemporada] = useState({
     codigo: "",
     nome: "",
@@ -109,6 +128,13 @@ export default function AdminPainel() {
   const rodadaAberta = useMemo(
     () => rodadas.find((item) => item.status === "aberta") || null,
     [rodadas],
+  );
+  const backupSelecionado = useMemo(
+    () =>
+      backups.find(
+        (item) => String(item.id) === String(backupSelecionadoId),
+      ) || null,
+    [backups, backupSelecionadoId],
   );
 
   function notify(text, type = "info") {
@@ -199,6 +225,110 @@ export default function AdminPainel() {
       );
     } catch (error) {
       console.error("Erro ao carregar clubes:", error);
+    }
+  }
+
+  async function carregarAmbienteTestes() {
+    const [previewData, backupsData] = await Promise.all([
+      apiFetch("/api/admin/test-environment/preview"),
+      apiFetch("/api/admin/test-environment/backups?limit=20"),
+    ]);
+
+    setMaintenancePreview(previewData?.preview || null);
+    const lista = Array.isArray(backupsData?.backups)
+      ? backupsData.backups
+      : [];
+    setBackups(lista);
+    setBackupSelecionadoId((atual) => {
+      if (
+        lista.some(
+          (item) => item.canRestore && String(item.id) === String(atual),
+        )
+      ) {
+        return atual;
+      }
+      const restauravel = lista.find((item) => item.canRestore);
+      return restauravel ? String(restauravel.id) : "";
+    });
+  }
+
+  function abrirMaintenanceModal(tipo) {
+    setMaintenanceConfirmation("");
+    setMaintenanceModal(tipo);
+  }
+
+  function fecharMaintenanceModal() {
+    if (maintenanceLoading) return;
+    setMaintenanceModal(null);
+    setMaintenanceConfirmation("");
+  }
+
+  async function sincronizarSaldoLocal() {
+    try {
+      const data = await apiFetch("/usuario/saldo");
+      const saldo = Number(data?.saldo || 0);
+      localStorage.setItem("saldo", saldo.toFixed(2));
+      const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+      if (usuario) {
+        localStorage.setItem("usuario", JSON.stringify({ ...usuario, saldo }));
+      }
+      window.dispatchEvent(new Event("force-topbar-update"));
+    } catch (error) {
+      console.error("Erro ao sincronizar saldo após manutenção:", error);
+    }
+  }
+
+  async function executarManutencao() {
+    const isReset = maintenanceModal === "reset";
+    const confirmation = isReset
+      ? RESET_CONFIRMATION
+      : RESTORE_CONFIRMATION;
+
+    if (maintenanceConfirmation !== confirmation) return;
+    if (!isReset && !backupSelecionado?.canRestore) {
+      notify("Selecione um backup disponível para restauração.", "error");
+      return;
+    }
+
+    setMaintenanceLoading(true);
+    setMsg("");
+    try {
+      const data = await apiFetch(
+        isReset
+          ? "/api/admin/test-environment/reset"
+          : "/api/admin/test-environment/restore",
+        {
+          method: "POST",
+          body: isReset
+            ? { confirmation }
+            : { backupId: backupSelecionado.id, confirmation },
+        },
+      );
+
+      setMaintenanceModal(null);
+      setMaintenanceConfirmation("");
+      await Promise.all([
+        carregarStatus({ silent: true }),
+        carregarDashboard(mesDashboard),
+        carregarTemporadas(),
+        carregarClubes(),
+        carregarAmbienteTestes(),
+        sincronizarSaldoLocal(),
+      ]);
+
+      const warning = data?.liquidity?.warning;
+      notify(
+        warning
+          ? `${data.mensagem} ${warning}`
+          : isReset
+            ? `Reset concluído. Backup criado: ${data.backupId}.`
+            : `Backup ${data.backupId} restaurado com sucesso.`,
+        warning ? "info" : "success",
+      );
+    } catch (error) {
+      notify(`Erro: ${error.message}`, "error");
+    } finally {
+      setMaintenanceLoading(false);
     }
   }
 
@@ -395,6 +525,7 @@ export default function AdminPainel() {
       carregarDashboard(),
       carregarTemporadas({ manterSelecao: false }),
       carregarClubes(),
+      carregarAmbienteTestes(),
     ])
       .catch((error) => notify(`Erro: ${error.message}`, "error"))
       .finally(() => setLoading(false));
@@ -409,6 +540,8 @@ export default function AdminPainel() {
   const counts = status?.counts || {};
   const metricas = dashboard?.selecionado?.metricas || {};
   const metricasAnteriores = dashboard?.anterior?.metricas || {};
+  const maintenanceCounts = maintenancePreview?.counts || {};
+  const resetBlocked = Number(maintenancePreview?.pendingPayments || 0) > 0;
 
   return (
     <div style={styles.page}>
@@ -455,6 +588,135 @@ export default function AdminPainel() {
           {msg}
         </div>
       )}
+
+      <section style={{ ...styles.card, ...styles.maintenanceCard }}>
+        <div style={styles.headerWithButton}>
+          <SectionHeader
+            title="Ambiente de testes"
+            text="Reinicie os dados econômicos da plataforma ou restaure o último estado salvo. Cadastro, login, perfil, plano e vínculos sociais são preservados no reset."
+          />
+          <span style={styles.dangerBadge}>Zona de manutenção</span>
+        </div>
+
+        {!maintenancePreview ? (
+          <p style={styles.empty}>Carregando prévia do ambiente...</p>
+        ) : (
+          <>
+            <div style={styles.maintenanceMetrics}>
+              <MaintenanceMetric
+                label="Contas humanas"
+                value={maintenancePreview.humanUsers || 0}
+                detail="Receberão T$ 1.000"
+              />
+              <MaintenanceMetric
+                label="Clubes"
+                value={maintenancePreview.clubs || 0}
+                detail="Voltarão a 1.000 cotas"
+              />
+              <MaintenanceMetric
+                label="Ordens existentes"
+                value={maintenanceCounts.orders || 0}
+                detail="Serão apagadas"
+              />
+              <MaintenanceMetric
+                label="Pagamentos pendentes"
+                value={maintenancePreview.pendingPayments || 0}
+                detail={
+                  resetBlocked
+                    ? `${maintenancePreview.pendingRecoveryPayments || 0} recarga(s) • ${maintenancePreview.pendingFinancialTransactions || 0} transação(ões)`
+                    : "Nenhum bloqueio"
+                }
+                danger={resetBlocked}
+              />
+            </div>
+
+            <div style={styles.maintenanceGrid}>
+              <div style={styles.maintenanceActionBox}>
+                <div>
+                  <h3 style={styles.toolTitle}>Resetar plataforma</h3>
+                  <p style={styles.toolTextAuto}>
+                    Esvazia carteiras e operações, zera a valorização e devolve
+                    todas as contas humanas para T$ 1.000. Um backup completo é
+                    criado automaticamente antes da alteração.
+                  </p>
+                </div>
+                {resetBlocked && (
+                  <p style={styles.blockedMessage}>
+                    Resolva os pagamentos e as transações pendentes ou em
+                    processamento antes de continuar.
+                  </p>
+                )}
+                <button
+                  type="button"
+                  style={{
+                    ...styles.dangerButton,
+                    ...(maintenanceLoading || resetBlocked
+                      ? styles.disabledButton
+                      : {}),
+                  }}
+                  onClick={() => abrirMaintenanceModal("reset")}
+                  disabled={maintenanceLoading || resetBlocked}
+                >
+                  Resetar ambiente
+                </button>
+              </div>
+
+              <div style={styles.maintenanceActionBox}>
+                <div>
+                  <h3 style={styles.toolTitle}>Restaurar backup</h3>
+                  <p style={styles.toolTextAuto}>
+                    Retorna as coleções ao estado anterior ao reset selecionado.
+                    Dados criados depois daquele reset serão substituídos.
+                  </p>
+                </div>
+                <div>
+                  <label style={styles.label}>Backup disponível</label>
+                  <select
+                    value={backupSelecionadoId}
+                    onChange={(event) =>
+                      setBackupSelecionadoId(event.target.value)
+                    }
+                    style={styles.select}
+                    disabled={maintenanceLoading || !backups.some((item) => item.canRestore)}
+                  >
+                    {!backups.some((item) => item.canRestore) && (
+                      <option value="">Nenhum backup restaurável</option>
+                    )}
+                    {backups
+                      .filter((item) => item.canRestore)
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {formatDate(item.createdAt)} — {backupStatusLabels[item.status] || item.status}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                {backupSelecionado && (
+                  <div style={styles.backupDetail}>
+                    <span>ID: {backupSelecionado.id}</span>
+                    <span>
+                      {backupSelecionado.summary?.humanUsers || 0} contas • {backupSelecionado.summary?.clubs || 0} clubes
+                    </span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  style={{
+                    ...styles.warningButton,
+                    ...(maintenanceLoading || !backupSelecionado?.canRestore
+                      ? styles.disabledButton
+                      : {}),
+                  }}
+                  onClick={() => abrirMaintenanceModal("restore")}
+                  disabled={maintenanceLoading || !backupSelecionado?.canRestore}
+                >
+                  Restaurar backup
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
 
       <section style={styles.card}>
         <div style={styles.dashboardHeader}>
@@ -1086,6 +1348,114 @@ export default function AdminPainel() {
           </pre>
         </div>
       </section>
+
+      {maintenanceModal && (
+        <div style={styles.modalBackdrop} role="presentation">
+          <div
+            style={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="maintenance-modal-title"
+          >
+            <div style={styles.modalHeader}>
+              <div>
+                <div style={styles.kicker}>Confirmação obrigatória</div>
+                <h2 id="maintenance-modal-title" style={styles.modalTitle}>
+                  {maintenanceModal === "reset"
+                    ? "Resetar o ambiente de testes?"
+                    : "Restaurar o backup selecionado?"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                style={styles.closeButton}
+                onClick={fecharMaintenanceModal}
+                disabled={maintenanceLoading}
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={styles.modalWarning}>
+              {maintenanceModal === "reset" ? (
+                <>
+                  Todas as contas humanas ficarão com T$ 1.000 e sem cotas. Ordens,
+                  transações, valorização, troféus e históricos econômicos serão
+                  zerados. O backup será criado antes da alteração.
+                </>
+              ) : (
+                <>
+                  O estado salvo em <strong>{backupSelecionado?.id}</strong> será
+                  restaurado. Operações e contas criadas depois desse backup serão
+                  substituídas.
+                </>
+              )}
+            </div>
+
+            <label style={styles.label} htmlFor="maintenance-confirmation">
+              Digite exatamente a frase abaixo para continuar:
+            </label>
+            <code style={styles.confirmationCode}>
+              {maintenanceModal === "reset"
+                ? RESET_CONFIRMATION
+                : RESTORE_CONFIRMATION}
+            </code>
+            <input
+              id="maintenance-confirmation"
+              type="text"
+              value={maintenanceConfirmation}
+              onChange={(event) =>
+                setMaintenanceConfirmation(event.target.value)
+              }
+              style={styles.input}
+              autoComplete="off"
+              autoFocus
+              disabled={maintenanceLoading}
+            />
+
+            <div style={styles.modalActions}>
+              <button
+                type="button"
+                style={styles.secondaryButton}
+                onClick={fecharMaintenanceModal}
+                disabled={maintenanceLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                style={{
+                  ...(maintenanceModal === "reset"
+                    ? styles.dangerButton
+                    : styles.warningButton),
+                  ...(maintenanceConfirmation !==
+                    (maintenanceModal === "reset"
+                      ? RESET_CONFIRMATION
+                      : RESTORE_CONFIRMATION) || maintenanceLoading
+                    ? styles.disabledButton
+                    : {}),
+                }}
+                onClick={executarManutencao}
+                disabled={
+                  maintenanceLoading ||
+                  maintenanceConfirmation !==
+                    (maintenanceModal === "reset"
+                      ? RESET_CONFIRMATION
+                      : RESTORE_CONFIRMATION)
+                }
+              >
+                {maintenanceLoading
+                  ? "Processando..."
+                  : maintenanceModal === "reset"
+                    ? "Confirmar reset"
+                    : "Confirmar restauração"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <p style={styles.footerNote}>
         Acesso protegido por token de administrador. O backend continua sendo a
         autoridade final sobre transições e bloqueios.
@@ -1107,6 +1477,20 @@ function MetricCard({ title, value }) {
     <div style={styles.metricCard}>
       <div style={styles.metricTitle}>{title}</div>
       <div style={styles.metricValue}>{value}</div>
+    </div>
+  );
+}
+function MaintenanceMetric({ label, value, detail, danger = false }) {
+  return (
+    <div
+      style={{
+        ...styles.maintenanceMetric,
+        ...(danger ? styles.maintenanceMetricDanger : {}),
+      }}
+    >
+      <span style={styles.metricTitle}>{label}</span>
+      <strong style={styles.maintenanceMetricValue}>{value}</strong>
+      <span style={styles.maintenanceMetricDetail}>{detail}</span>
     </div>
   );
 }
@@ -1361,6 +1745,79 @@ const styles = {
     marginBottom: "14px",
   },
   currentTitle: { fontSize: "1.25rem", fontWeight: 900, marginBottom: "6px" },
+  maintenanceCard: {
+    border: "1px solid rgba(239,68,68,.24)",
+    background:
+      "linear-gradient(180deg,rgba(43,16,26,.94),rgba(19,18,31,.97))",
+  },
+  dangerBadge: {
+    display: "inline-flex",
+    padding: "7px 11px",
+    borderRadius: "999px",
+    color: "#fecaca",
+    background: "rgba(239,68,68,.12)",
+    border: "1px solid rgba(239,68,68,.22)",
+    fontSize: ".74rem",
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: ".05em",
+  },
+  maintenanceMetrics: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+    gap: "10px",
+    marginBottom: "16px",
+  },
+  maintenanceMetric: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "5px",
+    padding: "14px",
+    borderRadius: "14px",
+    background: "rgba(255,255,255,.035)",
+    border: "1px solid rgba(148,163,184,.11)",
+  },
+  maintenanceMetricDanger: {
+    background: "rgba(239,68,68,.1)",
+    border: "1px solid rgba(239,68,68,.24)",
+  },
+  maintenanceMetricValue: { fontSize: "1.4rem", color: "#f8fafc" },
+  maintenanceMetricDetail: { color: "#94a3b8", fontSize: ".74rem" },
+  maintenanceGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
+    gap: "14px",
+  },
+  maintenanceActionBox: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    gap: "14px",
+    padding: "18px",
+    borderRadius: "16px",
+    background: "rgba(0,0,0,.2)",
+    border: "1px solid rgba(148,163,184,.1)",
+  },
+  toolTextAuto: {
+    color: "#94a3b8",
+    fontSize: ".84rem",
+    lineHeight: 1.55,
+    margin: "9px 0 0",
+  },
+  blockedMessage: {
+    margin: 0,
+    color: "#fecaca",
+    fontSize: ".8rem",
+    lineHeight: 1.5,
+  },
+  backupDetail: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+    color: "#94a3b8",
+    fontSize: ".75rem",
+    overflowWrap: "anywhere",
+  },
   card: {
     borderRadius: "20px",
     padding: "20px",
@@ -1441,6 +1898,10 @@ const styles = {
     background: "rgba(239,68,68,.12)",
     color: "#fecaca",
     border: "1px solid rgba(239,68,68,.22)",
+  },
+  disabledButton: {
+    opacity: 0.48,
+    cursor: "not-allowed",
   },
   divider: {
     height: "1px",
@@ -1546,6 +2007,72 @@ const styles = {
     color: "#cbd5e1",
     fontSize: ".8rem",
     lineHeight: 1.55,
+  },
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 10000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px",
+    background: "rgba(2,6,23,.82)",
+    backdropFilter: "blur(6px)",
+  },
+  modalCard: {
+    width: "min(100%, 560px)",
+    padding: "22px",
+    borderRadius: "20px",
+    background: "linear-gradient(180deg,#111c31,#0b1324)",
+    border: "1px solid rgba(239,68,68,.28)",
+    boxShadow: "0 30px 90px rgba(0,0,0,.55)",
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "16px",
+    marginBottom: "16px",
+  },
+  modalTitle: { margin: 0, fontSize: "1.35rem", lineHeight: 1.2 },
+  closeButton: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
+    border: "1px solid rgba(148,163,184,.16)",
+    background: "rgba(255,255,255,.04)",
+    color: "#cbd5e1",
+    fontSize: "1.4rem",
+    cursor: "pointer",
+  },
+  modalWarning: {
+    marginBottom: "18px",
+    padding: "14px",
+    borderRadius: "13px",
+    color: "#fecaca",
+    background: "rgba(239,68,68,.09)",
+    border: "1px solid rgba(239,68,68,.18)",
+    fontSize: ".86rem",
+    lineHeight: 1.55,
+  },
+  confirmationCode: {
+    display: "block",
+    margin: "0 0 10px",
+    padding: "10px 12px",
+    borderRadius: "10px",
+    color: "#f8fafc",
+    background: "rgba(0,0,0,.28)",
+    border: "1px solid rgba(148,163,184,.12)",
+    fontSize: ".8rem",
+    overflowWrap: "anywhere",
+    userSelect: "all",
+  },
+  modalActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginTop: "18px",
   },
   footerNote: { marginTop: "18px", color: "#64748b", fontSize: ".82rem" },
 };
