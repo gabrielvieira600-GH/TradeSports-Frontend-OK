@@ -175,7 +175,7 @@ const rankingHeroPosicao = perfilPremium
       }));
       setMensagemPrivacidade('PreferÃªncias salvas.');
     } catch (err) {
-      setMensagemPrivacidade(err?.response?.data?.erro || 'NÃ£o foi possÃ­vel salvar as preferÃªncias.');
+      setMensagemPrivacidade(err?.response?.data?.erro || 'Não foi possí­vel salvar as preferências.');
     } finally {
       setSalvandoPrivacidade(false);
     }
@@ -213,7 +213,7 @@ const rankingHeroPosicao = perfilPremium
 
       setErroPerfil(
         err?.response?.data?.erro ||
-          'NÃ£o foi possÃ­vel carregar este perfil.'
+          'Não foi possí­vel carregar este perfil.'
       );
 
       setUsuario(null);
@@ -234,11 +234,11 @@ const rankingHeroPosicao = perfilPremium
       setTrofeus(Array.isArray(data?.trofeus) ? data.trofeus : []);
       setResumoTrofeus(data?.resumo || {});
     } catch (err) {
-      console.error('Erro ao carregar Sala de TrofÃ©us:', err);
+      console.error('Erro ao carregar Sala de Troféus:', err);
       setTrofeus([]);
       setResumoTrofeus({});
       setErroTrofeus(
-        err?.response?.data?.erro || 'NÃ£o foi possÃ­vel carregar a Sala de TrofÃ©us.'
+        err?.response?.data?.erro || 'Não foi possí­vel carregar a Sala de Troféus.'
       );
     } finally {
       setCarregandoTrofeus(false);
@@ -257,7 +257,7 @@ const rankingHeroPosicao = perfilPremium
 
       setPlanoUsuarioLogado(plano);
     } catch (err) {
-      console.error('Erro ao carregar plano do usuÃ¡rio:', err);
+      console.error('Erro ao carregar plano do usuário:', err);
       setPlanoUsuarioLogado('lite');
     }
   }
@@ -331,7 +331,7 @@ const rankingHeroPosicao = perfilPremium
 
       setErroPerfil(
         err?.response?.data?.erro ||
-          'NÃ£o foi possÃ­vel atualizar a relaÃ§Ã£o social.'
+          'Não foi possí­vel atualizar a relação social.'
       );
     } finally {
       setProcessandoFollow(false);
@@ -361,11 +361,11 @@ const rankingHeroPosicao = perfilPremium
       Array.isArray(data?.usuarios) ? data.usuarios : []
     );
   } catch (err) {
-    console.error('Erro ao carregar conexÃµes:', err);
+    console.error('Erro ao carregar conexões:', err);
 
     setErroConexoes(
       err?.response?.data?.erro ||
-        'NÃ£o foi possÃ­vel carregar esta lista.'
+        'Não foi possí­vel carregar esta lista.'
     );
 
     setUsuariosConexoes([]);
@@ -431,7 +431,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
     setErroConexoes(
       err?.response?.data?.erro ||
-        'NÃ£o foi possÃ­vel atualizar a relaÃ§Ã£o social.'
+        'Não foi possível atualizar a relação social.'
     );
   } finally {
     setProcessandoConexaoId('');
@@ -466,7 +466,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
       setErroConvite(
         err?.response?.data?.erro ||
-          'NÃ£o foi possÃ­vel enviar o convite.'
+          'Não foi possível enviar o convite.'
       );
     } finally {
       setEnviandoConvite(false);
@@ -515,7 +515,7 @@ async function alternarFollowModal(usuarioAlvo) {
     return (
       <Container>
         <VoltarBotao type="button" onClick={() => router.push('/social')}>
-          â Voltar para Comunidade
+         Voltar para Comunidade
         </VoltarBotao>
 
         <MensagemErro>
@@ -529,7 +529,7 @@ async function alternarFollowModal(usuarioAlvo) {
     return (
       <Container>
         <EstadoCard>
-          Perfil nÃ£o encontrado.
+          Perfil não encontrado.
         </EstadoCard>
       </Container>
     );
@@ -540,7 +540,7 @@ async function alternarFollowModal(usuarioAlvo) {
   return (
     <Container>
       <VoltarBotao type="button" onClick={() => router.push('/social')}>
-        â Voltar para Comunidade
+      Voltar para Comunidade
       </VoltarBotao>
 
       {erroPerfil && (
@@ -573,7 +573,7 @@ async function alternarFollowModal(usuarioAlvo) {
 
               {usuario.relacao?.segueVoce && (
                 <SegueVoceBadge>
-                  Segue vocÃª
+                  Segue você
                 </SegueVoceBadge>
               )}
 
@@ -587,7 +587,7 @@ async function alternarFollowModal(usuarioAlvo) {
     <span>{rankingHeroLabel}</span>
     <strong>
       {rankingHeroPosicao
-        ? `${rankingHeroPosicao}Âº`
+        ? `${rankingHeroPosicao}º`
         : '-'}
     </strong>
   </HeroStat>
@@ -600,7 +600,7 @@ async function alternarFollowModal(usuarioAlvo) {
   </HeroStat>
 
   <HeroStat>
-    <span>PatrimÃ´nio</span>
+    <span>Patrimônio</span>
     <strong>
       {mercado.patrimonio == null ? 'Privado' : formatarMoeda(mercado.patrimonio)}
     </strong>
@@ -633,8 +633,8 @@ async function alternarFollowModal(usuarioAlvo) {
     aria-expanded={modalTrofeusAberto}
     onClick={() => setModalTrofeusAberto(true)}
   >
-    <IconeBotao aria-hidden="true">ð</IconeBotao>
-    <span>Sala de trofÃ©us</span>
+    <IconeBotao aria-hidden="true"></IconeBotao>
+    <span>Sala de troféus</span>
   </BotaoTrofeus>
 
   <BotaoSecundario
@@ -649,7 +649,7 @@ async function alternarFollowModal(usuarioAlvo) {
         <PainelDourado>
           <PainelHeader>
             <div>
-              <EyebrowCarteira>Carteira pÃºblica</EyebrowCarteira>
+              <EyebrowCarteira>Carteira pública</EyebrowCarteira>
               <PainelTitulo>Controle o que aparece no seu perfil</PainelTitulo>
             </div>
             <PremiumMiniBadge>Privacidade</PremiumMiniBadge>
@@ -662,20 +662,20 @@ async function alternarFollowModal(usuarioAlvo) {
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ visibilidade: e.target.value })}
               >
-                <option value="publica">Todos os usuÃ¡rios</option>
+                <option value="publica">Todos os usuários</option>
                 <option value="seguidores">Somente seguidores</option>
                 <option value="privada">Somente eu</option>
               </SelectPrivacidade>
             </CampoPrivacidade>
             <CampoPrivacidade>
-              <span>NÃ­vel de exposiÃ§Ã£o</span>
+              <span>Nível de exposição</span>
               <SelectPrivacidade
                 value={carteiraPublica.nivelDetalhe || 'detalhada'}
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ nivelDetalhe: e.target.value })}
               >
                 <option value="resumo">Somente resumo</option>
-                <option value="detalhada">PosiÃ§Ãµes detalhadas</option>
+                <option value="detalhada">Posições detalhadas</option>
               </SelectPrivacidade>
             </CampoPrivacidade>
             <TogglePrivacidade>
@@ -685,7 +685,7 @@ async function alternarFollowModal(usuarioAlvo) {
                 disabled={salvandoPrivacidade}
                 onChange={(e) => salvarPrivacidadeCarteira({ mostrarValores: e.target.checked })}
               />
-              <span>Exibir valores monetÃ¡rios</span>
+              <span>Exibir valores monetários</span>
             </TogglePrivacidade>
           </PrivacidadeGrid>
           {mensagemPrivacidade && <MensagemPrivacidade>{mensagemPrivacidade}</MensagemPrivacidade>}
@@ -714,7 +714,7 @@ async function alternarFollowModal(usuarioAlvo) {
 </MetricaButton>
 
         <MetricaCard>
-          <span>PosiÃ§Ãµes</span>
+          <span>Posições</span>
           <strong>{mercado.quantidadePosicoes == null ? '-' : formatarNumero(mercado.quantidadePosicoes)}</strong>
         </MetricaCard>
 
@@ -724,31 +724,38 @@ async function alternarFollowModal(usuarioAlvo) {
         </MetricaCard>
       </GridMetricas>
 
+      <TrophyRoom
+        trofeus={trofeus}
+        resumo={resumoTrofeus}
+        carregando={carregandoTrofeus}
+        erro={erroTrofeus}
+      />
+
       {!carteiraPublica.podeAcessar ? (
         <PainelBloqueado>
-          <PremiumLockIcon>ð</PremiumLockIcon>
-          <PremiumLockTitle>Carteira nÃ£o compartilhada</PremiumLockTitle>
+          <PremiumLockIcon>🔒</PremiumLockIcon>
+          <PremiumLockTitle>Carteira não compartilhada</PremiumLockTitle>
           <PremiumLockTexto>
             {carteiraPublica.motivoBloqueio === 'seguidores'
-              ? 'Este usuÃ¡rio compartilha a carteira apenas com seguidores.'
-              : 'Este usuÃ¡rio optou por manter a carteira privada.'}
+              ? 'Este usuário compartilha a carteira apenas com seguidores.'
+              : 'Este usuário optou por manter a carteira privada.'}
           </PremiumLockTexto>
         </PainelBloqueado>
       ) : <>
       <GridPrincipal>
         <Painel>
           <PainelTitulo>
-            Performance do usuÃ¡rio
+            Performance do usuário
           </PainelTitulo>
 
           <PerformanceGrid>
             <LinhaInfo>
-              <span>Valor em posiÃ§Ãµes</span>
+              <span>Valor em posições</span>
               <strong>{mercado.valorPosicoes == null ? 'Oculto' : formatarMoeda(mercado.valorPosicoes)}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
-              <span>PatrimÃ´nio total</span>
+              <span>Patrimônio total</span>
               <strong>{mercado.patrimonio == null ? 'Oculto' : formatarMoeda(mercado.patrimonio)}</strong>
             </LinhaInfo>
 
@@ -774,7 +781,7 @@ async function alternarFollowModal(usuarioAlvo) {
       {(perfilProprio || usuarioLogadoPremium) && analiseCarteira && (
         <AnaliseGrid>
           <PainelDourado>
-            <PainelHeader><PainelTitulo>EvoluÃ§Ã£o recente</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+            <PainelHeader><PainelTitulo>Evolução recente</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
             {Array.isArray(analiseCarteira.historico) && analiseCarteira.historico.length > 1 ? (
               <HistoricoLista>
                 {analiseCarteira.historico.slice(-12).map((ponto) => (
@@ -785,16 +792,16 @@ async function alternarFollowModal(usuarioAlvo) {
                   </HistoricoItem>
                 ))}
               </HistoricoLista>
-            ) : <TextoApoio>Base histÃ³rica em formaÃ§Ã£o. A curva crescerÃ¡ com os snapshots diÃ¡rios.</TextoApoio>}
+            ) : <TextoApoio>Base histórica em formação. A curva crescerá com os snapshots diários.</TextoApoio>}
           </PainelDourado>
 
           {analiseCarteira.comparacao && (
             <PainelDourado>
-              <PainelHeader><PainelTitulo>ComparaÃ§Ã£o com vocÃª</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
+              <PainelHeader><PainelTitulo>Comparação com você</PainelTitulo><PremiumMiniBadge>Premium</PremiumMiniBadge></PainelHeader>
               <ComparacaoGrid>
-                <MiniMetrica><span>DiferenÃ§a de rentabilidade</span><strong className={Number(analiseCarteira.comparacao.diferencaRentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(analiseCarteira.comparacao.diferencaRentabilidade)}</strong></MiniMetrica>
-                <MiniMetrica><span>ConcentraÃ§Ã£o deste usuÃ¡rio</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoUsuario).replace('+', '')}</strong></MiniMetrica>
-                <MiniMetrica><span>Sua concentraÃ§Ã£o</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoVisitante).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>Diferença de rentabilidade</span><strong className={Number(analiseCarteira.comparacao.diferencaRentabilidade) >= 0 ? 'positivo' : 'negativo'}>{formatarPercentual(analiseCarteira.comparacao.diferencaRentabilidade)}</strong></MiniMetrica>
+                <MiniMetrica><span>Concentração deste usuário</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoUsuario).replace('+', '')}</strong></MiniMetrica>
+                <MiniMetrica><span>Sua concentração</span><strong>{formatarPercentual(analiseCarteira.comparacao.concentracaoVisitante).replace('+', '')}</strong></MiniMetrica>
                 <MiniMetrica><span>Clubes em comum</span><strong>{formatarNumero(analiseCarteira.comparacao.clubesEmComum)}</strong></MiniMetrica>
               </ComparacaoGrid>
             </PainelDourado>
@@ -805,7 +812,7 @@ async function alternarFollowModal(usuarioAlvo) {
       <Painel>
   <PainelHeader>
     <PainelTitulo>
-      Principais posiÃ§Ãµes
+      Principais posições
     </PainelTitulo>
 
     {!podeVerPosicoes && (
@@ -817,18 +824,18 @@ async function alternarFollowModal(usuarioAlvo) {
 
   {!podeVerPosicoes ? (
     carteiraPublica.motivoBloqueio === 'resumo' ? (
-      <EstadoCard>Este usuÃ¡rio optou por compartilhar somente o resumo da carteira.</EstadoCard>
+      <EstadoCard>Este usuário optou por compartilhar somente o resumo da carteira.</EstadoCard>
     ) : (
     <PremiumLockedArea>
       <BlurredPositions aria-hidden="true">
         {[1, 2, 3].map((item) => <BlurCard key={item}><ClubeResumo><BlurAvatar /><div><BlurLine $width="120px" /><BlurLine $width="72px" $small /></div></ClubeResumo><BlurGrid><BlurMetric /><BlurMetric /><BlurMetric /><BlurMetric /></BlurGrid></BlurCard>)}
       </BlurredPositions>
-      <PremiumOverlay><PremiumLockIcon>ð</PremiumLockIcon><PremiumLockTitle>AnÃ¡lise detalhada exclusiva Premium</PremiumLockTitle><PremiumLockTexto>FaÃ§a upgrade para analisar composiÃ§Ã£o, pesos, preÃ§os mÃ©dios e resultados por clube.</PremiumLockTexto><UpgradeButton type="button" onClick={() => router.push('/planos')}>Fazer upgrade</UpgradeButton></PremiumOverlay>
+      <PremiumOverlay><PremiumLockIcon>🔒</PremiumLockIcon><PremiumLockTitle>Análise detalhada exclusiva Premium</PremiumLockTitle><PremiumLockTexto>Faça upgrade para analisar composição, pesos, preços médios e resultados por clube.</PremiumLockTexto><UpgradeButton type="button" onClick={() => router.push('/planos')}>Fazer upgrade</UpgradeButton></PremiumOverlay>
     </PremiumLockedArea>
     )
   ) : !Array.isArray(mercado.posicoes) || mercado.posicoes.length === 0 ? (
     <EstadoCard>
-      Este usuÃ¡rio ainda nÃ£o possui posiÃ§Ãµes em carteira.
+      Este usuário ainda não possui posições em carteira.
     </EstadoCard>
   ) : (
     <ListaPosicoes>
@@ -846,19 +853,19 @@ async function alternarFollowModal(usuarioAlvo) {
               </strong>
 
               <span>
-                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas Â· ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
+                {posicao.quantidade == null ? `${formatarPercentual(posicao.peso).replace('+', '')} da carteira` : `${formatarNumero(posicao.quantidade)} cotas · ${formatarPercentual(posicao.peso).replace('+', '')} da carteira`}
               </span>
             </div>
           </ClubeResumo>
 
           <PosicaoMetricas>
             <MiniMetrica>
-              <span>PreÃ§o mÃ©dio</span>
+              <span>Preço médio</span>
               <strong>{posicao.precoMedio == null ? 'Oculto' : formatarMoeda(posicao.precoMedio)}</strong>
             </MiniMetrica>
 
             <MiniMetrica>
-              <span>PreÃ§o atual</span>
+              <span>Preço atual</span>
               <strong>{posicao.precoAtual == null ? 'Oculto' : formatarMoeda(posicao.precoAtual)}</strong>
             </MiniMetrica>
 
@@ -887,48 +894,6 @@ async function alternarFollowModal(usuarioAlvo) {
 </Painel>
       </>}
 
-{modalTrofeusAberto && (
-  <ModalOverlay
-    onClick={() => setModalTrofeusAberto(false)}
-  >
-    <TrophyModalCard
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="titulo-modal-trofeus"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <TrophyModalTopo>
-        <TrophyModalIdentidade>
-          <span id="titulo-modal-trofeus">Sala de trofÃ©us</span>
-          <strong>
-            {usuario.nomeUsuario
-              ? `@${usuario.nomeUsuario}`
-              : nomeExibicao(usuario)}
-          </strong>
-        </TrophyModalIdentidade>
-
-        <BotaoFecharTrofeus
-          type="button"
-          aria-label="Fechar Sala de TrofÃ©us"
-          autoFocus
-          onClick={() => setModalTrofeusAberto(false)}
-        >
-          Ã
-        </BotaoFecharTrofeus>
-      </TrophyModalTopo>
-
-      <TrophyModalConteudo>
-        <TrophyRoom
-          trofeus={trofeus}
-          resumo={resumoTrofeus}
-          carregando={carregandoTrofeus}
-          erro={erroTrofeus}
-        />
-      </TrophyModalConteudo>
-    </TrophyModalCard>
-  </ModalOverlay>
-)}
-
 {modalConexoesAberto && (
   <ModalOverlay
     onClick={fecharModalConexoes}
@@ -941,7 +906,7 @@ async function alternarFollowModal(usuarioAlvo) {
           type="button"
           onClick={fecharModalConexoes}
         >
-          â¹
+          ‹
         </BotaoVoltarModal>
 
         <ModalTituloCentro>
@@ -994,17 +959,17 @@ async function alternarFollowModal(usuarioAlvo) {
         ) : usuariosConexoes.length === 0 ? (
           <ModalEstado>
             {buscaConexoes.trim()
-              ? 'Nenhum usuÃ¡rio encontrado para essa busca.'
+              ? 'Nenhum usuário encontrado para essa busca.'
               : abaConexoes === 'seguidores'
-              ? 'Este perfil ainda nÃ£o possui seguidores.'
-              : 'Este perfil ainda nÃ£o segue ninguÃ©m.'}
+              ? 'Este perfil ainda não possui seguidores.'
+              : 'Este perfil ainda não segue ninguém.'}
           </ModalEstado>
         ) : (
           <ListaUsuariosModal>
             {usuariosConexoes.map((pessoa) => {
               const nomePessoa = pessoa.nomeUsuario
                 ? `@${pessoa.nomeUsuario}`
-                : pessoa.nomePublico || pessoa.nome || 'UsuÃ¡rio';
+                : pessoa.nomePublico || pessoa.nome || 'Usuário';
 
               const ehMeuPerfil =
                 usuarioLogadoId &&
@@ -1032,8 +997,8 @@ async function alternarFollowModal(usuarioAlvo) {
                         {pessoa.nome && pessoa.nomeUsuario
                           ? pessoa.nome
                           : pessoa.plano === 'premium'
-                          ? 'UsuÃ¡rio Premium'
-                          : 'UsuÃ¡rio Lite'}
+                          ? 'Usuário Premium'
+                          : 'Usuário Lite'}
                       </span>
                     </UsuarioModalInfo>
                   </UsuarioModalConteudo>
