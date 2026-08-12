@@ -5,6 +5,7 @@ import api from '../../lib/api';
 import withAuth from '../../components/withAuth';
 import ClubBadge from '../../components/ClubBadge';
 import UserAvatar from '../../components/UserAvatar';
+import TrophyRoom from '../../components/TrophyRoom';
 
 function formatarMoeda(valor) {
   return `T$ ${Number(valor || 0).toLocaleString('pt-BR', {
@@ -100,6 +101,10 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [sucessoConvite, setSucessoConvite] = useState('');
   const [salvandoPrivacidade, setSalvandoPrivacidade] = useState(false);
   const [mensagemPrivacidade, setMensagemPrivacidade] = useState('');
+  const [trofeus, setTrofeus] = useState([]);
+  const [resumoTrofeus, setResumoTrofeus] = useState({});
+  const [carregandoTrofeus, setCarregandoTrofeus] = useState(true);
+  const [erroTrofeus, setErroTrofeus] = useState('');
 
   useEffect(() => {
     if (!modalConexoesAberto || typeof document === 'undefined') {
@@ -207,6 +212,29 @@ const rankingHeroPosicao = perfilPremium
       setUsuario(null);
     } finally {
       setCarregandoPerfil(false);
+    }
+  }
+
+  async function carregarSalaTrofeus() {
+    if (!id) return;
+
+    try {
+      setCarregandoTrofeus(true);
+      setErroTrofeus('');
+      const { data } = await api.get(`/trofeus/usuarios/${id}`, {
+        params: { limit: 500 },
+      });
+      setTrofeus(Array.isArray(data?.trofeus) ? data.trofeus : []);
+      setResumoTrofeus(data?.resumo || {});
+    } catch (err) {
+      console.error('Erro ao carregar Sala de Troféus:', err);
+      setTrofeus([]);
+      setResumoTrofeus({});
+      setErroTrofeus(
+        err?.response?.data?.erro || 'Não foi possível carregar a Sala de Troféus.'
+      );
+    } finally {
+      setCarregandoTrofeus(false);
     }
   }
 
@@ -442,6 +470,7 @@ async function alternarFollowModal(usuarioAlvo) {
     if (!router.isReady) return;
 
     carregarPerfil();
+    carregarSalaTrofeus();
   }, [router.isReady, id]);
 
   useEffect(() => {
@@ -677,6 +706,13 @@ async function alternarFollowModal(usuarioAlvo) {
           <strong>{mercado.quantidadeCotas == null ? '-' : formatarNumero(mercado.quantidadeCotas, 0)}</strong>
         </MetricaCard>
       </GridMetricas>
+
+      <TrophyRoom
+        trofeus={trofeus}
+        resumo={resumoTrofeus}
+        carregando={carregandoTrofeus}
+        erro={erroTrofeus}
+      />
 
       {!carteiraPublica.podeAcessar ? (
         <PainelBloqueado>
