@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import api from '../lib/api';
 import withAuth from '../components/withAuth';
 import UserAvatar from '../components/UserAvatar';
 import EstadoInterface from '../components/EstadoInterface';
+import AdSenseFeedBanner from '../components/advertising/AdSenseFeedBanner';
+import {
+  podeExibirPublicidadeNoFeed,
+  deveInserirPublicidadeDepoisDoEvento,
+} from '../lib/advertising/config';
 
 function formatarDataRelativa(data) {
   if (!data) return '';
@@ -167,9 +172,15 @@ function SocialPage() {
   const [erroFeed, setErroFeed] = useState('');
   const [filtro, setFiltro] = useState('todos');
 
-  const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState('lite');
+  const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState(null);
+  const [planoResolvido, setPlanoResolvido] = useState(false);
 
-  const usuarioLogadoPremium = planoUsuarioLogado === 'premium';
+  const usuarioLogadoPremium =
+    planoResolvido && planoUsuarioLogado === 'premium';
+  const publicidadeFeedAtiva = podeExibirPublicidadeNoFeed({
+    plano: planoUsuarioLogado,
+    planoResolvido,
+  });
 
   const eventosFiltrados = useMemo(() => {
     if (filtro === 'todos') return eventos;
@@ -200,16 +211,23 @@ function SocialPage() {
 
   async function carregarPlanoUsuario() {
     try {
+      setPlanoResolvido(false);
+
       const { data } = await api.get('/usuario/plano');
+      const planoRecebido = data?.planoEfetivo || data?.plano;
 
       setPlanoUsuarioLogado(
-        data?.plano === 'premium' || data?.planoEfetivo === 'premium'
+        planoRecebido === 'premium'
           ? 'premium'
-          : 'lite'
+          : planoRecebido === 'lite'
+          ? 'lite'
+          : null
       );
     } catch (err) {
       console.error('Erro ao carregar plano:', err);
-      setPlanoUsuarioLogado('lite');
+      setPlanoUsuarioLogado(null);
+    } finally {
+      setPlanoResolvido(true);
     }
   }
 
@@ -294,7 +312,13 @@ function SocialPage() {
           
 
           <ResumoValor $premium={usuarioLogadoPremium}>
-            {usuarioLogadoPremium ? 'Premium' : 'Lite'}
+            {!planoResolvido
+              ? 'Verificando...'
+              : usuarioLogadoPremium
+              ? 'Premium'
+              : planoUsuarioLogado === 'lite'
+              ? 'Lite'
+              : 'Indisponível'}
           </ResumoValor>
         </ResumoCard>
       </Cabecalho>
@@ -352,59 +376,72 @@ function SocialPage() {
             )
           ) : (
             <FeedLista>
-              {eventosFiltrados.map((evento) => {
+              {eventosFiltrados.map((evento, indice) => {
                 const usuario = evento.usuario || {};
                 const nomeUsuario = nomeExibicao(usuario);
                 const categoria = getEventoCategoria(evento.tipo);
+                const eventoId = evento._id || evento.id || indice;
 
                 return (
-                  <FeedCard
-                    key={evento._id || evento.id}
-                    type="button"
-                    onClick={() => abrirDestinoEvento(evento)}
-                  >
-                    <FeedIcone>
-                      {getEventoIcone(evento.tipo)}
-                    </FeedIcone>
+                  <Fragment key={eventoId}>
+                    <FeedCard
+                      type="button"
+                      onClick={() => abrirDestinoEvento(evento)}
+                    >
+                      <FeedIcone>
+                        {getEventoIcone(evento.tipo)}
+                      </FeedIcone>
 
-                    <FeedConteudo>
-                      <FeedMeta>
-                        <span>{categoria}</span>
+                      <FeedConteudo>
+                        <FeedMeta>
+                          <span>{categoria}</span>
 
-                        <small>
-                          {formatarDataRelativa(
-                            evento.createdAt || evento.criadoEm
-                          )}
-                        </small>
-                      </FeedMeta>
+                          <small>
+                            {formatarDataRelativa(
+                              evento.createdAt || evento.criadoEm
+                            )}
+                          </small>
+                        </FeedMeta>
 
-                      <FeedTitulo>
-                        {montarTituloEvento({
-                          ...evento,
-                          usuario: {
-                            ...usuario,
-                            nomePublico: nomeUsuario,
-                          },
-                        })}
-                      </FeedTitulo>
+                        <FeedTitulo>
+                          {montarTituloEvento({
+                            ...evento,
+                            usuario: {
+                              ...usuario,
+                              nomePublico: nomeUsuario,
+                            },
+                          })}
+                        </FeedTitulo>
 
-                      <FeedTexto>
-                        {montarTextoEvento(evento)}
-                      </FeedTexto>
+                        <FeedTexto>
+                          {montarTextoEvento(evento)}
+                        </FeedTexto>
 
-                      {usuario?.id || usuario?._id ? (
-                        <FeedUsuario>
-                          <UserAvatar usuario={usuario} nome={nomeUsuario} size={32} />
+                        {usuario?.id || usuario?._id ? (
+                          <FeedUsuario>
+                            <UserAvatar
+                              usuario={usuario}
+                              nome={nomeUsuario}
+                              size={32}
+                            />
 
-                          <span>
-                            {usuario.nomeUsuario
-                              ? `@${usuario.nomeUsuario}`
-                              : nomeUsuario}
-                          </span>
-                        </FeedUsuario>
-                      ) : null}
-                    </FeedConteudo>
-                  </FeedCard>
+                            <span>
+                              {usuario.nomeUsuario
+                                ? `@${usuario.nomeUsuario}`
+                                : nomeUsuario}
+                            </span>
+                          </FeedUsuario>
+                        ) : null}
+                      </FeedConteudo>
+                    </FeedCard>
+
+                    {publicidadeFeedAtiva &&
+                    deveInserirPublicidadeDepoisDoEvento(indice) ? (
+                      <AdSenseFeedBanner
+                        enabled
+                      />
+                    ) : null}
+                  </Fragment>
                 );
               })}
             </FeedLista>
