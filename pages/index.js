@@ -2,6 +2,7 @@ import Link from "next/link";
 import styled, { keyframes } from "styled-components";
 import LiveMarketTable from "../components/LiveMarketTable";
 import Layout from "../components/Layout";
+import AdSenseBanner from "../components/advertising/AdSenseBanner";
 import {
   FiArrowRight,
   FiBookOpen,
@@ -146,6 +147,8 @@ export default function Home() {
           <span>decisões que constroem resultado</span>
         </ProofItem>
       </ProofBar>
+
+      <HomeAdBanner slotName="home" />
 
       <Section>
         <SectionHeader>
@@ -375,6 +378,17 @@ const Page = styled.main`
     box-sizing: border-box;
   }
 `;
+
+const HomeAdBanner = styled(AdSenseBanner)`
+  width: min(1180px, calc(100% - 48px));
+  margin: 28px auto 0;
+
+  @media (max-width: 640px) {
+    width: calc(100% - 24px);
+    margin-top: 20px;
+  }
+`;
+
 const Glow = styled.div`
   position: absolute;
   z-index: -1;

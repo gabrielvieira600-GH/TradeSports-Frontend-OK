@@ -24,6 +24,7 @@ import {
 import api from '../lib/api';
 import ClubBadge from '../components/ClubBadge';
 import withAuth from '../components/withAuth';
+import AdSenseBanner from '../components/advertising/AdSenseBanner';
 import { AuthContext } from '../contexts/AuthContexts';
 
 function formatarTS(valor) {
@@ -594,6 +595,8 @@ function DashboardPage() {
         />
       </KpiGrid>
 
+      <DashboardAdBanner slotName="dashboard" />
+
       <ConteudoGrid>
         <ColunaPrincipal>
           <Card>
@@ -894,6 +897,14 @@ const Container = styled.div`
 
   @media (max-width: 640px) {
     padding-top: 4px;
+  }
+`;
+
+const DashboardAdBanner = styled(AdSenseBanner)`
+  margin: 24px 0;
+
+  @media (max-width: 640px) {
+    margin: 18px 0;
   }
 `;
 

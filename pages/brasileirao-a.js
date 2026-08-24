@@ -5,6 +5,7 @@ import axios from 'axios';
 import NegociacaoModal from '../components/NegociacaoModal';
 import ClubBadge, { LeagueBadge } from '../components/ClubBadge';
 import EstadoInterface from '../components/EstadoInterface';
+import AdSenseBanner from '../components/advertising/AdSenseBanner';
 import mercados from '../Data/mercados';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -230,6 +231,8 @@ export function MercadoCompeticao({ mercado }) {
         </LeagueActions>
       </Hero>
 
+      <MarketAdBanner slotName="market" />
+
       <SearchInline>
         <SearchInlineIcon aria-hidden="true">⌕</SearchInlineIcon>
         <SearchInlineInput
@@ -447,6 +450,14 @@ export default function BrasileiraoA() {
 const Container = styled.div`
   padding: 0.2rem 0 1rem;
   color: white;
+`;
+
+const MarketAdBanner = styled(AdSenseBanner)`
+  margin: 22px 0;
+
+  @media (max-width: 640px) {
+    margin: 18px 0;
+  }
 `;
 
 const Hero = styled.div`

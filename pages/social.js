@@ -6,10 +6,8 @@ import withAuth from '../components/withAuth';
 import UserAvatar from '../components/UserAvatar';
 import EstadoInterface from '../components/EstadoInterface';
 import AdSenseFeedBanner from '../components/advertising/AdSenseFeedBanner';
-import {
-  podeExibirPublicidadeNoFeed,
-  deveInserirPublicidadeDepoisDoEvento,
-} from '../lib/advertising/config';
+import { useAdvertising } from '../contexts/AdvertisingContext';
+import { deveInserirPublicidadeDepoisDoEvento } from '../lib/advertising/config';
 
 function formatarDataRelativa(data) {
   if (!data) return '';
@@ -172,15 +170,12 @@ function SocialPage() {
   const [erroFeed, setErroFeed] = useState('');
   const [filtro, setFiltro] = useState('todos');
 
-  const [planoUsuarioLogado, setPlanoUsuarioLogado] = useState(null);
-  const [planoResolvido, setPlanoResolvido] = useState(false);
-
-  const usuarioLogadoPremium =
-    planoResolvido && planoUsuarioLogado === 'premium';
-  const publicidadeFeedAtiva = podeExibirPublicidadeNoFeed({
-    plano: planoUsuarioLogado,
-    planoResolvido,
-  });
+  const {
+    audience,
+    resolved: publicidadeResolvida,
+    canShowAds: publicidadeFeedAtiva,
+  } = useAdvertising();
+  const usuarioLogadoPremium = audience === 'premium';
 
   const eventosFiltrados = useMemo(() => {
     if (filtro === 'todos') return eventos;
@@ -208,28 +203,6 @@ function SocialPage() {
 
     return eventos;
   }, [eventos, filtro]);
-
-  async function carregarPlanoUsuario() {
-    try {
-      setPlanoResolvido(false);
-
-      const { data } = await api.get('/usuario/plano');
-      const planoRecebido = data?.planoEfetivo || data?.plano;
-
-      setPlanoUsuarioLogado(
-        planoRecebido === 'premium'
-          ? 'premium'
-          : planoRecebido === 'lite'
-          ? 'lite'
-          : null
-      );
-    } catch (err) {
-      console.error('Erro ao carregar plano:', err);
-      setPlanoUsuarioLogado(null);
-    } finally {
-      setPlanoResolvido(true);
-    }
-  }
 
   async function carregarFeed() {
     try {
@@ -288,7 +261,6 @@ function SocialPage() {
   }
 
   useEffect(() => {
-    carregarPlanoUsuario();
     carregarFeed();
   }, []);
 
@@ -312,11 +284,11 @@ function SocialPage() {
           
 
           <ResumoValor $premium={usuarioLogadoPremium}>
-            {!planoResolvido
+            {!publicidadeResolvida
               ? 'Verificando...'
               : usuarioLogadoPremium
               ? 'Premium'
-              : planoUsuarioLogado === 'lite'
+              : audience === 'lite'
               ? 'Lite'
               : 'Indisponível'}
           </ResumoValor>

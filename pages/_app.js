@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import Footer from '../components/Footer';
 import { ToastProvider } from '../components/ToastProvider';
 import { AuthProvider } from '../contexts/AuthContexts';
+import { AdvertisingProvider } from '../contexts/AdvertisingContext';
 
 export default function MyApp({ Component, pageProps }) {
   // Se alguma página usar getLayout custom, respeita.
@@ -14,21 +15,22 @@ export default function MyApp({ Component, pageProps }) {
 
   return (
     <AuthProvider>
-      <ToastProvider>
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: '1 0 auto' }}>
-            {getLayout(<Component {...pageProps} />)}
-          </div>
+      <AdvertisingProvider>
+        <ToastProvider>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: '1 0 auto' }}>
+              {getLayout(<Component {...pageProps} />)}
+            </div>
 
-          <div style={{ flexShrink: 0 }}>
-            <Footer />
+            <div style={{ flexShrink: 0 }}>
+              <Footer />
+            </div>
           </div>
-        </div>
-      </ToastProvider>
+        </ToastProvider>
+      </AdvertisingProvider>
     </AuthProvider>
   );
 }
-
 
 
 
