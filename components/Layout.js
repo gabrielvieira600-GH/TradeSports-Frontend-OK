@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import RewardedOrdersFloatingPrompt from './advertising/RewardedOrdersFloatingPrompt';
 import styled from 'styled-components';
 
 const PageShell = styled.div`
@@ -52,6 +53,7 @@ export default function Layout({ children, fullBleed = false }) {
         <Sidebar />
         <Main $fullBleed={fullBleed}>{children}</Main>
       </ContentArea>
+      <RewardedOrdersFloatingPrompt />
     </PageShell>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import api from '../lib/api';
+import RewardedOrdersButton from './advertising/RewardedOrdersButton';
 
 function formatarData(valor) {
   if (!valor) return null;
@@ -24,9 +25,9 @@ export default function MarketStatusCard({
   compacto = false,
 }) {
   const [dados, setDados] = useState(null);
-  const [carregando, setCarregando] =
-    useState(true);
+  const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [versaoQuota, setVersaoQuota] = useState(0);
 
   useEffect(() => {
     let componenteAtivo = true;
@@ -35,9 +36,7 @@ export default function MarketStatusCard({
       try {
         setCarregando(true);
 
-        const { data } = await api.get(
-          '/mercado/limite-ordens'
-        );
+        const { data } = await api.get('/mercado/limite-ordens');
 
         if (!componenteAtivo) return;
 
@@ -62,7 +61,7 @@ export default function MarketStatusCard({
     return () => {
       componenteAtivo = false;
     };
-  }, []);
+  }, [versaoQuota]);
 
   const planoPremium =
     dados?.plano === 'premium' ||
@@ -77,50 +76,35 @@ export default function MarketStatusCard({
       return 0;
     }
 
-    const limite = Math.max(
-      1,
-      Number(dados.limite || 15)
-    );
-
-    const utilizadas = Math.max(
-      0,
-      Number(dados.utilizadas || 0)
-    );
+    const limite = Math.max(1, Number(dados.limite || 15));
+    const utilizadas = Math.max(0, Number(dados.utilizadas || 0));
 
     return Math.min(
       100,
-      Math.max(
-        0,
-        (utilizadas / limite) * 100
-      )
+      Math.max(0, (utilizadas / limite) * 100)
     );
   }, [dados, planoPremium]);
 
-  const renovacao = formatarData(
-    dados?.periodo?.renovaEm
-  );
+  const renovacao = formatarData(dados?.periodo?.renovaEm);
 
   const nomeTemporada =
     dados?.temporada?.nome ||
     dados?.temporada?.codigo ||
     'Temporada TradeSports';
 
+  const limiteBase = Math.max(0, Number(dados?.limiteBase || 15));
+  const bonusOrdens = Math.max(0, Number(dados?.bonusOrdens || 0));
+
   return (
     <Card
       $compacto={compacto}
-      $fechado={
-        !carregando && !mercadoAberto
-      }
+      $fechado={!carregando && !mercadoAberto}
     >
       <Topo>
         <Identificacao>
-          <Rotulo>
-            Temporada TradeSports
-          </Rotulo>
+          <Rotulo>Temporada TradeSports</Rotulo>
 
-          <Titulo>
-            {nomeTemporada}
-          </Titulo>
+          <Titulo>{nomeTemporada}</Titulo>
         </Identificacao>
 
         <Status
@@ -138,13 +122,10 @@ export default function MarketStatusCard({
       </Topo>
 
       {erro ? (
-        <Mensagem $erro>
-          {erro}
-        </Mensagem>
+        <Mensagem $erro>{erro}</Mensagem>
       ) : carregando ? (
         <Mensagem>
-          Consultando temporada e limite de
-          ordens...
+          Consultando temporada e limite de ordens...
         </Mensagem>
       ) : !dados?.temporadaAtiva ? (
         <Mensagem>
@@ -155,77 +136,64 @@ export default function MarketStatusCard({
       ) : (
         <Conteudo>
           <Plano>
-            <PlanoLabel>
-              Seu plano
-            </PlanoLabel>
+            <PlanoLabel>Seu plano</PlanoLabel>
 
             <PlanoNome $premium={planoPremium}>
-              {planoPremium
-                ? 'Premium'
-                : 'Lite'}
+              {planoPremium ? 'Premium' : 'Lite'}
             </PlanoNome>
           </Plano>
 
           {!mercadoAberto ? (
             <AvisoMercado>
-              O mercado está temporariamente
-              fechado para novas ordens.
+              O mercado está temporariamente fechado para novas ordens.
             </AvisoMercado>
           ) : planoPremium ? (
             <PremiumMensagem>
-              Ordens ilimitadas durante a
-              temporada.
+              Ordens ilimitadas durante a temporada.
             </PremiumMensagem>
           ) : (
             <Quota>
               <QuotaCabecalho>
-                <span>
-                  Quota semanal
-                </span>
+                <span>Quota semanal</span>
 
                 <strong>
-                  {Number(
-                    dados?.restantes || 0
-                  )}{' '}
-                  de{' '}
-                  {Number(
-                    dados?.limite || 15
-                  )}{' '}
-                  restantes
+                  {Number(dados?.restantes || 0)} de{' '}
+                  {Number(dados?.limite || 15)} restantes
                 </strong>
               </QuotaCabecalho>
 
               <Barra>
                 <BarraPreenchimento
-                  $percentual={
-                    percentualUtilizado
-                  }
-                  $limiteAtingido={
-                    dados?.limiteAtingido
-                  }
+                  $percentual={percentualUtilizado}
+                  $limiteAtingido={dados?.limiteAtingido}
                 />
               </Barra>
 
               <QuotaRodape>
                 <span>
-                  {Number(
-                    dados?.utilizadas || 0
-                  )}{' '}
-                  ordens utilizadas
+                  {Number(dados?.utilizadas || 0)} ordens utilizadas
                 </span>
 
-                {renovacao && (
-                  <span>
-                    Renova em {renovacao}
-                  </span>
-                )}
+                {renovacao && <span>Renova em {renovacao}</span>}
               </QuotaRodape>
 
-              {dados?.limiteAtingido && (
-                <LimiteAtingido>
-                  Limite semanal atingido.
-                </LimiteAtingido>
+              {bonusOrdens > 0 && (
+                <BonusInfo>
+                  {limiteBase} ordens base + {bonusOrdens} ordens extras por
+                  anúncios premiados.
+                </BonusInfo>
               )}
+
+              {dados?.limiteAtingido && (
+                <LimiteAtingido>Limite semanal atingido.</LimiteAtingido>
+              )}
+
+              <RewardedOrdersButton
+                rewardedAds={dados?.rewardedAds}
+                onRewardGranted={() =>
+                  setVersaoQuota((versaoAtual) => versaoAtual + 1)
+                }
+              />
             </Quota>
           )}
         </Conteudo>
@@ -236,12 +204,8 @@ export default function MarketStatusCard({
 
 const Card = styled.section`
   width: 100%;
-  margin: ${({ $compacto }) =>
-    $compacto ? '0 0 20px' : '0'};
-
-  padding: ${({ $compacto }) =>
-    $compacto ? '16px' : '18px'};
-
+  margin: ${({ $compacto }) => ($compacto ? '0 0 20px' : '0')};
+  padding: ${({ $compacto }) => ($compacto ? '16px' : '18px')};
   border-radius: 18px;
   box-sizing: border-box;
 
@@ -258,11 +222,8 @@ const Card = styled.section`
           rgba(15, 23, 42, 0.96)
         )`};
 
-  border: 1px solid
-    rgba(148, 163, 184, 0.18);
-
-  box-shadow:
-    0 16px 40px rgba(2, 6, 23, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.2);
 `;
 
 const Topo = styled.div`
@@ -313,10 +274,7 @@ const Status = styled.div`
       ? '#bbf7d0'
       : '#fecaca'};
 
-  background: ${({
-    $carregando,
-    $aberto,
-  }) =>
+  background: ${({ $carregando, $aberto }) =>
     $carregando
       ? 'rgba(37, 99, 235, 0.16)'
       : $aberto
@@ -340,20 +298,15 @@ const StatusPonto = styled.span`
 
 const Mensagem = styled.p`
   margin: 14px 0 0;
-  color: ${({ $erro }) =>
-    $erro ? '#fca5a5' : '#cbd5e1'};
+  color: ${({ $erro }) => ($erro ? '#fca5a5' : '#cbd5e1')};
   font-size: 0.88rem;
   line-height: 1.45;
 `;
 
 const Conteudo = styled.div`
   margin-top: 15px;
-
   display: grid;
-  grid-template-columns:
-    minmax(120px, 0.32fr)
-    minmax(0, 1fr);
-
+  grid-template-columns: minmax(120px, 0.32fr) minmax(0, 1fr);
   gap: 18px;
 
   @media (max-width: 640px) {
@@ -374,16 +327,13 @@ const PlanoLabel = styled.span`
 `;
 
 const PlanoNome = styled.strong`
-  color: ${({ $premium }) =>
-    $premium ? '#facc15' : '#ffffff'};
-
+  color: ${({ $premium }) => ($premium ? '#facc15' : '#ffffff')};
   font-size: 1.02rem;
 `;
 
 const PremiumMensagem = styled.div`
   display: flex;
   align-items: center;
-
   color: #bbf7d0;
   font-size: 0.88rem;
   font-weight: 800;
@@ -393,7 +343,6 @@ const PremiumMensagem = styled.div`
 const AvisoMercado = styled.div`
   display: flex;
   align-items: center;
-
   color: #fecaca;
   font-size: 0.86rem;
   font-weight: 700;
@@ -409,7 +358,6 @@ const QuotaCabecalho = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-
   color: #cbd5e1;
   font-size: 0.82rem;
 
@@ -432,20 +380,14 @@ const QuotaCabecalho = styled.div`
 const Barra = styled.div`
   width: 100%;
   height: 7px;
-
   margin-top: 10px;
-
   border-radius: 999px;
   overflow: hidden;
-
-  background:
-    rgba(148, 163, 184, 0.18);
+  background: rgba(148, 163, 184, 0.18);
 `;
 
 const BarraPreenchimento = styled.div`
-  width: ${({ $percentual }) =>
-    `${$percentual}%`};
-
+  width: ${({ $percentual }) => `${$percentual}%`};
   height: 100%;
   border-radius: inherit;
 
@@ -467,12 +409,10 @@ const BarraPreenchimento = styled.div`
 
 const QuotaRodape = styled.div`
   margin-top: 8px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-
   color: #94a3b8;
   font-size: 0.73rem;
 
@@ -481,6 +421,13 @@ const QuotaRodape = styled.div`
     flex-direction: column;
     gap: 3px;
   }
+`;
+
+const BonusInfo = styled.div`
+  margin-top: 7px;
+  color: #fde68a;
+  font-size: 0.72rem;
+  font-weight: 700;
 `;
 
 const LimiteAtingido = styled.div`
