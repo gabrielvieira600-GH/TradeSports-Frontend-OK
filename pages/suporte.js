@@ -3,41 +3,43 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Suporte() {
   const [assunto, setAssunto] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [status, setStatus] = useState('');
-  const [usuario, setUsuario] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const usuarioLocal = localStorage.getItem('usuario');
     if (!usuarioLocal || usuarioLocal === 'undefined') {
-      router.push('/login');
-    } else {
-      setUsuario(JSON.parse(usuarioLocal));
+      router.replace('/login');
     }
-  }, []);
+  }, [router]);
 
   const enviarMensagem = async () => {
     setStatus('');
 
-    if (!assunto || !mensagem) {
+    if (!assunto.trim() || !mensagem.trim()) {
       setStatus('❌ Preencha todos os campos.');
+      return;
+    }
+
+    if (!API) {
+      setStatus('❌ Serviço de suporte temporariamente indisponível.');
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${API}/suporte`,
-        { assunto, mensagem },
-        {
-          headers: {
-            authorization: `Bearer ${token}`
-          }
-        });
+      const res = await axios.post(
+        `${API}/suporte`,
+        { assunto: assunto.trim(), mensagem: mensagem.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      setStatus(`✅ ${res.data.mensagem}`);
+      setStatus(`✅ ${res.data?.mensagem || 'Mensagem enviada.'}`);
       setAssunto('');
       setMensagem('');
     } catch (err) {
@@ -49,14 +51,16 @@ export default function Suporte() {
   return (
     <Container>
       <h1>Central de Suporte</h1>
-
-      <Descricao>Se você tiver dúvidas, sugestões ou encontrou algum problema, entre em contato conosco abaixo.</Descricao>
+      <Descricao>
+        Se você tiver dúvidas, sugestões ou encontrou algum problema, envie uma
+        mensagem para a equipe.
+      </Descricao>
 
       <Form>
         <label>Assunto</label>
         <Input
           type="text"
-          placeholder="Ex: Problema com saque"
+          placeholder="Ex.: dúvida sobre minha conta"
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
         />
@@ -64,37 +68,38 @@ export default function Suporte() {
         <label>Mensagem</label>
         <Textarea
           rows={6}
-          placeholder="Descreva com detalhes o que aconteceu..."
+          placeholder="Descreva sua solicitação com detalhes."
           value={mensagem}
           onChange={(e) => setMensagem(e.target.value)}
         />
 
-        <Botao onClick={enviarMensagem}>Enviar Mensagem</Botao>
-        {status && <Status>{status}</Status>}
+        <Botao type="button" onClick={enviarMensagem}>Enviar mensagem</Botao>
+        {status && <Status $ok={status.startsWith('✅')}>{status}</Status>}
       </Form>
     </Container>
   );
 }
 
-// Styled Components
 const Container = styled.div`
+  max-width: 860px;
+  margin: 0 auto;
   padding: 2rem;
   color: white;
 `;
 
 const Descricao = styled.p`
   color: #cbd5e1;
-  margin-top: -0.5rem;
   margin-bottom: 2rem;
+  line-height: 1.6;
 `;
 
 const Form = styled.div`
-  background-color: #1e293b;
+  background: #1e293b;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
 
   label {
-    font-weight: 500;
+    font-weight: 600;
     margin-top: 1rem;
     display: block;
     color: #e2e8f0;
@@ -103,42 +108,40 @@ const Form = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
+  box-sizing: border-box;
+  padding: .75rem;
+  margin-top: .5rem;
   background: #0f172a;
-  border: none;
+  border: 1px solid #334155;
   color: white;
-  border-radius: 6px;
-  margin-top: 0.5rem;
+  border-radius: 8px;
 `;
 
 const Textarea = styled.textarea`
   width: 100%;
-  padding: 0.75rem;
+  box-sizing: border-box;
+  padding: .75rem;
+  margin-top: .5rem;
   background: #0f172a;
-  border: none;
+  border: 1px solid #334155;
   color: white;
-  border-radius: 6px;
-  margin-top: 0.5rem;
+  border-radius: 8px;
+  resize: vertical;
 `;
 
 const Botao = styled.button`
   margin-top: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  padding: .75rem 1.5rem;
+  background: #2563eb;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 1rem;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
-
-  &:hover {
-    background-color: #2563eb;
-  }
 `;
 
 const Status = styled.p`
   margin-top: 1rem;
-  font-weight: 500;
-  color: ${({ children }) => (children?.startsWith('✅') ? '#22c55e' : '#ef4444')};
+  font-weight: 600;
+  color: ${({ $ok }) => ($ok ? '#22c55e' : '#f87171')};
 `;

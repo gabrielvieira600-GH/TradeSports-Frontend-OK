@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-painel
+Disallow: /admin-liquidez-institucional
+Disallow: /configuracoes
+Disallow: /editarperfil
+Disallow: /extrato
+Disallow: /minha-conta
+Disallow: /minhas-ordens
+Disallow: /minhas-transacoes
+Disallow: /mensagens
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://tradesports.com.br/sitemap.xml
