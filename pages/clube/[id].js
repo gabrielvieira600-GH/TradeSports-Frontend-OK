@@ -55,6 +55,22 @@ function formatInteger(valor) {
   });
 }
 
+function calcularPrecoReferencia(posicao, totalParticipantes) {
+  const posicaoAtual = Number(posicao);
+  const participantes = Number(totalParticipantes);
+
+  if (
+    !Number.isInteger(posicaoAtual) ||
+    !Number.isInteger(participantes) ||
+    posicaoAtual < 1 ||
+    posicaoAtual > participantes
+  ) {
+    return null;
+  }
+
+  return 5 * Math.pow(1.05, participantes - posicaoAtual);
+}
+
 function formatDate(valor, incluiHora = false) {
   const data = valor ? new Date(valor) : null;
   if (!data || Number.isNaN(data.getTime())) return '—';
@@ -94,8 +110,8 @@ function normalizePoints(pontos) {
 function PriceChart({ pontos }) {
   const [activeIndex, setActiveIndex] = useState(null);
   const width = 920;
-  const height = 390;
-  const padding = { top: 28, right: 28, bottom: 58, left: 88 };
+  const height = 318;
+  const padding = { top: 24, right: 24, bottom: 46, left: 72 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const points = useMemo(() => normalizePoints(pontos), [pontos]);
@@ -198,7 +214,7 @@ function PriceChart({ pontos }) {
                 stroke="rgba(148, 163, 184, 0.12)"
                 strokeDasharray="4 7"
               />
-              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#8ea2b9" fontSize="15">
+              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#718399" fontSize="12">
                 {formatTrade(value)}
               </text>
             </g>
@@ -318,8 +334,7 @@ export default function ClubeDetalhe() {
         precoAtual:
           item.precoAtual != null ? numero(item.precoAtual) : numero(item.preco),
         cotasDisponiveis: numero(item.cotasDisponiveis),
-        cotasEmitidas: numero(item.cotasEmCirculacao ?? item.cotasEmitidas),
-        cotasEmCirculacao: numero(item.cotasEmCirculacao ?? item.cotasEmitidas),
+        cotasEmitidas: numero(item.cotasEmitidas),
         ipoEncerrado: Boolean(item.ipoEncerrado),
         metadata: item.metadata || {},
       });
@@ -405,11 +420,18 @@ export default function ClubeDetalhe() {
     };
   }, [hist, pontos]);
 
-  const currentPrice = numero(hist?.precoMercado, clube?.precoAtual ?? clube?.preco);
-  const theoreticalPrice = numero(hist?.ipoLiquidacao, clube?.preco);
-  const positive = resumo.variacaoAbs >= 0;
   const ligaId = clube?.metadata?.ligaId || clube?.ligaId || 'brasileirao-a';
   const liga = mercados[ligaId] || mercados['brasileirao-a'];
+  const currentPrice = numero(hist?.precoMercado, clube?.precoAtual ?? clube?.preco);
+  const precoReferenciaPorPosicao = calcularPrecoReferencia(
+    clube?.posicao,
+    liga?.participantes
+  );
+  const theoreticalPrice = precoReferenciaPorPosicao ?? numero(
+    hist?.ipoLiquidacao,
+    clube?.preco
+  );
+  const positive = resumo.variacaoAbs >= 0;
   const marketLabel = clube?.ipoEncerrado ? 'Mercado secundário' : 'Oferta inicial';
   const favorito = (watchlist?.clubes || []).some((item) =>
     String(item.id ?? item.entityId) === String(clube?.id ?? clube?.legacyId)
@@ -972,24 +994,12 @@ const RangeButton = styled.button`
   cursor: pointer;
 `;
 
-const ChartBody = styled.div`
-  position: relative;
-  min-height: 402px;
-  padding: 0 12px;
-  @media (max-width: 720px) { padding: 0 4px 8px; }
-`;
+const ChartBody = styled.div`position: relative; min-height: 330px; padding: 0 12px;`;
 const ChartViewport = styled.div`
   position: relative;
   width: 100%;
-  min-height: 390px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  svg { display: block; width: 100%; height: auto; min-height: 340px; touch-action: pan-y; }
-
-  @media (max-width: 720px) {
-    svg { width: 720px; max-width: none; min-height: 305px; }
-  }
+  min-height: 318px;
+  svg { display: block; width: 100%; height: auto; min-height: 270px; touch-action: pan-y; }
 `;
 const ChartTooltip = styled.div`
   position: absolute;
