@@ -15,6 +15,13 @@ function formatTS(n) {
   })}`;
 }
 
+function formatTSOuTraco(n) {
+  if (n === null || n === undefined || n === '') return '—';
+
+  const v = Number(n);
+  return Number.isFinite(v) ? formatTS(v) : '—';
+}
+
 function formatData(d) {
   if (!d) return '-';
   try {
@@ -136,10 +143,14 @@ function MinhasOrdens() {
       tipo: o.tipo,
       clubeId: o.clubeId,
       clubeNome: mapClubeNome(o.clubeId),
-      preco: Number(o.precoLimite ?? o.preco ?? 0),
-      precoExecutado: o.precoExecutadoMedio == null ? null : Number(o.precoExecutadoMedio),
+      precoLimite: Number(o.preco || 0),
+      precoMedioExecutado:
+        o.precoMedioExecutado === null ||
+        o.precoMedioExecutado === undefined
+          ? null
+          : Number(o.precoMedioExecutado),
       quantidade,
-      executada: Number(o.quantidadeExecutada ?? Math.max(0, quantidade - restante)),
+      executada: Math.max(0, quantidade - restante),
       restante,
       status,
       criadoEm: o.criadoEm,
@@ -400,7 +411,7 @@ setItens(itensOrdens);
               <th>Criação</th>
               <th>Tipo</th>
               <th>Clube</th>
-              <th>Preço limite</th>
+              <th>Preço executado</th>
               <th>Original</th>
               <th>Executada</th>
               <th>Restante</th>
@@ -440,7 +451,7 @@ setItens(itensOrdens);
 
                   <td>
                     <ValorOrdem>
-                      {formatTS(x.preco)}
+                      {formatTSOuTraco(x.precoMedioExecutado)}
                     </ValorOrdem>
                   </td>
 
@@ -621,7 +632,12 @@ setItens(itensOrdens);
               <MobileGrid>
                 <InfoBloco>
                   <span>Preço limite</span>
-                  <strong>{formatTS(x.preco)}</strong>
+                  <strong>{formatTS(x.precoLimite)}</strong>
+                </InfoBloco>
+
+                <InfoBloco>
+                  <span>Preço médio executado</span>
+                  <strong>{formatTSOuTraco(x.precoMedioExecutado)}</strong>
                 </InfoBloco>
 
                 <InfoBloco>
@@ -1004,7 +1020,7 @@ const TabelaWrap = styled.div`
 
 const Tabela = styled.table`
   width: 100%;
-  min-width: 1220px;
+  min-width: 1120px;
   border-collapse: collapse;
   font-size: 0.86rem;
 
@@ -1049,11 +1065,6 @@ const ClubeNome = styled.strong`
 
 const ValorOrdem = styled.strong`
   color: #f8fafc;
-  white-space: nowrap;
-`;
-
-const ValorExecutado = styled.strong`
-  color: ${({ $executado }) => ($executado ? '#86efac' : '#64748b')};
   white-space: nowrap;
 `;
 
