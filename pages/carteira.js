@@ -584,7 +584,7 @@ function CarteiraPage() {
 
             <ResumoCard>
               <LabelResumo>Total alocado</LabelResumo>
-              <ValorSecundario>T$ {resumo.totalInvestido.toFixed(2)}</ValorSecundario>
+              <ValorSecundario>T$ {resumo.totalAtual.toFixed(2)}</ValorSecundario>
             </ResumoCard>
 
             <ResumoCard>

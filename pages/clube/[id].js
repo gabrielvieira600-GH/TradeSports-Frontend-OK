@@ -94,8 +94,8 @@ function normalizePoints(pontos) {
 function PriceChart({ pontos }) {
   const [activeIndex, setActiveIndex] = useState(null);
   const width = 920;
-  const height = 318;
-  const padding = { top: 24, right: 24, bottom: 46, left: 72 };
+  const height = 390;
+  const padding = { top: 28, right: 28, bottom: 58, left: 88 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const points = useMemo(() => normalizePoints(pontos), [pontos]);
@@ -198,7 +198,7 @@ function PriceChart({ pontos }) {
                 stroke="rgba(148, 163, 184, 0.12)"
                 strokeDasharray="4 7"
               />
-              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#718399" fontSize="12">
+              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#8ea2b9" fontSize="15">
                 {formatTrade(value)}
               </text>
             </g>
@@ -318,7 +318,8 @@ export default function ClubeDetalhe() {
         precoAtual:
           item.precoAtual != null ? numero(item.precoAtual) : numero(item.preco),
         cotasDisponiveis: numero(item.cotasDisponiveis),
-        cotasEmitidas: numero(item.cotasEmitidas),
+        cotasEmitidas: numero(item.cotasEmCirculacao ?? item.cotasEmitidas),
+        cotasEmCirculacao: numero(item.cotasEmCirculacao ?? item.cotasEmitidas),
         ipoEncerrado: Boolean(item.ipoEncerrado),
         metadata: item.metadata || {},
       });
@@ -971,12 +972,24 @@ const RangeButton = styled.button`
   cursor: pointer;
 `;
 
-const ChartBody = styled.div`position: relative; min-height: 330px; padding: 0 12px;`;
+const ChartBody = styled.div`
+  position: relative;
+  min-height: 402px;
+  padding: 0 12px;
+  @media (max-width: 720px) { padding: 0 4px 8px; }
+`;
 const ChartViewport = styled.div`
   position: relative;
   width: 100%;
-  min-height: 318px;
-  svg { display: block; width: 100%; height: auto; min-height: 270px; touch-action: pan-y; }
+  min-height: 390px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  svg { display: block; width: 100%; height: auto; min-height: 340px; touch-action: pan-y; }
+
+  @media (max-width: 720px) {
+    svg { width: 720px; max-width: none; min-height: 305px; }
+  }
 `;
 const ChartTooltip = styled.div`
   position: absolute;

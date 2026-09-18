@@ -136,9 +136,10 @@ function MinhasOrdens() {
       tipo: o.tipo,
       clubeId: o.clubeId,
       clubeNome: mapClubeNome(o.clubeId),
-      preco: Number(o.preco || 0),
+      preco: Number(o.precoLimite ?? o.preco ?? 0),
+      precoExecutado: o.precoExecutadoMedio == null ? null : Number(o.precoExecutadoMedio),
       quantidade,
-      executada: Math.max(0, quantidade - restante),
+      executada: Number(o.quantidadeExecutada ?? Math.max(0, quantidade - restante)),
       restante,
       status,
       criadoEm: o.criadoEm,
@@ -1003,7 +1004,7 @@ const TabelaWrap = styled.div`
 
 const Tabela = styled.table`
   width: 100%;
-  min-width: 1120px;
+  min-width: 1220px;
   border-collapse: collapse;
   font-size: 0.86rem;
 
@@ -1048,6 +1049,11 @@ const ClubeNome = styled.strong`
 
 const ValorOrdem = styled.strong`
   color: #f8fafc;
+  white-space: nowrap;
+`;
+
+const ValorExecutado = styled.strong`
+  color: ${({ $executado }) => ($executado ? '#86efac' : '#64748b')};
   white-space: nowrap;
 `;
 
