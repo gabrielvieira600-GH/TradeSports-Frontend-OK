@@ -32,7 +32,9 @@ export default function LivroDeOrdens({
       if (!clubeId) return;
       setLoading(true);
       try {
-        const { data } = await api.get(`/mercado/livro/${clubeId}`);
+        const { data } = await api.get(
+          `/mercado/livro/${clubeId}?visao=${encodeURIComponent(lado || '')}`
+        );
         if (!alive) return;
         setCompras(Array.isArray(data?.compras) ? data.compras : []);
         setVendas(Array.isArray(data?.vendas) ? data.vendas : []);
@@ -52,7 +54,7 @@ export default function LivroDeOrdens({
       alive = false;
       clearInterval(t);
     };
-  }, [clubeId]);
+  }, [clubeId, lado]);
 
   const agrupaNiveis = (ordens) => {
     const mapa = new Map();

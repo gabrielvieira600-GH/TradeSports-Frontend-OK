@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import Image from 'next/image';
 import LivroDeOrdens from './LivroDeOrdens';
@@ -47,6 +47,7 @@ export default function NegociacaoModal({
     mid: null,
     spreadPct: null,
   });
+  const modoInicialAplicadoRef = useRef(null);
 
   const [limiteOrdens, setLimiteOrdens] = useState({
   carregando: false,
@@ -176,7 +177,7 @@ export default function NegociacaoModal({
     if (!isOpen || !clubeId) return;
     carregarOrdens();
     verificarIPO();
-  }, [isOpen, clubeId]);
+  }, [isOpen, clubeId, modo]);
 
   useEffect(() => {
   setMensagem('');
@@ -189,10 +190,6 @@ export default function NegociacaoModal({
 }, [clube, isOpen, usuario]);
 
   useEffect(() => {
-    setModo(modoInicial);
-  }, [modoInicial]);
-
-  useEffect(() => {
     setMensagem('');
     setResultadoOrdem(null);
     setResultadoIpo(null);
@@ -202,9 +199,10 @@ export default function NegociacaoModal({
     try {
       if (!clubeId) return;
 
-      const { data } = await api.get(`/mercado/livro/${clubeId}`, {
-  headers: getAuthHeaders(),
-});
+      const { data } = await api.get(
+        `/mercado/livro/${clubeId}?visao=${encodeURIComponent(modo || '')}`,
+        { headers: getAuthHeaders() }
+      );
 
       setOrdensCompra(data?.compras || []);
       setOrdensVenda(data?.vendas || []);
@@ -1034,6 +1032,23 @@ if (response?.franquiaOrdens) {
       0
   );
 }, [usuario, clube]);
+
+useEffect(() => {
+  if (!isOpen) {
+    modoInicialAplicadoRef.current = null;
+    return;
+  }
+
+  const chaveClube = String(clubeId || '');
+  if (!chaveClube || modoInicialAplicadoRef.current === chaveClube) return;
+
+  // Quando existe token, aguarda a carteira do usuário antes de decidir a
+  // aba inicial. Depois de aplicada, a escolha manual não é sobrescrita.
+  if (token && verificarTokenValido(token) && !usuario) return;
+
+  setModo(Number(cotasDisponiveisVenda || 0) > 0 ? 'venda' : 'compra');
+  modoInicialAplicadoRef.current = chaveClube;
+}, [isOpen, clubeId, token, usuario, cotasDisponiveisVenda]);
 
 const mercadoSecundarioBloqueado =
   ipoEncerrado &&
