@@ -11,7 +11,9 @@ import mercados from '../Data/mercados';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 function calcularPrecoLiquidacao(posicao, totalParticipantes) {
   const precoBase = 5;
-  return precoBase * Math.pow(1.05, totalParticipantes - posicao);
+  const valor = precoBase * Math.pow(1.05, totalParticipantes - posicao);
+  const centavos = Math.round(valor * 100);
+  return Number(((Math.floor(centavos / 5) * 5) / 100).toFixed(2));
 }
 
 export function MercadoCompeticao({ mercado }) {

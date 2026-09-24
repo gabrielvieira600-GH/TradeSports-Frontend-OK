@@ -23,6 +23,7 @@ export default function EditarPerfil() {
   const [usuario, setUsuario] = useState(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [feedback, setFeedback] = useState(null);
@@ -44,11 +45,31 @@ export default function EditarPerfil() {
         setUsuario(u);
         setNome(u.nome || '');
         setEmail(u.email || '');
+        setBio(u.bio || '');
       }
     } catch {
       setFeedback({ tipo: 'erro', texto: 'Não foi possível carregar os dados do perfil.' });
     }
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let ativo = true;
+    axios.get(`${API}/usuario`, {
+      headers: { authorization: `Bearer ${token}` },
+    }).then(({ data }) => {
+      if (!ativo || !data) return;
+      setUsuario((atual) => ({ ...atual, ...data }));
+      setNome(data.nome || '');
+      setEmail(data.email || '');
+      setBio(data.bio || '');
+    }).catch(() => {
+      // Os dados locais continuam disponíveis se a atualização falhar.
+    });
+
+    return () => { ativo = false; };
+  }, [token]);
 
   useEffect(() => () => {
     if (previewFoto) URL.revokeObjectURL(previewFoto);
@@ -131,7 +152,7 @@ export default function EditarPerfil() {
     setFeedback(null);
     try {
       setSalvandoPerfil(true);
-      const { data } = await axios.put(`${API}/usuario/perfil`, { nome, email }, {
+      const { data } = await axios.put(`${API}/usuario/perfil`, { nome, email, bio }, {
         headers: { authorization: `Bearer ${token}` },
       });
       const dadosAtualizados = data?.usuario || { nome, email };
@@ -239,6 +260,12 @@ export default function EditarPerfil() {
                 <label htmlFor="email">E-mail</label>
                 <InputWrap><FiMail /><input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@email.com" required /></InputWrap>
               </Field>
+              <Field>
+                <label htmlFor="bio">Bio <Contador>{bio.length}/160</Contador></label>
+                <TextareaWrap>
+                  <textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} maxLength={160} placeholder="Conte um pouco sobre você" rows={4} />
+                </TextareaWrap>
+              </Field>
             </Fields>
             <CardFooter><PrimaryButton type="submit" disabled={salvandoPerfil}><FiSave /> {salvandoPerfil ? 'Salvando...' : 'Salvar alterações'}</PrimaryButton></CardFooter>
           </FormCard>
@@ -298,5 +325,7 @@ const IconBox = styled.div`width:42px;height:42px;flex:none;display:grid;place-i
 const Fields = styled.div`display:grid;gap:18px;padding:24px;@media(max-width:480px){padding:20px;}`;
 const Field = styled.div`label{display:block;margin-bottom:8px;color:#cbd5e1;font-size:.78rem;font-weight:800;}`;
 const InputWrap = styled.div`height:48px;display:flex;align-items:center;gap:11px;padding:0 14px;border:1px solid rgba(148,163,184,.15);border-radius:11px;background:#091321;color:#64748b;transition:.2s;&:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1);color:#60a5fa;}input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#f8fafc;font-size:.9rem;&::placeholder{color:#475569;}}`;
+const TextareaWrap = styled.div`padding:12px 14px;border:1px solid rgba(148,163,184,.15);border-radius:11px;background:#091321;transition:.2s;&:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1);}textarea{display:block;width:100%;min-height:88px;resize:vertical;border:0;outline:0;background:transparent;color:#f8fafc;font:inherit;font-size:.9rem;line-height:1.5;&::placeholder{color:#475569;}}`;
+const Contador = styled.span`float:right;color:#64748b;font-size:.7rem;font-weight:700;`;
 const CardFooter = styled.div`display:flex;justify-content:flex-end;margin-top:auto;padding:0 24px 24px;@media(max-width:480px){padding:0 20px 20px;button{width:100%;}}`;
 const Loading = styled.div`width:34px;height:34px;margin:120px auto;border:3px solid rgba(96,165,250,.2);border-top-color:#3b82f6;border-radius:50%;animation:girar .8s linear infinite;@keyframes girar{to{transform:rotate(360deg)}}`;

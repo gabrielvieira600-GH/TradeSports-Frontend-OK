@@ -106,6 +106,12 @@ const [processandoConexaoId, setProcessandoConexaoId] = useState('');
   const [resumoTrofeus, setResumoTrofeus] = useState({});
   const [carregandoTrofeus, setCarregandoTrofeus] = useState(true);
   const [erroTrofeus, setErroTrofeus] = useState('');
+  const [mostrandoPosts, setMostrandoPosts] = useState(false);
+  const [postsPerfil, setPostsPerfil] = useState([]);
+  const [paginaPosts, setPaginaPosts] = useState(1);
+  const [temMaisPosts, setTemMaisPosts] = useState(false);
+  const [carregandoPosts, setCarregandoPosts] = useState(false);
+  const [erroPosts, setErroPosts] = useState('');
 
   useEffect(() => {
     if (
@@ -184,14 +190,12 @@ const rankingHeroPosicao = perfilPremium
   return (
     !perfilProprio &&
     usuarioLogadoPremium &&
-    perfilPremium &&
     rankingsCriados.length > 0 &&
     usuario?.id
   );
 }, [
   perfilProprio,
   usuarioLogadoPremium,
-  perfilPremium,
   rankingsCriados.length,
   usuario,
 ]);
@@ -243,6 +247,36 @@ const rankingHeroPosicao = perfilPremium
     } finally {
       setCarregandoTrofeus(false);
     }
+  }
+
+  async function carregarPostsPerfil(pagina = 1, acumular = false) {
+    if (!id) return;
+
+    try {
+      setCarregandoPosts(true);
+      setErroPosts('');
+      const { data } = await api.get(`/social-community/usuarios/${id}/posts`, {
+        params: { page: pagina, limit: 20 },
+      });
+      const novosPosts = Array.isArray(data?.posts) ? data.posts : [];
+      setPostsPerfil((atuais) => acumular ? [...atuais, ...novosPosts] : novosPosts);
+      setPaginaPosts(pagina);
+      setTemMaisPosts(Boolean(data?.paginacao?.temMais));
+    } catch (err) {
+      setErroPosts(err?.response?.data?.erro || 'Não foi possível carregar as publicações.');
+      if (!acumular) setPostsPerfil([]);
+    } finally {
+      setCarregandoPosts(false);
+    }
+  }
+
+  function alternarPosts() {
+    if (mostrandoPosts) {
+      setMostrandoPosts(false);
+      return;
+    }
+    setMostrandoPosts(true);
+    carregarPostsPerfil(1, false);
   }
 
   async function carregarPlanoUsuario() {
@@ -476,6 +510,8 @@ async function alternarFollowModal(usuarioAlvo) {
   useEffect(() => {
     if (!router.isReady) return;
 
+    setMostrandoPosts(false);
+    setPostsPerfil([]);
     carregarPerfil();
     carregarSalaTrofeus();
   }, [router.isReady, id]);
@@ -566,6 +602,8 @@ async function alternarFollowModal(usuarioAlvo) {
               </NomeSecundario>
             )}
 
+            {usuario.bio && <BioPerfil>{usuario.bio}</BioPerfil>}
+
             <BadgesLinha>
               <PlanoBadge $premium={perfilPremium}>
                 {perfilPremium ? 'Premium' : 'Lite'}
@@ -643,6 +681,10 @@ async function alternarFollowModal(usuarioAlvo) {
   >
     Ver convites
   </BotaoSecundario>
+
+  <BotaoSecundario type="button" onClick={alternarPosts}>
+    {mostrandoPosts ? 'Voltar' : 'Posts'}
+  </BotaoSecundario>
 </AcoesTopo>
       <GridMetricas>
         <MetricaButton
@@ -676,7 +718,48 @@ async function alternarFollowModal(usuarioAlvo) {
         </MetricaCard>
       </GridMetricas>
 
-      {!carteiraPublica.podeAcessar ? (
+      {mostrandoPosts ? (
+        <PostsPainel>
+          <PainelHeader>
+            <PainelTitulo>Publicações</PainelTitulo>
+            <PostsOrdem>Mais recentes primeiro</PostsOrdem>
+          </PainelHeader>
+
+          {erroPosts && <MensagemErro>{erroPosts}</MensagemErro>}
+
+          {!carregandoPosts && !erroPosts && postsPerfil.length === 0 && (
+            <EstadoCard>Este usuário ainda não publicou na comunidade.</EstadoCard>
+          )}
+
+          <ListaPostsPerfil>
+            {postsPerfil.map((post) => (
+              <PostPerfilCard key={post._id || post.id}>
+                <PostPerfilTopo>
+                  <UserAvatar usuario={post.autor || usuario} size={42} />
+                  <div>
+                    <strong>{post.autor?.nomeUsuario ? `@${post.autor.nomeUsuario}` : nomeExibicao(usuario)}</strong>
+                    <span>{formatarData(post.createdAt)}</span>
+                  </div>
+                </PostPerfilTopo>
+                {post.texto && <PostTexto>{post.texto}</PostTexto>}
+                {post.imagem?.dataUrl && <PostImagem src={post.imagem.dataUrl} alt="Imagem da publicação" loading="lazy" />}
+                <PostContadores>
+                  <span>{formatarNumero(post.contadores?.curtidas)} curtidas</span>
+                  <span>{formatarNumero(post.contadores?.comentarios)} comentários</span>
+                  <span>{formatarNumero(post.contadores?.reposts)} republicações</span>
+                </PostContadores>
+              </PostPerfilCard>
+            ))}
+          </ListaPostsPerfil>
+
+          {carregandoPosts && <EstadoCard>Carregando publicações...</EstadoCard>}
+          {temMaisPosts && !carregandoPosts && (
+            <CarregarMais type="button" onClick={() => carregarPostsPerfil(paginaPosts + 1, true)}>
+              Carregar mais
+            </CarregarMais>
+          )}
+        </PostsPainel>
+      ) : !carteiraPublica.podeAcessar ? (
         <PainelBloqueado>
           <PremiumLockIcon>🔒</PremiumLockIcon>
           <PremiumLockTitle>Carteira não compartilhada</PremiumLockTitle>
@@ -1156,6 +1239,21 @@ const NomeSecundario = styled.div`
   }
 `;
 
+const BioPerfil = styled.p`
+  max-width: 520px;
+  margin: 8px 0 0;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  @media (max-width: 640px) {
+    margin-top: 5px;
+    font-size: 0.78rem;
+  }
+`;
+
 const BadgesLinha = styled.div`
   margin-top: 12px;
   display: flex;
@@ -1299,12 +1397,12 @@ const HeroStat = styled.div`
 const AcoesTopo = styled.div`
   margin-bottom: 16px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, max-content));
+  grid-template-columns: repeat(4, minmax(0, max-content));
   gap: 8px;
 
   @media (max-width: 640px) {
     margin-bottom: 10px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 `;
@@ -2606,4 +2704,73 @@ const ComparacaoGrid = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   @media (max-width: 480px) { grid-template-columns: 1fr; }
+`;
+
+const PostsPainel = styled.section`
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.68);
+
+  @media (max-width: 640px) { padding: 13px; border-radius: 15px; }
+`;
+
+const PostsOrdem = styled.span`
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
+`;
+
+const ListaPostsPerfil = styled.div`
+  display: grid;
+  gap: 12px;
+`;
+
+const PostPerfilCard = styled.article`
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.34);
+`;
+
+const PostPerfilTopo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  div { display: grid; gap: 2px; }
+  strong { color: #f8fafc; font-size: 0.88rem; }
+  span { color: #64748b; font-size: 0.72rem; }
+`;
+
+const PostTexto = styled.p`
+  margin: 13px 0 0;
+  color: #e2e8f0;
+  line-height: 1.58;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+`;
+
+const PostImagem = styled.img`
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  margin-top: 13px;
+  object-fit: contain;
+  border-radius: 13px;
+  background: #020617;
+`;
+
+const PostContadores = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 13px;
+  color: #94a3b8;
+  font-size: 0.73rem;
+  font-weight: 700;
+`;
+
+const CarregarMais = styled(BotaoSecundario)`
+  display: flex;
+  margin: 16px auto 0;
 `;

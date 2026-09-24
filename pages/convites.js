@@ -201,7 +201,7 @@ function ConvitesPage() {
           </Titulo>
 
           <Subtitulo>
-            Aceite ou recuse convites recebidos e acompanhe os convites que você enviou para outros usuários Premium.
+            Aceite ou recuse convites recebidos e acompanhe os convites enviados para outros usuários.
           </Subtitulo>
         </div>
 
@@ -288,10 +288,10 @@ function ConvitesPage() {
           descricao={
             aba === 'recebidos'
               ? 'Convites para participar de rankings privados aparecerão aqui.'
-              : 'Crie ou abra um ranking privado para convidar outros usuários Premium.'
+              : 'Crie ou abra um ranking privado para convidar outros usuários.'
           }
           acao="Abrir rankings"
-          hrefAcao="/ranking"
+          hrefAcao="/rankings-privados"
           acaoSecundaria="Explorar comunidade"
           hrefAcaoSecundaria="/social"
         />

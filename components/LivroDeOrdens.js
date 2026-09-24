@@ -89,7 +89,7 @@ export default function LivroDeOrdens({
     bestBid != null && bestAsk != null && bestAsk > 0
       ? ((bestAsk - bestBid) / bestAsk) * 100
       : null;
-  const lastPrice =
+  const midPrice =
     bestBid != null && bestAsk != null
       ? Number(((bestBid + bestAsk) / 2).toFixed(2))
       : (bestBid ?? bestAsk ?? null);
@@ -115,8 +115,8 @@ export default function LivroDeOrdens({
         </MetricCard>
 
         <MetricCard $variant="last">
-          <small>Ultimo preço</small>
-          <strong>{lastPrice != null ? `T$ ${Number(lastPrice).toFixed(2)}` : '—'}</strong>
+          <small>Preço médio do book</small>
+          <strong>{midPrice != null ? `T$ ${Number(midPrice).toFixed(2)}` : '—'}</strong>
         </MetricCard>
 
         <MetricCard $variant="ask">

@@ -68,7 +68,9 @@ function calcularPrecoReferencia(posicao, totalParticipantes) {
     return null;
   }
 
-  return 5 * Math.pow(1.05, participantes - posicaoAtual);
+  const valor = 5 * Math.pow(1.05, participantes - posicaoAtual);
+  const centavos = Math.round(valor * 100);
+  return Number(((Math.floor(centavos / 5) * 5) / 100).toFixed(2));
 }
 
 function formatDate(valor, incluiHora = false) {
