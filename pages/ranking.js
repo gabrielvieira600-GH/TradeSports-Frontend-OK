@@ -201,13 +201,10 @@ const [pagina, setPagina] = useState(1);
 }, [pagina, categoria, abaPrivadosAtiva]);
 
   useEffect(() => {
-  if (
-    abaPrivadosAtiva &&
-    planoUsuario === 'premium'
-  ) {
+  if (usuarioAtual) {
     carregarRankingsPrivados();
   }
-}, [abaPrivadosAtiva, planoUsuario]);
+}, [usuarioAtual?.usuarioId]);
   
   const categoriaMeuPlano =
   planoUsuario === 'premium'
@@ -276,10 +273,6 @@ const totalCategoriaAtual =
 };
   
   const abrirAbaPrivados = () => {
-  if (planoUsuario !== 'premium') {
-    return;
-  }
-
   setAbaPrivadosAtiva(true);
 
   if (
@@ -481,16 +474,20 @@ const carregarRankingsPrivados = async () => {
     setCarregandoPrivados(true);
     setErroPrivados('');
 
-    const { data } = await api.get('/rankings-privados');
+    const { data } = await api.get('/private-rankings');
+
+    const rankings = Array.isArray(data?.rankings)
+      ? data.rankings
+      : [];
 
     setRankingsPrivados({
-      criados: Array.isArray(data?.criados)
-        ? data.criados
-        : [],
+      criados: rankings.filter(
+        item => item?.papel === 'proprietario'
+      ),
 
-      participando: Array.isArray(data?.participando)
-        ? data.participando
-        : [],
+      participando: rankings.filter(
+        item => item?.papel !== 'proprietario'
+      ),
     });
   } catch (err) {
     console.error(
