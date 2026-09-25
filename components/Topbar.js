@@ -5,6 +5,12 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import ClubBadge from './ClubBadge';
 import UserAvatar from './UserAvatar';
+import {
+  ativarNotificacoesPush,
+  consultarEstadoPush,
+  desvincularPushDoUsuario,
+  enviarPushDeTeste,
+} from '../lib/pushNotifications';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -19,6 +25,14 @@ export default function Topbar() {
 
   const [notificacoes, setNotificacoes] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushState, setPushState] = useState({
+    loading: true,
+    supported: true,
+    subscribed: false,
+    permission: 'default',
+  });
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMessage, setPushMessage] = useState('');
 
   const [busca, setBusca] = useState('');
   const [clubes, setClubes] = useState([]);
@@ -167,6 +181,55 @@ const meuPerfilHref = meuPerfilId
     carregarNotificacoes();
     carregarClubes();
   }, []);
+
+  useEffect(() => {
+    if (!token || !API_BASE) return;
+    let ativo = true;
+
+    consultarEstadoPush(API_BASE, token)
+      .then((estado) => {
+        if (ativo) setPushState({ loading: false, ...estado });
+      })
+      .catch(() => {
+        if (ativo) {
+          setPushState((atual) => ({ ...atual, loading: false, supported: false }));
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [token]);
+
+  const ativarPush = async () => {
+    if (!token || !API_BASE || pushBusy) return;
+    setPushBusy(true);
+    setPushMessage('');
+    try {
+      const estado = await ativarNotificacoesPush(API_BASE, token);
+      setPushState({ loading: false, ...estado });
+      setPushMessage('Notificações ativadas neste aparelho.');
+      await enviarPushDeTeste(API_BASE, token).catch(() => null);
+    } catch (err) {
+      setPushMessage(err?.message || 'Não foi possível ativar as notificações.');
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const testarPush = async () => {
+    if (!token || !API_BASE || pushBusy) return;
+    setPushBusy(true);
+    setPushMessage('');
+    try {
+      await enviarPushDeTeste(API_BASE, token);
+      setPushMessage('Notificação de teste enviada.');
+    } catch (err) {
+      setPushMessage(err?.message || 'Não foi possível enviar o teste.');
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   useEffect(() => {
     const atualizar = () => {
@@ -516,7 +579,10 @@ const meuPerfilHref = meuPerfilId
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (token && API_BASE) {
+      await desvincularPushDoUsuario(API_BASE, token).catch(() => null);
+    }
     localStorage.clear();
     window.dispatchEvent(new Event('storage'));
     window.location.href = '/';
@@ -729,6 +795,44 @@ const meuPerfilHref = meuPerfilId
                           </CloseNotifBtn>
                         </NotifHeaderActions>
                       </NotifHeader>
+
+                      {!pushState.loading && (
+                        <PushControl $active={pushState.subscribed}>
+                          <PushControlText>
+                            <strong>
+                              {pushState.subscribed
+                                ? 'Notificações no celular ativas'
+                                : 'Receba notificações no celular'}
+                            </strong>
+                            <span>
+                              {pushState.subscribed
+                                ? 'Você será avisado mesmo com a TradeSports fechada.'
+                                : pushState.supported
+                                ? 'Ative para receber no aparelho os avisos que aparecem no sino.'
+                                : 'Este navegador ou modo de acesso não oferece suporte a push.'}
+                            </span>
+                            {pushMessage && <small>{pushMessage}</small>}
+                          </PushControlText>
+
+                          {pushState.subscribed ? (
+                            <PushSecondaryButton
+                              type="button"
+                              onClick={testarPush}
+                              disabled={pushBusy}
+                            >
+                              {pushBusy ? 'Enviando...' : 'Testar'}
+                            </PushSecondaryButton>
+                          ) : (
+                            <PushEnableButton
+                              type="button"
+                              onClick={ativarPush}
+                              disabled={pushBusy || !pushState.supported}
+                            >
+                              {pushBusy ? 'Ativando...' : 'Ativar'}
+                            </PushEnableButton>
+                          )}
+                        </PushControl>
+                      )}
 
                       {notificationsPreview.length === 0 ? (
                         <NotifEmpty>
@@ -1331,6 +1435,66 @@ const NotifHeader = styled.div`
   @media (max-width: 640px) {
     padding: 16px;
   }
+`;
+
+const PushControl = styled.div`
+  margin: 10px 12px 2px;
+  padding: 11px 12px;
+  border: 1px solid ${({ $active }) =>
+    $active ? 'rgba(34, 197, 94, 0.24)' : 'rgba(59, 130, 246, 0.24)'};
+  border-radius: 12px;
+  background: ${({ $active }) =>
+    $active ? 'rgba(34, 197, 94, 0.07)' : 'rgba(59, 130, 246, 0.07)'};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+`;
+
+const PushControlText = styled.div`
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+
+  strong {
+    color: #e2e8f0;
+    font-size: 0.76rem;
+  }
+
+  span {
+    color: #94a3b8;
+    font-size: 0.66rem;
+    line-height: 1.35;
+  }
+
+  small {
+    color: #fde68a;
+    font-size: 0.64rem;
+    line-height: 1.35;
+  }
+`;
+
+const PushEnableButton = styled.button`
+  flex: none;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: rgba(37, 99, 235, 0.22);
+  color: #dbeafe;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const PushSecondaryButton = styled(PushEnableButton)`
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.12);
+  color: #bbf7d0;
 `;
 
 const NotifHeaderText = styled.div`

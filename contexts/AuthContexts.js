@@ -1,5 +1,6 @@
 import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
+import { desvincularPushDoUsuario } from '../lib/pushNotifications';
 
 export const AuthContext = createContext();
 
@@ -115,6 +116,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = (redirectToLogin = true) => {
+    const tokenAtual = localStorage.getItem('token');
+    if (tokenAtual && API_BASE) {
+      desvincularPushDoUsuario(API_BASE, tokenAtual).catch(() => null);
+    }
     clearStoredSession();
     setToken(null);
     setUsuario(null);
