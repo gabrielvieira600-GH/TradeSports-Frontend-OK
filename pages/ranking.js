@@ -711,7 +711,7 @@ const voltarParaListaPrivados = () => {
         </AbaRanking>
     </AbasRanking>
 
-    {usuarioAtual && (
+    {usuarioAtual && !abaPrivadosAtiva && (
       <MeuRanking>
         <MeuRankingTopo>
           <div>
@@ -801,7 +801,19 @@ const voltarParaListaPrivados = () => {
     )}
 
     {abaPrivadosAtiva ? (
-      <RankingsPrivadosPage embedded />
+      <RankingsPrivadosPage
+        embedded
+        onListChange={(itens) => {
+          setRankingsPrivados({
+            criados: itens.filter(
+              item => item?.papel === 'proprietario'
+            ),
+            participando: itens.filter(
+              item => item?.papel !== 'proprietario'
+            ),
+          });
+        }}
+      />
     ) : false ? (
   <PrivadosSection>
     {rankingPrivadoSelecionado ? (
