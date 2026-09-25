@@ -9,6 +9,7 @@ import {
   FiLock,
   FiMessageCircle,
   FiPlus,
+  FiSearch,
   FiSettings,
   FiShield,
   FiUsers,
@@ -42,6 +43,10 @@ export function RankingsPrivadosPage({ embedded = false }) {
   const [criando, setCriando] = useState(false);
   const [codigo, setCodigo] = useState('');
   const [post, setPost] = useState('');
+  const [buscaUsuarios, setBuscaUsuarios] = useState('');
+  const [usuariosEncontrados, setUsuariosEncontrados] = useState([]);
+  const [pesquisandoUsuarios, setPesquisandoUsuarios] = useState(false);
+  const [convidandoUsuarioId, setConvidandoUsuarioId] = useState('');
   const conviteProcessado = useRef('');
   const [form, setForm] = useState({
     nome: '',
@@ -100,6 +105,15 @@ export function RankingsPrivadosPage({ embedded = false }) {
     }
   }, [router.query.codigo, lista]);
 
+  useEffect(() => {
+    if (!lista || !router.query.ranking) return;
+    const rankingId = String(router.query.ranking);
+    if (lista.rankings?.some((item) => String(item._id) === rankingId)) {
+      setSelecionado(rankingId);
+      if (router.query.secao === 'gestao') setAba('gestao');
+    }
+  }, [lista, router.query.ranking, router.query.secao]);
+
   async function executar(acao) {
     setErro('');
     setSucesso('');
@@ -147,11 +161,50 @@ export function RankingsPrivadosPage({ embedded = false }) {
   }
 
   async function acaoMembro(usuarioId, acao) {
+    if (!usuarioId) {
+      setErro('Não foi possível identificar o usuário desta solicitação. Atualize a página e tente novamente.');
+      return;
+    }
     await executar(async () => {
       await api.patch(`/private-rankings/${selecionado}/membros/${usuarioId}`, { acao });
-      await carregarDetalhe();
-      setSucesso('Participante atualizado.');
+      await Promise.all([carregarDetalhe(), carregarLista()]);
+      setSucesso(acao === 'aprovar' ? 'Solicitação aprovada.' : acao === 'recusar' ? 'Solicitação recusada.' : 'Participante atualizado.');
     });
+  }
+
+  async function pesquisarUsuarios(e) {
+    e?.preventDefault();
+    const busca = buscaUsuarios.trim();
+    if (busca.length < 2) {
+      setUsuariosEncontrados([]);
+      setErro('Digite ao menos dois caracteres para pesquisar.');
+      return;
+    }
+    setErro('');
+    setSucesso('');
+    setPesquisandoUsuarios(true);
+    try {
+      const { data } = await api.get('/social/usuarios', { params: { busca, limit: 10 } });
+      setUsuariosEncontrados(Array.isArray(data?.usuarios) ? data.usuarios : []);
+    } catch (e) {
+      setUsuariosEncontrados([]);
+      setErro(e?.response?.data?.erro || 'Não foi possível pesquisar usuários.');
+    } finally {
+      setPesquisandoUsuarios(false);
+    }
+  }
+
+  async function convidarUsuario(usuarioId) {
+    setConvidandoUsuarioId(String(usuarioId));
+    await executar(async () => {
+      await api.post('/ranking-convites', {
+        rankingId: selecionado,
+        destinatarioId: usuarioId,
+      });
+      setUsuariosEncontrados((atuais) => atuais.filter((item) => String(item.id) !== String(usuarioId)));
+      setSucesso('Convite enviado. O usuário poderá aceitar ou recusar pela notificação ou pela página de convites.');
+    });
+    setConvidandoUsuarioId('');
   }
 
   async function encerrar() {
@@ -195,6 +248,10 @@ export function RankingsPrivadosPage({ embedded = false }) {
   );
   const podeCriar = lista?.plano === 'premium';
   const ranking = detalhe?.ranking;
+  const membrosPendentes = useMemo(
+    () => detalhe?.membros?.filter((item) => item.status === 'pendente') || [],
+    [detalhe]
+  );
   const Wrapper = embedded ? EmbeddedPage : Page;
 
   if (carregando) return <Wrapper><Loading>Carregando rankings privados...</Loading></Wrapper>;
@@ -317,13 +374,20 @@ export function RankingsPrivadosPage({ embedded = false }) {
             </DetailActions>
           </DetailHeader>
 
+          {detalhe.solicitacaoPendente && (
+            <PendingNotice>
+              <FiLock />
+              <div><strong>Solicitação aguardando aprovação</strong><span>O proprietário foi notificado e você receberá uma notificação quando houver uma resposta.</span></div>
+            </PendingNotice>
+          )}
+
           <Tabs>
             {[
               ['ranking', 'Ranking', FiBarChart2],
               ['feed', 'Feed', FiMessageCircle],
               ['estatisticas', 'Estatísticas', FiUsers],
               ['campeoes', 'Campeões', FiAward],
-              ['gestao', 'Gestão', FiSettings],
+              ['gestao', membrosPendentes.length ? `Gestão (${membrosPendentes.length})` : 'Gestão', FiSettings],
             ].map(([id, label, Icon]) => (
               <Tab key={id} $active={aba === id} onClick={() => setAba(id)}><Icon /> {label}</Tab>
             ))}
@@ -372,9 +436,40 @@ export function RankingsPrivadosPage({ embedded = false }) {
               {aba === 'gestao' && (
                 <Panel>
                   <PanelHead><div><h3>Participantes e permissões</h3><p>Proprietário, administradores, participantes e solicitações.</p></div></PanelHead>
-                  {!detalhe.podeGerir ? <Locked><FiLock /> Apenas proprietário e administradores podem gerenciar.</Locked> : <MemberList>
-                    {detalhe.membros.map((membro) => <Member key={membro._id}><div><strong>@{membro.usuarioId?.nomeUsuario || membro.usuarioId?.nome}</strong><span>{membro.papel} · {membro.status}</span></div>{membro.papel !== 'proprietario' && <MemberActions>{membro.status === 'pendente' && <button onClick={() => acaoMembro(membro.usuarioId._id, 'aprovar')}>Aprovar</button>}{detalhe.papel === 'proprietario' && membro.status === 'aprovado' && <button onClick={() => acaoMembro(membro.usuarioId._id, membro.papel === 'administrador' ? 'participante' : 'administrador')}>{membro.papel === 'administrador' ? 'Remover admin' : 'Tornar admin'}</button>}<button onClick={() => acaoMembro(membro.usuarioId._id, 'remover')}>Remover</button><button $danger onClick={() => acaoMembro(membro.usuarioId._id, 'bloquear')}>Bloquear</button></MemberActions>}</Member>)}
-                  </MemberList>}
+                  {!detalhe.podeGerir ? <Locked><FiLock /> Apenas proprietário e administradores podem gerenciar.</Locked> : <>
+                    {membrosPendentes.length > 0 && <PendingBox>
+                      <PendingTitle><strong>Solicitações de entrada</strong><span>{membrosPendentes.length} pendente{membrosPendentes.length > 1 ? 's' : ''}</span></PendingTitle>
+                      {membrosPendentes.map((membro) => <Member key={membro._id}>
+                        <div><strong>@{membro.usuarioId?.nomeUsuario || membro.usuarioId?.nome}</strong><span>Aguardando sua decisão</span></div>
+                        <MemberActions>
+                          <button onClick={() => acaoMembro(membro.usuarioId?._id, 'aprovar')}>Aprovar</button>
+                          <button className="danger" onClick={() => acaoMembro(membro.usuarioId?._id, 'recusar')}>Recusar</button>
+                        </MemberActions>
+                      </Member>)}
+                    </PendingBox>}
+
+                    {detalhe.papel === 'proprietario' && <InviteUsers>
+                      <InviteUsersHeader>
+                        <strong>Convidar pela TradeSports</strong>
+                        <span>Pesquise pelo nome ou @. O usuário receberá uma notificação para aceitar ou recusar.</span>
+                      </InviteUsersHeader>
+                      <SearchUsers onSubmit={pesquisarUsuarios}>
+                        <FiSearch />
+                        <input value={buscaUsuarios} onChange={(e) => setBuscaUsuarios(e.target.value)} placeholder="Pesquisar usuário" />
+                        <button disabled={pesquisandoUsuarios}>{pesquisandoUsuarios ? 'Buscando...' : 'Buscar'}</button>
+                      </SearchUsers>
+                      {usuariosEncontrados.length > 0 && <SearchResults>
+                        {usuariosEncontrados.map((usuario) => <SearchUser key={usuario.id}>
+                          <div><strong>{usuario.nomeUsuario ? `@${usuario.nomeUsuario}` : usuario.nome}</strong><span>{usuario.nomeUsuario && usuario.nome ? usuario.nome : `Plano ${usuario.plano || 'Lite'}`}</span></div>
+                          <button type="button" disabled={convidandoUsuarioId === String(usuario.id)} onClick={() => convidarUsuario(usuario.id)}>{convidandoUsuarioId === String(usuario.id) ? 'Enviando...' : 'Convidar'}</button>
+                        </SearchUser>)}
+                      </SearchResults>}
+                    </InviteUsers>}
+
+                    <MemberList>
+                      {detalhe.membros.filter((membro) => membro.status !== 'pendente').map((membro) => <Member key={membro._id}><div><strong>@{membro.usuarioId?.nomeUsuario || membro.usuarioId?.nome}</strong><span>{membro.papel} · {membro.status}</span></div>{membro.papel !== 'proprietario' && <MemberActions>{detalhe.papel === 'proprietario' && membro.status === 'aprovado' && <button onClick={() => acaoMembro(membro.usuarioId?._id, membro.papel === 'administrador' ? 'participante' : 'administrador')}>{membro.papel === 'administrador' ? 'Remover admin' : 'Tornar admin'}</button>}<button onClick={() => acaoMembro(membro.usuarioId?._id, 'remover')}>Remover</button><button className="danger" onClick={() => acaoMembro(membro.usuarioId?._id, 'bloquear')}>Bloquear</button></MemberActions>}</Member>)}
+                    </MemberList>
+                  </>}
                   <Rules><strong>Regras</strong><p>{ranking.regras || 'Aplicam-se as regras gerais do mercado e o critério indicado na classificação.'}</p></Rules>
                   {detalhe.papel === 'proprietario' && <DangerZone>{ranking.status === 'ativo' && <button onClick={encerrar}><FiAward /> Encerrar e premiar campeão</button>}{ranking.status === 'encerrado' && <button onClick={arquivar}><FiArchive /> Arquivar competição</button>}</DangerZone>}
                 </Panel>
@@ -442,6 +537,7 @@ const SecondaryButton = styled.button`border:1px solid rgba(148,163,184,.16);bor
 const GroupEmpty = styled.div`padding:16px;border:1px dashed rgba(148,163,184,.13);border-radius:13px;color:#64748b;text-align:center;font-size:.78rem`;
 const EmptyState = styled.div`min-height:230px;border:1px dashed rgba(148,163,184,.16);border-radius:18px;background:rgba(15,23,42,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748b;gap:7px;svg{font-size:34px;color:#d6b82d}strong{color:#e2e8f0;font-size:1rem}span{font-size:.8rem}`;
 const DetailSection = styled.section`margin-top:22px;padding-top:20px;border-top:1px solid rgba(148,163,184,.12)`;
+const PendingNotice = styled.div`display:flex;align-items:center;gap:11px;margin:12px 0;padding:12px 14px;border:1px solid rgba(250,204,21,.25);border-radius:12px;background:rgba(250,204,21,.065);color:#fde68a;div{display:grid;gap:3px}span{color:#94a3b8;font-size:.72rem}`;
 const DetailHeader = styled.div`padding:18px;border:1px solid rgba(148,163,184,.13);border-radius:17px;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:space-between;gap:16px;@media(max-width:760px){align-items:flex-start;flex-direction:column}`;
 const DetailIdentity = styled.div`display:flex;align-items:center;gap:13px;h2{margin:3px 0;color:#f8fafc;font-size:1.18rem}p{margin:0;color:#94a3b8;font-size:.8rem}`;
 const LeagueLogo = styled.div`width:52px;height:52px;border-radius:13px;background:#18334e;color:#fde68a;display:grid;place-items:center;font-weight:900;font-size:1.2rem;overflow:hidden;flex:none;img{width:100%;height:100%;object-fit:cover}`;
@@ -466,7 +562,14 @@ const Champion = styled.div`display:flex;gap:12px;align-items:center;padding:12p
 const Locked = styled.div`display:flex;gap:8px;align-items:center;justify-content:center;padding:36px;color:#94a3b8;font-size:.82rem`;
 const MemberList = styled.div`display:flex;flex-direction:column;gap:8px`;
 const Member = styled.div`display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(255,255,255,.02);border:1px solid rgba(148,163,184,.1);border-radius:10px;padding:11px;span{display:block;color:#64748b;font-size:.7rem;margin-top:3px;text-transform:capitalize}@media(max-width:650px){align-items:flex-start;flex-direction:column}`;
-const MemberActions = styled.div`display:flex;gap:5px;flex-wrap:wrap;button{background:${({$danger})=>$danger?'rgba(239,68,68,.1)':'rgba(59,130,246,.1)'};border:1px solid rgba(148,163,184,.16);color:#cbd5e1;border-radius:7px;padding:6px 8px;cursor:pointer;font-size:.68rem}`;
+const MemberActions = styled.div`display:flex;gap:5px;flex-wrap:wrap;button{background:rgba(59,130,246,.1);border:1px solid rgba(148,163,184,.16);color:#cbd5e1;border-radius:7px;padding:6px 8px;cursor:pointer;font-size:.68rem}.danger{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.28);color:#fca5a5}`;
+const PendingBox = styled.section`margin-bottom:15px;padding:13px;border:1px solid rgba(250,204,21,.26);border-radius:13px;background:rgba(250,204,21,.055);display:grid;gap:8px`;
+const PendingTitle = styled.div`display:flex;align-items:center;justify-content:space-between;color:#fde68a;margin-bottom:2px;span{padding:4px 8px;border-radius:999px;background:rgba(250,204,21,.12);font-size:.65rem;font-weight:900}`;
+const InviteUsers = styled.section`margin-bottom:15px;padding:14px;border:1px solid rgba(59,130,246,.2);border-radius:13px;background:rgba(59,130,246,.045)`;
+const InviteUsersHeader = styled.div`display:grid;gap:4px;margin-bottom:10px;strong{color:#f8fafc;font-size:.86rem}span{color:#64748b;font-size:.72rem;line-height:1.45}`;
+const SearchUsers = styled.form`display:flex;align-items:center;border:1px solid rgba(148,163,184,.18);border-radius:10px;background:rgba(15,23,42,.78);overflow:hidden;color:#64748b;svg{margin-left:11px;flex:none}input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#f8fafc;padding:10px}button{align-self:stretch;border:0;background:rgba(59,130,246,.18);color:#bfdbfe;padding:0 13px;font-weight:800;cursor:pointer}button:disabled{opacity:.55}`;
+const SearchResults = styled.div`display:grid;gap:7px;margin-top:10px`;
+const SearchUser = styled.div`display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid rgba(148,163,184,.12);border-radius:9px;background:rgba(255,255,255,.025);div{display:grid;gap:2px}strong{color:#e2e8f0;font-size:.78rem}span{color:#64748b;font-size:.67rem}button{border:1px solid rgba(250,204,21,.25);border-radius:8px;background:rgba(250,204,21,.1);color:#fde68a;padding:7px 9px;font-weight:800;cursor:pointer}button:disabled{opacity:.55}`;
 const Rules = styled.div`margin-top:18px;border-top:1px solid rgba(148,163,184,.1);padding-top:15px;color:#94a3b8;font-size:.8rem;p{white-space:pre-wrap;line-height:1.5}`;
 const DangerZone = styled.div`margin-top:15px;button{background:transparent;border:1px solid rgba(250,204,21,.28);color:#fde68a;border-radius:9px;padding:9px 12px;cursor:pointer;display:flex;gap:6px;align-items:center;font-weight:800}`;
 const Loading = styled.div`padding:30px;text-align:center;color:#94a3b8;font-size:.82rem`;
