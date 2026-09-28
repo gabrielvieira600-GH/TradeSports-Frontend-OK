@@ -225,7 +225,8 @@ function LegalModal({ title, text, onClose, onAccept }) {
 }
 
 const Page = styled.div`
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   padding: 40px 18px;
   display: grid;
   place-items: center;

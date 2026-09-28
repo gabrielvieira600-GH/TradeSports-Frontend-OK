@@ -38,6 +38,7 @@ export default function NegociacaoModal({
   const [ordensCompra, setOrdensCompra] = useState([]);
   const [ordensVenda, setOrdensVenda] = useState([]);
   const [ipoEncerrado, setIpoEncerrado] = useState(false);
+  const [ligaFechada, setLigaFechada] = useState(false);
   const [marketMode, setMarketMode] = useState('UNIFIED_LIQUIDITY');
   const [cotasIPO, setCotasIPO] = useState(0);
   const [mostrarRisco, setMostrarRisco] = useState(false);
@@ -230,9 +231,10 @@ export default function NegociacaoModal({
     try {
       if (!clubeId) return;
 
-      const [clubeInfo, configResponse] = await Promise.all([
+      const [clubeInfo, configResponse, marketStatusResponse] = await Promise.all([
         buscarClubeInfo(clubeId),
         api.get('/mercado/configuracao').catch(() => ({ data: { marketMode: 'IPO' } })),
+        api.get('/api/market-status').catch(() => ({ data: { mercados: [] } })),
       ]);
 
       if (!clubeInfo) {
@@ -242,6 +244,9 @@ export default function NegociacaoModal({
       }
 
       const mode = configResponse?.data?.marketMode || 'IPO';
+      const ligaId = clubeInfo.metadata?.ligaId || clubeInfo.ligaId || clube?.metadata?.ligaId || clube?.ligaId;
+      const mercadosFechados = marketStatusResponse?.data?.mercados || [];
+      setLigaFechada(Boolean(ligaId && mercadosFechados.some((market) => market.ligaId === ligaId && market.fechado)));
       const unified = mode === 'UNIFIED_LIQUIDITY';
       const cotas = Number(clubeInfo.cotasDisponiveis ?? 0);
       const encerrado = unified || cotas === 0 || Boolean(clubeInfo.ipoEncerrado);
@@ -497,6 +502,13 @@ export default function NegociacaoModal({
     if (!usuario || (!usuario.id && !usuario._id)) {
       setMensagem('Não foi possí­vel identificar o usuário logado.');
       adicionarToast('Usuário inválido.', 'erro');
+      setCarregando(false);
+      return;
+    }
+
+    if (ligaFechada) {
+      setMensagem('As negociações desta liga estão fechadas no momento.');
+      adicionarToast('Mercado fechado para esta liga.', 'erro');
       setCarregando(false);
       return;
     }
@@ -1051,7 +1063,7 @@ useEffect(() => {
 }, [isOpen, clubeId, token, usuario, cotasDisponiveisVenda]);
 
 const mercadoSecundarioBloqueado =
-  ipoEncerrado &&
+  ligaFechada || (ipoEncerrado &&
   Boolean(usuario) &&
   (
     limiteOrdens.carregando ||
@@ -1061,7 +1073,7 @@ const mercadoSecundarioBloqueado =
       limiteOrdens.plano === 'lite' &&
       limiteOrdens.limiteAtingido
     )
-  );
+  ));
 
 if (!isOpen || !clube) return null;
 
@@ -1549,6 +1561,7 @@ return (
 <BotaoComprar
             onClick={enviarOrdem}
             disabled={
+  ligaFechada ||
   (ipoEncerrado && !tickValidation.valid) ||
   mercadoSecundarioBloqueado ||
   carregando ||
@@ -1565,6 +1578,8 @@ return (
   ? 'Faça login para negociar'
   : carregando
   ? 'Enviando...'
+  : ligaFechada
+  ? 'Mercado fechado'
   : ipoEncerrado &&
     limiteOrdens.carregando
   ? 'Verificando franquia...'

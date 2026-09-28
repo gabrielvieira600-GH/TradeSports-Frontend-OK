@@ -315,6 +315,7 @@ export default function ClubeDetalhe() {
   const [modalAberto, setModalAberto] = useState(false);
   const [watchlist, setWatchlist] = useState({ clubes: [], ligas: [] });
   const [favoriting, setFavoriting] = useState(false);
+  const [mercadoFechado, setMercadoFechado] = useState(false);
 
   const carregarClube = useCallback(async (signal) => {
     if (!id || !API_BASE) return;
@@ -424,6 +425,16 @@ export default function ClubeDetalhe() {
 
   const ligaId = clube?.metadata?.ligaId || clube?.ligaId || 'brasileirao-a';
   const liga = mercados[ligaId] || mercados['brasileirao-a'];
+
+  useEffect(() => {
+    if (!ligaId || !API_BASE) return;
+    let ativo = true;
+    axios.get(`${API_BASE}/api/market-status`).then(({ data }) => {
+      const fechados = Array.isArray(data?.mercados) ? data.mercados : [];
+      if (ativo) setMercadoFechado(fechados.some((item) => item.ligaId === ligaId && item.fechado));
+    }).catch(() => {});
+    return () => { ativo = false; };
+  }, [ligaId]);
   const currentPrice = numero(hist?.precoMercado, clube?.precoAtual ?? clube?.preco);
   const precoReferenciaPorPosicao = calcularPrecoReferencia(
     clube?.posicao,
@@ -434,7 +445,7 @@ export default function ClubeDetalhe() {
     clube?.preco
   );
   const positive = resumo.variacaoAbs >= 0;
-  const marketLabel = clube?.ipoEncerrado ? 'Mercado secundário' : 'Oferta inicial';
+  const marketLabel = mercadoFechado ? 'Mercado fechado' : clube?.ipoEncerrado ? 'Mercado secundário' : 'Oferta inicial';
   const favorito = (watchlist?.clubes || []).some((item) =>
     String(item.id ?? item.entityId) === String(clube?.id ?? clube?.legacyId)
   );
@@ -547,8 +558,8 @@ export default function ClubeDetalhe() {
           </Variation>
         </QuoteBlock>
 
-        <TradeButton type="button" onClick={() => setModalAberto(true)}>
-          Negociar agora <FiTrendingUp />
+        <TradeButton type="button" disabled={mercadoFechado} onClick={() => setModalAberto(true)}>
+          {mercadoFechado ? 'Mercado fechado' : <>Negociar agora <FiTrendingUp /></>}
         </TradeButton>
       </Hero>
 
@@ -663,8 +674,8 @@ export default function ClubeDetalhe() {
               <h2>Monte sua posição</h2>
               <p>Consulte o livro de ofertas e escolha preço e quantidade para negociar.</p>
             </div>
-            <TradeButton type="button" onClick={() => setModalAberto(true)} $full>
-              Abrir negociação <FiTrendingUp />
+            <TradeButton type="button" disabled={mercadoFechado} onClick={() => setModalAberto(true)} $full>
+              {mercadoFechado ? 'Mercado fechado' : <>Abrir negociação <FiTrendingUp /></>}
             </TradeButton>
             <ActionHint>Moeda virtual sem valor real.</ActionHint>
           </ActionCard>
@@ -673,7 +684,7 @@ export default function ClubeDetalhe() {
 
       <MobileTradeBar>
         <div><span>{clube.nome}</span><strong>{formatTrade(currentPrice)}</strong></div>
-        <TradeButton type="button" onClick={() => setModalAberto(true)}>Negociar</TradeButton>
+        <TradeButton type="button" disabled={mercadoFechado} onClick={() => setModalAberto(true)}>{mercadoFechado ? 'Mercado fechado' : 'Negociar'}</TradeButton>
       </MobileTradeBar>
 
       {modalAberto && (
@@ -892,6 +903,8 @@ const TradeButton = styled.button`
   transition: transform .18s ease, box-shadow .18s ease;
 
   &:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0, 217, 130, .26); }
+  &:disabled { background: #334155; color: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+  &:disabled:hover { transform: none; }
   &:focus-visible { outline: 3px solid rgba(56,189,248,.35); outline-offset: 3px; }
 
   @media (max-width: 700px) { ${Hero} > & { display: none; } }

@@ -7,11 +7,13 @@ import { ToastProvider } from '../components/ToastProvider';
 import { AuthProvider } from '../contexts/AuthContexts';
 import { AdvertisingProvider } from '../contexts/AdvertisingContext';
 
-export default function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps, router }) {
   // Se alguma página usar getLayout custom, respeita.
   // Senão, envolve tudo no Layout padrão (Topbar + Sidebar, etc).
   const getLayout =
-    Component.getLayout || ((page) => <Layout>{page}</Layout>);
+    Component.getLayout || ((page) => (
+      <Layout fullBleed={['/login', '/cadastro'].includes(router.pathname)}>{page}</Layout>
+    ));
 
   return (
     <AuthProvider>
@@ -31,7 +33,6 @@ export default function MyApp({ Component, pageProps }) {
     </AuthProvider>
   );
 }
-
 
 
 

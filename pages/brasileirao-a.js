@@ -27,6 +27,7 @@ export function MercadoCompeticao({ mercado }) {
   const [filtro, setFiltro] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [mercadoFechado, setMercadoFechado] = useState(false);
 
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -176,8 +177,20 @@ export function MercadoCompeticao({ mercado }) {
     }
   };
 
+  const fetchEstadoMercado = async () => {
+    if (!API_BASE) return;
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/market-status`);
+      const fechados = Array.isArray(data?.mercados) ? data.mercados : [];
+      setMercadoFechado(fechados.some((item) => item.ligaId === LIGA_ID && item.fechado));
+    } catch (e) {
+      console.warn('[MARKET STATUS] erro ao consultar:', e?.message);
+    }
+  };
+
   useEffect(() => {
     fetchDados();
+    fetchEstadoMercado();
     carregarWatchlist();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -232,6 +245,8 @@ export function MercadoCompeticao({ mercado }) {
           </LeagueStar>
         </LeagueActions>
       </Hero>
+
+      {mercadoFechado && <MarketClosedNotice>Mercado fechado temporariamente pelo administrador.</MarketClosedNotice>}
 
       <MarketAdBanner slotName="market" />
 
@@ -361,12 +376,12 @@ export function MercadoCompeticao({ mercado }) {
 
                       <td>
                         <StatusText $ipo={!clube.ipoEncerrado}>
-                          {!clube.ipoEncerrado ? 'Unidades Iniciais' : 'Negociação aberta'}
+                          {mercadoFechado ? 'Mercado fechado' : !clube.ipoEncerrado ? 'Unidades Iniciais' : 'Negociação aberta'}
                         </StatusText>
                       </td>
 
                       <td>
-                        <Botao onClick={() => abrirModal(clube)}>Negociar</Botao>
+                        <Botao disabled={mercadoFechado} onClick={() => abrirModal(clube)}>{mercadoFechado ? 'Mercado fechado' : 'Negociar'}</Botao>
                       </td>
                     </tr>
                   );
@@ -429,8 +444,8 @@ export function MercadoCompeticao({ mercado }) {
                   </ColPrice>
 
                   <ColTrade>
-                    <TradeButton onClick={() => abrirModal(clube)}>
-                      Negociar
+                    <TradeButton disabled={mercadoFechado} onClick={() => abrirModal(clube)}>
+                      {mercadoFechado ? 'Mercado fechado' : 'Negociar'}
                     </TradeButton>
                   </ColTrade>
                 </Row>
@@ -704,6 +719,17 @@ const StatusText = styled.div`
   font-weight: 800;
 `;
 
+const MarketClosedNotice = styled.div`
+  margin: 0 0 12px;
+  padding: 11px 14px;
+  border: 1px solid rgba(248, 113, 113, .28);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, .17);
+  color: #fca5a5;
+  font-size: .82rem;
+  font-weight: 750;
+`;
+
 const Botao = styled.button`
   background: linear-gradient(180deg, #3b82f6, #2563eb);
   color: white;
@@ -717,6 +743,8 @@ const Botao = styled.button`
   &:hover {
     filter: brightness(1.05);
   }
+
+  &:disabled { background: #334155; box-shadow: none; cursor: not-allowed; }
 `;
 
 const TableCard = styled.div`
@@ -854,7 +882,7 @@ const PriceValue = styled.div`
 
 const TradeButton = styled.button`
   width: 100%;
-  max-width: 84px;
+  max-width: 112px;
   border: none;
   border-radius: 999px;
   padding: 9px 6px;
@@ -867,4 +895,6 @@ const TradeButton = styled.button`
   &:hover {
     background: #1d4ed8;
   }
+
+  &:disabled { background: #334155; cursor: not-allowed; }
 `;

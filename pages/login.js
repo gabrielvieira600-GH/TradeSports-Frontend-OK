@@ -232,7 +232,7 @@ const pulse = keyframes`0%,100%{opacity:1}50%{opacity:.4}`;
 const spin = keyframes`to{transform:rotate(360deg)}`;
 
 const Page = styled.main`
-  position: relative; min-height: calc(100vh - 64px); overflow: hidden;
+  position: relative; min-height: 100%; box-sizing: border-box; overflow: hidden;
   display: grid; place-items: center; padding: 38px 24px;
   color: #e5e7eb; background: #030712;
   @media (max-width: 900px) { padding: 24px 16px; }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import AdminMarketControls from "../components/AdminMarketControls";
 
 function getApiBase() {
   return process.env.NEXT_PUBLIC_API_URL;
@@ -565,6 +566,8 @@ export default function AdminPainel() {
           Abrir liquidez institucional
         </Link>
       </div>
+
+      <AdminMarketControls onMessage={notify} />
 
       <div style={styles.metricsGrid}>
         <MetricCard title="Usuários" value={counts.usuarios ?? 0} />

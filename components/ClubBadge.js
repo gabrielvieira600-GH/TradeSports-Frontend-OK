@@ -1,5 +1,5 @@
 // components/ClubBadge.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 const CLUB_STYLES = {
@@ -574,14 +574,14 @@ nfl: {
   italia: {
     outer: '#166534',
     glow: '#ef4444',
-    pattern: 'flag-france',
+    pattern: 'flag-italy',
     colors: ['#15803d', '#ffffff', '#dc2626'],
   },
 
   seriea: {
     outer: '#166534',
     glow: '#ef4444',
-    pattern: 'flag-france',
+    pattern: 'flag-italy',
     colors: ['#15803d', '#ffffff', '#dc2626'],
   },
 
@@ -780,6 +780,17 @@ const MarkText = styled.span`
   letter-spacing: ${({ $length }) => ($length > 2 ? '-0.07em' : '-0.02em')};
   text-align: center;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+`;
+
+const OfficialLogo = styled.img`
+  position: absolute;
+  z-index: 5;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  object-fit: contain;
+  border-radius: 999px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.55));
 `;
 
 const Star = styled.div`
@@ -1295,6 +1306,17 @@ function getBackground(style) {
         ${c} 100%
       )`;
 
+    case 'flag-italy':
+      return `linear-gradient(
+        90deg,
+        ${a} 0%,
+        ${a} 33.33%,
+        ${b} 33.33%,
+        ${b} 66.66%,
+        ${c} 66.66%,
+        ${c} 100%
+      )`;
+
     case 'flag-netherlands':
       return `linear-gradient(
         180deg,
@@ -1412,7 +1434,9 @@ function getBackground(style) {
   }
 }
 
-export default function ClubBadge({ clube, liga, mercado, size = 34 }) {
+export default function ClubBadge({ clube, liga, mercado, escudo, size = 34 }) {
+  const [logoFalhou, setLogoFalhou] = useState(false);
+  useEffect(() => setLogoFalhou(false), [escudo]);
   const clubName =
     clube && typeof clube === 'object'
       ? clube.nome || clube.name || clube.nomeApi || clube.clubeNome || 'Clube'
@@ -1449,6 +1473,15 @@ export default function ClubBadge({ clube, liga, mercado, size = 34 }) {
       aria-label={`Símbolo de ${clubName || 'clube'}`}
     >
       <Inner $bg={bg}>
+        {escudo && !logoFalhou ? (
+          <OfficialLogo
+            src={String(escudo).replace(/^http:\/\//i, 'https://')}
+            alt={`Escudo do ${clubName}`}
+            loading="lazy"
+            onError={() => setLogoFalhou(true)}
+          />
+        ) : (
+          <>
         {style.pattern === 'star' && <Star $size={size} />}
 
         {style.pattern === 'stars' && (
@@ -1469,6 +1502,8 @@ export default function ClubBadge({ clube, liga, mercado, size = 34 }) {
               {style.mark}
             </MarkText>
           </MarkPlate>
+        )}
+          </>
         )}
       </Inner>
     </Wrap>
