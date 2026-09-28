@@ -9,7 +9,6 @@ import {
   ativarNotificacoesPush,
   consultarEstadoPush,
   desvincularPushDoUsuario,
-  enviarPushDeTeste,
 } from '../lib/pushNotifications';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -201,6 +200,17 @@ const meuPerfilHref = meuPerfilId
     };
   }, [token]);
 
+  useEffect(() => {
+    if (!token || !API_BASE) return;
+    const atualizarPush = () => {
+      consultarEstadoPush(API_BASE, token)
+        .then((estado) => setPushState({ loading: false, ...estado }))
+        .catch(() => setPushState((atual) => ({ ...atual, loading: false, supported: false })));
+    };
+    window.addEventListener('push-subscription-updated', atualizarPush);
+    return () => window.removeEventListener('push-subscription-updated', atualizarPush);
+  }, [token]);
+
   const ativarPush = async () => {
     if (!token || !API_BASE || pushBusy) return;
     setPushBusy(true);
@@ -208,24 +218,8 @@ const meuPerfilHref = meuPerfilId
     try {
       const estado = await ativarNotificacoesPush(API_BASE, token);
       setPushState({ loading: false, ...estado });
-      setPushMessage('Notificações ativadas neste aparelho.');
-      await enviarPushDeTeste(API_BASE, token).catch(() => null);
     } catch (err) {
       setPushMessage(err?.message || 'Não foi possível ativar as notificações.');
-    } finally {
-      setPushBusy(false);
-    }
-  };
-
-  const testarPush = async () => {
-    if (!token || !API_BASE || pushBusy) return;
-    setPushBusy(true);
-    setPushMessage('');
-    try {
-      await enviarPushDeTeste(API_BASE, token);
-      setPushMessage('Notificação de teste enviada.');
-    } catch (err) {
-      setPushMessage(err?.message || 'Não foi possível enviar o teste.');
     } finally {
       setPushBusy(false);
     }
@@ -796,41 +790,25 @@ const meuPerfilHref = meuPerfilId
                         </NotifHeaderActions>
                       </NotifHeader>
 
-                      {!pushState.loading && (
-                        <PushControl $active={pushState.subscribed}>
+                      {!pushState.loading && !pushState.subscribed && (
+                        <PushControl>
                           <PushControlText>
-                            <strong>
-                              {pushState.subscribed
-                                ? 'Notificações no celular ativas'
-                                : 'Receba notificações no celular'}
-                            </strong>
+                            <strong>Receba notificações no celular</strong>
                             <span>
-                              {pushState.subscribed
-                                ? 'Você será avisado mesmo com a TradeSports fechada.'
-                                : pushState.supported
+                              {pushState.supported
                                 ? 'Ative para receber no aparelho os avisos que aparecem no sino.'
                                 : 'Este navegador ou modo de acesso não oferece suporte a push.'}
                             </span>
                             {pushMessage && <small>{pushMessage}</small>}
                           </PushControlText>
 
-                          {pushState.subscribed ? (
-                            <PushSecondaryButton
-                              type="button"
-                              onClick={testarPush}
-                              disabled={pushBusy}
-                            >
-                              {pushBusy ? 'Enviando...' : 'Testar'}
-                            </PushSecondaryButton>
-                          ) : (
-                            <PushEnableButton
-                              type="button"
-                              onClick={ativarPush}
-                              disabled={pushBusy || !pushState.supported}
-                            >
-                              {pushBusy ? 'Ativando...' : 'Ativar'}
-                            </PushEnableButton>
-                          )}
+                          <PushEnableButton
+                            type="button"
+                            onClick={ativarPush}
+                            disabled={pushBusy || !pushState.supported}
+                          >
+                            {pushBusy ? 'Ativando...' : 'Ativar'}
+                          </PushEnableButton>
                         </PushControl>
                       )}
 

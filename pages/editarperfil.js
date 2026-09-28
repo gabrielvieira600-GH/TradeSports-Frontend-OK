@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import {
   FiArrowLeft,
+  FiBell,
+  FiBellOff,
   FiCamera,
   FiCheckCircle,
   FiImage,
@@ -16,6 +18,11 @@ import {
   FiXCircle,
 } from 'react-icons/fi';
 import UserAvatar from '../components/UserAvatar';
+import {
+  ativarNotificacoesPush,
+  consultarEstadoPush,
+  desativarNotificacoesPush,
+} from '../lib/pushNotifications';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -32,6 +39,13 @@ export default function EditarPerfil() {
   const [enviandoFoto, setEnviandoFoto] = useState(false);
   const [salvandoPerfil, setSalvandoPerfil] = useState(false);
   const [salvandoSenha, setSalvandoSenha] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushState, setPushState] = useState({
+    loading: true,
+    supported: true,
+    subscribed: false,
+    permission: 'default',
+  });
   const inputFotoRef = useRef(null);
   const router = useRouter();
 
@@ -74,6 +88,19 @@ export default function EditarPerfil() {
   useEffect(() => () => {
     if (previewFoto) URL.revokeObjectURL(previewFoto);
   }, [previewFoto]);
+
+  useEffect(() => {
+    if (!token || !API) return;
+    let ativo = true;
+    consultarEstadoPush(API, token)
+      .then((estado) => {
+        if (ativo) setPushState({ loading: false, ...estado });
+      })
+      .catch(() => {
+        if (ativo) setPushState((estado) => ({ ...estado, loading: false, supported: false }));
+      });
+    return () => { ativo = false; };
+  }, [token]);
 
   const exibirFeedback = (tipo, texto) => setFeedback({ tipo, texto });
 
@@ -183,6 +210,29 @@ export default function EditarPerfil() {
     }
   };
 
+  const alternarNotificacoes = async () => {
+    if (!token || !API || pushBusy) return;
+    setPushBusy(true);
+    setFeedback(null);
+    try {
+      const estado = pushState.subscribed
+        ? await desativarNotificacoesPush(API, token)
+        : await ativarNotificacoesPush(API, token);
+      setPushState({ loading: false, ...estado });
+      window.dispatchEvent(new Event('push-subscription-updated'));
+      exibirFeedback(
+        'sucesso',
+        estado.subscribed
+          ? 'Notificações ativadas neste aparelho.'
+          : 'Notificações desativadas neste aparelho.'
+      );
+    } catch (err) {
+      exibirFeedback('erro', err?.message || 'Não foi possível atualizar as notificações.');
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
   if (!usuario) return <Loading aria-label="Carregando perfil" />;
 
   return (
@@ -288,13 +338,43 @@ export default function EditarPerfil() {
             <CardFooter><PrimaryButton type="submit" disabled={salvandoSenha}><FiLock /> {salvandoSenha ? 'Atualizando...' : 'Atualizar senha'}</PrimaryButton></CardFooter>
           </FormCard>
         </FormGrid>
+
+        <NotificationCard>
+          <NotificationCopy>
+            <IconBox $green>{pushState.subscribed ? <FiBell /> : <FiBellOff />}</IconBox>
+            <div>
+              <h2>Notificações no celular</h2>
+              <p>
+                {pushState.loading
+                  ? 'Verificando este aparelho...'
+                  : pushState.subscribed
+                  ? 'Ativas neste aparelho. Você receberá os avisos exibidos no sino.'
+                  : pushState.supported
+                  ? 'Desativadas neste aparelho.'
+                  : 'Este navegador ou modo de acesso não oferece suporte a notificações push.'}
+              </p>
+            </div>
+          </NotificationCopy>
+          <NotificationButton
+            type="button"
+            $active={pushState.subscribed}
+            onClick={alternarNotificacoes}
+            disabled={pushState.loading || pushBusy || !pushState.supported}
+          >
+            {pushBusy
+              ? 'Atualizando...'
+              : pushState.subscribed
+              ? <><FiBellOff /> Desativar notificações</>
+              : <><FiBell /> Ativar notificações</>}
+          </NotificationButton>
+        </NotificationCard>
       </Content>
     </Page>
   );
 }
 
 const Page = styled.main`
-  position: relative; min-height: calc(100vh - 64px); overflow: hidden;
+  position: relative; min-height: 100%; box-sizing: border-box; overflow: hidden;
   color: #f8fafc; background: radial-gradient(circle at 18% 0%, rgba(37,99,235,.13), transparent 34%), #07101f;
 `;
 const GlowTop = styled.div`position:absolute;top:-220px;right:-140px;width:520px;height:520px;border-radius:50%;background:rgba(16,185,129,.07);filter:blur(40px);pointer-events:none;`;
@@ -328,4 +408,7 @@ const InputWrap = styled.div`height:48px;display:flex;align-items:center;gap:11p
 const TextareaWrap = styled.div`padding:12px 14px;border:1px solid rgba(148,163,184,.15);border-radius:11px;background:#091321;transition:.2s;&:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1);}textarea{display:block;width:100%;min-height:88px;resize:vertical;border:0;outline:0;background:transparent;color:#f8fafc;font:inherit;font-size:.9rem;line-height:1.5;&::placeholder{color:#475569;}}`;
 const Contador = styled.span`float:right;color:#64748b;font-size:.7rem;font-weight:700;`;
 const CardFooter = styled.div`display:flex;justify-content:flex-end;margin-top:auto;padding:0 24px 24px;@media(max-width:480px){padding:0 20px 20px;button{width:100%;}}`;
+const NotificationCard = styled.section`display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:22px;padding:22px 24px;border:1px solid rgba(52,211,153,.16);border-radius:20px;background:rgba(15,23,42,.84);box-shadow:0 18px 50px rgba(0,0,0,.16);@media(max-width:700px){align-items:stretch;flex-direction:column;padding:20px;}`;
+const NotificationCopy = styled.div`display:flex;align-items:center;gap:14px;h2{font-size:1.06rem;margin:0 0 5px;}p{color:#64748b;font-size:.8rem;margin:0;line-height:1.5;}`;
+const NotificationButton = styled(ButtonBase)`flex:none;background:${({$active})=>$active?'rgba(239,68,68,.1)':'linear-gradient(135deg,#10b981,#059669)'};border:${({$active})=>$active?'1px solid rgba(248,113,113,.28)':'0'};color:${({$active})=>$active?'#fca5a5':'#fff'};&:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08);}@media(max-width:700px){width:100%;}`;
 const Loading = styled.div`width:34px;height:34px;margin:120px auto;border:3px solid rgba(96,165,250,.2);border-top-color:#3b82f6;border-radius:50%;animation:girar .8s linear infinite;@keyframes girar{to{transform:rotate(360deg)}}`;

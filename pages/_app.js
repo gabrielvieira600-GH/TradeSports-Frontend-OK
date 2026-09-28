@@ -12,7 +12,7 @@ export default function MyApp({ Component, pageProps, router }) {
   // Senão, envolve tudo no Layout padrão (Topbar + Sidebar, etc).
   const getLayout =
     Component.getLayout || ((page) => (
-      <Layout fullBleed={['/login', '/cadastro'].includes(router.pathname)}>{page}</Layout>
+      <Layout fullBleed={['/login', '/cadastro', '/editarperfil'].includes(router.pathname)}>{page}</Layout>
     ));
 
   return (
@@ -33,7 +33,6 @@ export default function MyApp({ Component, pageProps, router }) {
     </AuthProvider>
   );
 }
-
 
 
 

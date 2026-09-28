@@ -344,10 +344,33 @@ const AUTHORIAL_CLUB_BADGES = [
   ['toulouse', 'TFC', '#6d28d9', '#ffffff', '#ffffff', 'chevron', 'shield', ['toulousefc']],
   ['troyes', 'EST', '#1769aa', '#ffffff', '#ffffff', 'radial-burst', 'diamond', ['estac', 'estactroyes']],
 
+  // Serie A italiana — identidade inspirada nas cores tradicionais dos clubes.
+  ['inter', 'INT', '#00529f', '#111111', '#ffffff', 'vertical-stripes', 'circle', ['internazionale', 'intermilan', 'fcinternazionale', 'fcinternazionalemilano']],
+  ['acmilan', 'MIL', '#d71920', '#111111', '#ffffff', 'vertical-stripes', 'shield', ['milan', 'milanac', 'associazionecalciomilan']],
+  ['juventus', 'JUV', '#ffffff', '#111111', '#111111', 'vertical-stripes-clean', 'diamond', ['juventusfc']],
+  ['atalanta', 'ATA', '#1769aa', '#111111', '#ffffff', 'vertical-stripes', 'hex', ['atalantabc']],
+  ['bologna', 'BOL', '#b5122b', '#14213d', '#ffffff', 'quarters', 'circle', ['bolognafc', 'bolognafc1909']],
+  ['asroma', 'ROM', '#8e1f2d', '#f4a900', '#f4a900', 'half-horizontal', 'shield', ['roma', 'romafc', 'associazionesportivaroma']],
+  ['lazio', 'LAZ', '#78b7e3', '#ffffff', '#1e3a8a', 'waves', 'diamond', ['sslazio']],
+  ['fiorentina', 'FIO', '#5b2c83', '#ffffff', '#ffffff', 'chevron', 'hex', ['acfiorentina']],
+  ['torino', 'TOR', '#7a1730', '#ffffff', '#ffffff', 'target', 'circle', ['torinofc']],
+  ['napoli', 'NAP', '#159bd7', '#ffffff', '#ffffff', 'rings', 'shield', ['sscnapoli', 'napolifc']],
+  ['genoa', 'GEN', '#b5122b', '#14213d', '#ffffff', 'quarters', 'diamond', ['genoacfc']],
+  ['monza', 'MON', '#d71920', '#ffffff', '#ffffff', 'vertical-stripes', 'hex', ['acmonza']],
+  ['verona', 'VER', '#163f8c', '#f4c430', '#ffffff', 'horizontal-band', 'circle', ['hellasverona', 'hellasveronafc']],
+  ['lecce', 'LEC', '#d71920', '#facc15', '#111111', 'vertical-stripes', 'shield', ['uslecce']],
+  ['udinese', 'UDI', '#111111', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'diamond', ['udinesecalcio']],
+  ['cagliari', 'CAG', '#b5122b', '#163f8c', '#ffffff', 'quarters', 'hex', ['cagliaricalcio']],
+  ['empoli', 'EMP', '#1769aa', '#ffffff', '#ffffff', 'conic', 'circle', ['empolifc']],
+  ['frosinone', 'FRO', '#f4c430', '#1769aa', '#1769aa', 'chevron', 'shield', ['frosinonecalcio']],
+  ['sassuolo', 'SAS', '#168454', '#111111', '#ffffff', 'vertical-stripes', 'diamond', ['ussassuolocalcio']],
+  ['salernitana', 'SAL', '#7a1730', '#ffffff', '#ffffff', 'radial-burst', 'hex', ['ussalernitana', 'salernitana1919']],
+
   // Eredivisie — 2026/27.
   ['adodenhaag', 'ADO', '#f6d743', '#168454', '#111111', 'half-horizontal', 'circle', ['ado', 'denhaag']],
   ['ajax', 'AJA', '#ffffff', '#d71920', '#d71920', 'vertical-stripes', 'hex', ['afcajax']],
   ['azalkmaar', 'AZ', '#d71920', '#ffffff', '#ffffff', 'diagonal', 'shield', ['az', 'alkmaar']],
+  ['almerecity', 'ALM', '#d71920', '#111111', '#ffffff', 'diagonal-stripes', 'circle', ['almere', 'almerecityfc']],
   ['excelsiorrotterdam', 'EXC', '#111111', '#d71920', '#ffffff', 'horizontal-stripes', 'diamond', ['excelsior', 'sbvexcelsior']],
   ['fcgroningen', 'GRO', '#168454', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'circle', ['groningen']],
   ['fctwente', 'TWE', '#d71920', '#ffffff', '#ffffff', 'target', 'hex', ['twente']],
@@ -355,13 +378,17 @@ const AUTHORIAL_CLUB_BADGES = [
   ['feyenoord', 'FEY', '#d71920', '#ffffff', '#111111', 'quarters', 'diamond', ['feyenoordrotterdam']],
   ['fortunasittard', 'FOR', '#facc15', '#168454', '#111111', 'chevron', 'circle', ['fortuna']],
   ['goaheadeagles', 'GAE', '#d71920', '#facc15', '#ffffff', 'vertical-stripes', 'hex', ['goahead']],
+  ['heracles', 'HER', '#111111', '#ffffff', '#ffffff', 'vertical-stripes-clean', 'hex', ['heraclesalmelo']],
   ['necnijmegen', 'NEC', '#d71920', '#168454', '#ffffff', 'half-horizontal', 'shield', ['nec', 'nijmegen']],
   ['peczwolle', 'PEC', '#1769aa', '#ffffff', '#ffffff', 'waves', 'diamond', ['zwolle']],
   ['psv', 'PSV', '#d71920', '#ffffff', '#ffffff', 'horizontal-stripes', 'circle', ['psveindhoven']],
+  ['rkcwaalwijk', 'RKC', '#facc15', '#1769aa', '#111111', 'horizontal-band', 'shield', ['rkc', 'waalwijk']],
   ['sccambuur', 'CAM', '#facc15', '#1769aa', '#111111', 'cross', 'hex', ['cambuur']],
   ['scheerenveen', 'HEE', '#1769aa', '#ffffff', '#ffffff', 'radial-burst', 'shield', ['heerenveen']],
   ['spartarotterdam', 'SPA', '#d71920', '#ffffff', '#111111', 'rings', 'diamond', ['sparta']],
   ['telstar', 'TEL', '#ffffff', '#1769aa', '#1769aa', 'conic', 'circle', ['scTelstar']],
+  ['vitesse', 'VIT', '#facc15', '#111111', '#ffffff', 'vertical-stripes', 'diamond', ['vitessearnhem']],
+  ['volendam', 'VOL', '#f97316', '#111111', '#ffffff', 'half-horizontal', 'circle', ['fcvolendam']],
   ['willemii', 'WII', '#d71920', '#1769aa', '#ffffff', 'vertical-stripes', 'hex', ['willem2', 'willemiiTilburg']],
 
   // NBA — 30 franquias.
@@ -1453,6 +1480,7 @@ export default function ClubBadge({ clube, liga, mercado, escudo, size = 34 }) {
         clube.metadata?.ligaNome
       : '');
   const key = normalizeClubName(clubName, leagueName);
+  const hasAuthorialBadge = Boolean(CLUB_STYLES[key]);
 
   const style = CLUB_STYLES[key] || {
     outer: '#1f2937',
@@ -1473,7 +1501,7 @@ export default function ClubBadge({ clube, liga, mercado, escudo, size = 34 }) {
       aria-label={`Símbolo de ${clubName || 'clube'}`}
     >
       <Inner $bg={bg}>
-        {escudo && !logoFalhou ? (
+        {escudo && !hasAuthorialBadge && !logoFalhou ? (
           <OfficialLogo
             src={String(escudo).replace(/^http:\/\//i, 'https://')}
             alt={`Escudo do ${clubName}`}
