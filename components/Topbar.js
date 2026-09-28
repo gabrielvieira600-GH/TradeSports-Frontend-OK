@@ -10,6 +10,7 @@ import {
   consultarEstadoPush,
   desvincularPushDoUsuario,
 } from '../lib/pushNotifications';
+import { encerrarSessaoRemota, limparCredenciais } from '../lib/authSession';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -577,7 +578,8 @@ const meuPerfilHref = meuPerfilId
     if (token && API_BASE) {
       await desvincularPushDoUsuario(API_BASE, token).catch(() => null);
     }
-    localStorage.clear();
+    await encerrarSessaoRemota();
+    limparCredenciais();
     window.dispatchEvent(new Event('storage'));
     window.location.href = '/';
   };

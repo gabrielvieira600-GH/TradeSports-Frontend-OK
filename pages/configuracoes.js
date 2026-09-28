@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { encerrarSessaoRemota, limparCredenciais } from '../lib/authSession';
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Configuracoes() {
   const router = useRouter();
@@ -50,7 +53,8 @@ export default function Configuracoes() {
       });
 
       toast.success('Conta excluída com sucesso!');
-      localStorage.clear();
+      await encerrarSessaoRemota();
+      limparCredenciais();
       router.push('/');
     } catch (error) {
       console.error('Erro ao excluir conta:', error);

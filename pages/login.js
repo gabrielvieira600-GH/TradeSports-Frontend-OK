@@ -55,12 +55,12 @@ export default function Login() {
         senha: formData.senha,
       });
 
-      if (!resposta.data?.usuario || !resposta.data?.token) {
+      if (!resposta.data?.usuario || !resposta.data?.token || !resposta.data?.refreshToken) {
         setErro('Não foi possível concluir o acesso. Tente novamente.');
         return;
       }
 
-      login(resposta.data.usuario, resposta.data.token);
+      login(resposta.data.usuario, resposta.data.token, resposta.data.refreshToken);
       await router.push(rotaSegura(router.query.next));
     } catch (err) {
       const emailNaoVerificado =
