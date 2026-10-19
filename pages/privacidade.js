@@ -1,4 +1,5 @@
 import InstitutionalLayout, { Card, Lead, Note, PageTitle } from '../components/InstitutionalLayout';
+import { COMPANY_CNPJ, COMPANY_IDENTIFICATION, COMPANY_LEGAL_NAME } from '../lib/legal/company';
 
 export default function Privacidade() {
   return (
@@ -11,7 +12,7 @@ export default function Privacidade() {
       <Lead>
         Esta Política descreve o tratamento de dados pessoais na TradeSports,
         incluindo dados de cadastro, segurança, uso do site, cookies e publicidade.
-        Última atualização: 14 de setembro de 2026.
+        Última atualização: 19 de outubro de 2026. Versão 1.2.
       </Lead>
 
       <Note>
@@ -21,7 +22,15 @@ export default function Privacidade() {
       </Note>
 
       <Card>
-        <h2>1. Dados que podemos tratar</h2>
+        <h2>1. Controladora dos dados</h2>
+        <p>
+          A controladora dos dados pessoais tratados pela plataforma é{' '}
+          {COMPANY_IDENTIFICATION}.
+        </p>
+      </Card>
+
+      <Card>
+        <h2>2. Dados que podemos tratar</h2>
         <p>
           Podemos tratar dados fornecidos no cadastro, como nome, sobrenome, e-mail,
           data de nascimento, CPF, gênero informado e nome de usuário, além de
@@ -35,7 +44,7 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>2. Finalidades e bases legais</h2>
+        <h2>3. Finalidades e bases legais</h2>
         <p>
           Os dados podem ser utilizados para criar e proteger contas, operar a
           plataforma, registrar atividades da simulação, prestar suporte, prevenir
@@ -50,7 +59,7 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>3. Google AdSense, Google Ad Manager e publicidade</h2>
+        <h2>4. Google AdSense, Google Ad Manager e publicidade</h2>
         <p>
           A TradeSports pode utilizar produtos de publicidade do Google. Terceiros,
           incluindo o Google, podem usar cookies para veicular anúncios com base em
@@ -81,7 +90,7 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>4. Cookies</h2>
+        <h2>5. Cookies</h2>
         <p>
           Cookies necessários podem ser utilizados para autenticação, segurança,
           sessão e funcionamento. Cookies de medição, preferências e publicidade
@@ -91,7 +100,7 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>5. Compartilhamento e transferências</h2>
+        <h2>6. Compartilhamento e transferências</h2>
         <p>
           Dados podem ser compartilhados, no limite necessário, com fornecedores de
           hospedagem, banco de dados, e-mail, segurança, análise, publicidade,
@@ -106,7 +115,7 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>6. Segurança, retenção e direitos</h2>
+        <h2>7. Segurança, retenção e direitos</h2>
         <p>
           A TradeSports adota medidas técnicas e administrativas compatíveis com os
           riscos do tratamento e conserva dados pelo período necessário às
@@ -122,10 +131,13 @@ export default function Privacidade() {
       </Card>
 
       <Card>
-        <h2>7. Contato</h2>
+        <h2>8. Contato e identificação</h2>
         <p>
           Para solicitações de privacidade, utilize os canais disponíveis na página{' '}
           <a href="/contato">Contato</a>.
+        </p>
+        <p>
+          Controladora: {COMPANY_LEGAL_NAME}, CNPJ {COMPANY_CNPJ}.
         </p>
       </Card>
     </InstitutionalLayout>

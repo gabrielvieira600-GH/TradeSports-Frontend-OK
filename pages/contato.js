@@ -1,4 +1,5 @@
 import InstitutionalLayout, { Card, Lead, Note, PageTitle } from '../components/InstitutionalLayout';
+import { COMPANY_CNPJ, COMPANY_ADDRESS, COMPANY_LEGAL_NAME } from '../lib/legal/company';
 
 const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || '';
 const PRIVACY_EMAIL = process.env.NEXT_PUBLIC_PRIVACY_EMAIL?.trim() || SUPPORT_EMAIL;
@@ -22,6 +23,13 @@ export default function Contato() {
           NEXT_PUBLIC_SUPPORT_EMAIL.
         </Note>
       )}
+
+      <Card>
+        <h2>Identificação da empresa</h2>
+        <p>{COMPANY_LEGAL_NAME}</p>
+        <p>CNPJ: {COMPANY_CNPJ}</p>
+        <p>Endereço: {COMPANY_ADDRESS}.</p>
+      </Card>
 
       <Card>
         <h2>Atendimento geral</h2>

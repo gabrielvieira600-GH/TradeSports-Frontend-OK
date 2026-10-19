@@ -12,10 +12,10 @@ import {
 } from '../lib/legal/publicDocuments';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
-const VERSAO_TERMOS = '1.1';
-const VERSAO_POLITICA_RISCO = '1.1';
-const VERSAO_POLITICA_PRIVACIDADE = '1.1';
-const VERSAO_POLITICA_COMUNIDADE = '1.1';
+const VERSAO_TERMOS = '1.2';
+const VERSAO_POLITICA_RISCO = '1.2';
+const VERSAO_POLITICA_PRIVACIDADE = '1.2';
+const VERSAO_POLITICA_COMUNIDADE = '1.2';
 
 const docs = {
   termos: { title: 'Termos de Uso', text: TERMOS_USO_PUBLICOS },

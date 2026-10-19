@@ -1,4 +1,5 @@
 import InstitutionalLayout, { Card, Lead, Note, PageTitle } from '../components/InstitutionalLayout';
+import { COMPANY_CNPJ, COMPANY_IDENTIFICATION, COMPANY_LEGAL_NAME } from '../lib/legal/company';
 
 export default function Termos() {
   return (
@@ -9,8 +10,9 @@ export default function Termos() {
     >
       <PageTitle>Termos de Uso</PageTitle>
       <Lead>
-        Versão 1.1. Estes Termos regulam o ambiente público atual da TradeSports,
-        que funciona como plataforma de simulação econômica esportiva.
+        Versão 1.2, atualizada em 19 de outubro de 2026. Estes Termos regulam o
+        ambiente público atual da TradeSports, que funciona como plataforma de
+        simulação econômica esportiva.
       </Lead>
 
       <Note>
@@ -20,7 +22,10 @@ export default function Termos() {
       </Note>
 
       <Card>
-        <h2>1. Serviço</h2>
+        <h2>1. Identificação e serviço</h2>
+        <p>
+          A plataforma TradeSports é operada por {COMPANY_IDENTIFICATION}.
+        </p>
         <p>
           A TradeSports permite acompanhar mercados simulados ligados ao desempenho
           esportivo, negociar cotas virtuais, montar carteira, consultar rankings e
@@ -91,6 +96,10 @@ export default function Termos() {
         </p>
         <p>
           Canais de atendimento estão disponíveis em <a href="/contato">Contato</a>.
+        </p>
+        <p>
+          Para fins legais e contratuais, a responsável pela plataforma é{' '}
+          {COMPANY_LEGAL_NAME}, CNPJ {COMPANY_CNPJ}.
         </p>
       </Card>
     </InstitutionalLayout>

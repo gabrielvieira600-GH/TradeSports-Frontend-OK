@@ -1,4 +1,5 @@
 import InstitutionalLayout, { Card, Lead, PageTitle } from '../components/InstitutionalLayout';
+import { COMPANY_IDENTIFICATION } from '../lib/legal/company';
 
 export default function Cookies() {
   return (
@@ -10,8 +11,13 @@ export default function Cookies() {
       <PageTitle>Política de Cookies</PageTitle>
       <Lead>
         Esta página explica, em linguagem simples, o uso de cookies e tecnologias
-        semelhantes na TradeSports.
+        semelhantes na TradeSports. Última atualização: 19 de outubro de 2026.
       </Lead>
+
+      <Card>
+        <h2>Responsável pela plataforma</h2>
+        <p>A plataforma TradeSports é operada por {COMPANY_IDENTIFICATION}.</p>
+      </Card>
 
       <Card>
         <h2>Cookies necessários</h2>
