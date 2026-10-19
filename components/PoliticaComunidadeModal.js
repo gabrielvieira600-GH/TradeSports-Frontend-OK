@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
+import { COMPANY_IDENTIFICATION, COMPANY_LEGAL_NAME } from "../lib/legal/company";
 
 // Modal 100% self-contained (sem dependências externas)
 
@@ -114,12 +115,13 @@ export default function PoliticaComunidadeModal({
 
 **Documento:** Política da Comunidade da Plataforma TradeSports  
 **ID:** TS-JUR-COM-001  
-**Versão:** 1.0  
-**Status:** Vigente a partir do lançamento público  
-**Data da versão:** 26 de julho de 2026  
-**Responsável pelo documento:** TradeSports — Jurídico e Compliance  
+**Versão:** 1.2
+**Status:** Vigente
+**Data da versão:** 19 de outubro de 2026
+**Responsável pelo documento:** ${COMPANY_LEGAL_NAME} — Jurídico e Compliance
 **Classificação:** Público  
-**Entrada em vigor:** Na data de lançamento público da TradeSports  
+**Entrada em vigor:** 19 de outubro de 2026
+**Operadora da plataforma:** ${COMPANY_IDENTIFICATION}
 
 ## QUADRO-RESUMO
 
@@ -156,6 +158,8 @@ c) a integridade informacional e operacional da Plataforma;
 d) a privacidade e os dados pessoais;  
 e) os direitos de propriedade intelectual; e  
 f) o cumprimento das leis, dos Termos de Uso e das regras específicas da TradeSports.
+
+1.5. A plataforma TradeSports é operada por ${COMPANY_IDENTIFICATION}.
 
 ## 2. ABRANGÊNCIA
 
@@ -673,6 +677,7 @@ Esta Política considera, entre outras normas e referências:
 | Versão | Data | Status | Alteração | Responsável |
 |---|---|---|---|---|
 | 1.0 | 26/07/2026 | Vigente a partir do lançamento público | Criação integral da Política da Comunidade | TradeSports — Jurídico e Compliance |
+| 1.2 | 19/10/2026 | Vigente | Inclusão da identificação oficial da empresa responsável pela plataforma | ${COMPANY_LEGAL_NAME} — Jurídico e Compliance |
 `,
     [],
   );

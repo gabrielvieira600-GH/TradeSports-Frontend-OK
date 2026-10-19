@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { COMPANY_IDENTIFICATION } from "../lib/legal/company";
 
 export default function PoliticaRiscoModal({ onClose, onAceitar, exigirAceite = false }) {
   const conteudoRef = useRef(null);
@@ -18,6 +19,9 @@ export default function PoliticaRiscoModal({ onClose, onAceitar, exigirAceite = 
         <h2>Política de Risco – TradeSports</h2>
 
         <div ref={conteudoRef} onScroll={handleScroll} style={conteudo}>
+          <p><strong>Versão 1.2 — 19 de outubro de 2026</strong></p>
+          <p>A plataforma TradeSports é operada por {COMPANY_IDENTIFICATION}.</p>
+
           <p><strong>1. Risco de perda total</strong></p>
           <p>O usuário pode perder total ou parcialmente os valores utilizados na plataforma.</p>
 

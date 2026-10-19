@@ -1,5 +1,10 @@
 import Link from 'next/link';
 import styled from 'styled-components';
+import {
+  COMPANY_ADDRESS,
+  COMPANY_CNPJ,
+  COMPANY_LEGAL_NAME,
+} from '../lib/legal/company';
 
 export default function Footer() {
   return (
@@ -38,6 +43,12 @@ export default function Footer() {
           </Text>
         </Column>
       </Grid>
+
+      <CompanyIdentity>
+        <strong>{COMPANY_LEGAL_NAME}</strong>
+        <span>CNPJ {COMPANY_CNPJ}</span>
+        <span>{COMPANY_ADDRESS}</span>
+      </CompanyIdentity>
 
       <Bottom>
         <span>© {new Date().getFullYear()} TradeSports. Todos os direitos reservados.</span>
@@ -115,4 +126,23 @@ const Bottom = styled.div`
   gap: 8px 18px;
   color: #64748b;
   font-size: .76rem;
+`;
+
+const CompanyIdentity = styled.div`
+  max-width: 1300px;
+  margin: 24px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148,163,184,.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  color: #64748b;
+  font-size: .74rem;
+  line-height: 1.55;
+
+  strong {
+    width: 100%;
+    color: #94a3b8;
+    font-weight: 700;
+  }
 `;
