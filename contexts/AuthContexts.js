@@ -11,10 +11,31 @@ import {
 export const AuthContext = createContext();
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+function lerUsuarioLocal() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('usuario') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function lerTokenLocal() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+}
+
+function credencialFoiRecusada(error) {
+  const status = Number(error?.status || error?.response?.status || 0);
+  return status === 401 || status === 403;
+}
+
 export const AuthProvider = ({ children }) => {
-  const [usuario, setUsuario] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // A sessão em cache é carregada no primeiro render. A confirmação no servidor
+  // acontece em segundo plano e nunca bloqueia a abertura do site/PWA.
+  const [usuario, setUsuario] = useState(lerUsuarioLocal);
+  const [token, setToken] = useState(lerTokenLocal);
+  const loading = false;
 
   const dispatchTopbarUpdate = () => {
     if (typeof window === 'undefined') return;
@@ -47,9 +68,21 @@ export const AuthProvider = ({ children }) => {
     let ativo = true;
 
     const restaurarSessao = async () => {
+      const possuiCredenciais = Boolean(
+        localStorage.getItem('token') || localStorage.getItem('refreshToken')
+      );
+
+      if (!possuiCredenciais) {
+        if (localStorage.getItem('usuario')) finalizarLogoutLocal(false);
+        return;
+      }
+
       try {
         const tokenValido = await obterTokenAcessoValido();
-        if (!tokenValido) return;
+        if (!tokenValido) {
+          if (!localStorage.getItem('refreshToken')) finalizarLogoutLocal(false);
+          return;
+        }
         if (ativo) setToken(tokenValido);
 
         const response = await axios.get(`${API_BASE}/usuario/atual`, {
@@ -65,35 +98,34 @@ export const AuthProvider = ({ children }) => {
         }
         dispatchTopbarUpdate();
       } catch (error) {
-        console.error('[AuthContext] Não foi possível restaurar a sessão:', error);
-        if (!error?.sessaoTemporariamenteIndisponivel) finalizarLogoutLocal(false);
-      } finally {
-        if (ativo) setLoading(false);
+        // Falhas de rede e indisponibilidade temporária do backend não devem
+        // desconectar nem esconder a interface que já está disponível em cache.
+        if (credencialFoiRecusada(error)) {
+          finalizarLogoutLocal(false);
+        } else {
+          console.warn('[AuthContext] Sincronização da sessão adiada:', error);
+        }
       }
     };
 
-    const atualizarTokenLocal = () => {
+    const atualizarCredenciaisLocais = () => {
       if (!ativo) return;
       setToken(localStorage.getItem('token'));
+      setUsuario(lerUsuarioLocal());
     };
 
     const sincronizarAbas = (event) => {
       if (event.key && !['token', 'refreshToken', 'usuario'].includes(event.key)) return;
-      atualizarTokenLocal();
-      try {
-        setUsuario(JSON.parse(localStorage.getItem('usuario') || 'null'));
-      } catch {
-        setUsuario(null);
-      }
+      atualizarCredenciaisLocais();
     };
 
-    window.addEventListener('auth-token-updated', atualizarTokenLocal);
+    window.addEventListener('auth-token-updated', atualizarCredenciaisLocais);
     window.addEventListener('storage', sincronizarAbas);
     restaurarSessao();
 
     return () => {
       ativo = false;
-      window.removeEventListener('auth-token-updated', atualizarTokenLocal);
+      window.removeEventListener('auth-token-updated', atualizarCredenciaisLocais);
       window.removeEventListener('storage', sincronizarAbas);
     };
   }, []);
@@ -168,11 +200,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={contextValue}>
-      {loading ? (
-        <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#07101f', color: '#94a3b8' }}>
-          Restaurando sua sessão...
-        </div>
-      ) : children}
+      {children}
     </AuthContext.Provider>
   );
 };
