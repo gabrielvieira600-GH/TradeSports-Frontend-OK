@@ -157,7 +157,7 @@ function PlanosPage() {
           </PlanoTopo>
 
           <PrecoArea>
-            <Preco>R$ 19,90</Preco>
+            <Preco>R$ 9,90</Preco>
             <Periodo>/mês</Periodo>
           </PrecoArea>
 
