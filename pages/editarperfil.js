@@ -295,6 +295,22 @@ export default function EditarPerfil() {
           </PhotoCopy>
         </ProfileCard>
 
+                <div style={{
+  padding: 24,
+  background: '#14223a',
+  borderRadius: 16,
+  marginBottom: 20
+}}>
+  <h2>Dados de faturamento e administração do plano</h2>
+  <p>
+    Consulte ou corrija seu CPF, acompanhe o Premium
+    e gerencie suas renovações.
+  </p>
+  <a href="/minha-assinatura">
+    Gerenciar meu plano e CPF →
+  </a>
+</div>
+      
         <FormGrid>
           <FormCard onSubmit={atualizarPerfil}>
             <CardHeader>
