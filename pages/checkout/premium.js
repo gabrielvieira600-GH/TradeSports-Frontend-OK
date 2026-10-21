@@ -51,6 +51,11 @@ function PremiumCheckout(){
  async function copy(){try{await navigator.clipboard.writeText(payment?.payload||'');setNotice('Código Pix copiado.');}catch{setNotice('Selecione o código para copiar manualmente.');}}
  return <main style={{maxWidth:1080,margin:'28px auto',padding:'0 16px 60px',color:'#f1f5f9',boxSizing:'border-box'}}>
   <Link href="/planos" style={{color:'#9db8db',textDecoration:'none'}}>← Voltar aos planos</Link>
+ <p>
+  <Link href="/minha-assinatura">
+    Gerenciar assinatura →
+  </Link>
+</p>
   <div style={{display:'flex',alignItems:'center',gap:12,margin:'22px 0 8px',flexWrap:'wrap'}}><h1 style={{fontSize:'clamp(25px,4vw,35px)',margin:0}}>Assinar TradeSports Premium</h1><span style={{fontSize:12,padding:'5px 10px',borderRadius:20,background:'#123c32',color:'#80f1b7'}}>Pagamento seguro</span></div>
   <p style={{color:'#a7b7d0',margin:'0 0 24px'}}>Escolha como deseja pagar sua assinatura. Nenhum pagamento altera seu saldo virtual T$.</p>
   <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,310px),1fr))',gap:18,alignItems:'start'}}>
