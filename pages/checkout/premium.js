@@ -8,6 +8,14 @@ const date=d=>d?String(d).slice(0,10).split('-').reverse().join('/'):'—';
 const labels={PENDING:'Aguardando pagamento',ACTIVE:'Ativa',CANCELLED:'Cancelada',EXPIRED:'Expirada',REVOKED:'Suspensa'};
 const panel={background:'#14223a',border:'1px solid #293c5c',borderRadius:16,padding:22};
 const btn={border:0,borderRadius:10,padding:'13px 18px',fontSize:14,fontWeight:750,cursor:'pointer'};
+function validCheckoutUrl(raw){
+ try{
+  const u=new URL(raw);
+  if(u.protocol!=='https:'||!['sandbox.asaas.com','www.asaas.com','asaas.com'].includes(u.hostname))return false;
+  if(/^\/checkoutSession\/show\/[a-z0-9-]{8,100}\/?$/i.test(u.pathname))return true;
+  return u.pathname==='/checkoutSession/show'&&/^[a-z0-9-]{8,100}$/i.test(u.searchParams.get('id')||'');
+ }catch{return false;}
+}
 function CheckoutPremium(){
  const [method,setMethod]=useState('PIX'),[sub,setSub]=useState(null),[payment,setPayment]=useState(null),[history,setHistory]=useState([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -32,7 +40,7 @@ function CheckoutPremium(){
   setBusy(true);setError('');setNotice('');
   try{
    if(switching){
-    const msg='Trocar a forma de pagamento? A cobrança Pix pendente será cancelada no Asaas. Não faça o pagamento do código antigo após confirmar.';
+    const msg='Trocar a forma de pagamento? A cobrança pendente será cancelada no Asaas. Não pague o código antigo após confirmar.';
     if(!window.confirm(msg))return;
     await api.post('/asaas/premium/change-method',{billingType:method});
    }
@@ -43,7 +51,7 @@ function CheckoutPremium(){
    }else{
     const {data}=await api.post('/asaas/card/start');
     const url=String(data.url||'');
-    if(!/^https:\/\/([a-z0-9-]+\.)*asaas\.com\/checkoutSession\/show\?id=/i.test(url))throw new Error('Link do Asaas inválido.');
+    if(!validCheckoutUrl(url))throw new Error('Link do Asaas inválido.');
     window.location.assign(url);
    }
   }catch(e){await load();setError(e.response?.data?.erro||e.message||'Não foi possível iniciar o pagamento.');}
