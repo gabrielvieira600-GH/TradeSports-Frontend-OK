@@ -186,6 +186,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    const sincronizarUsuario = () => {
+      try {
+        const armazenado = localStorage.getItem('usuario');
+        if (!armazenado) return;
+        const novoUsuario = JSON.parse(armazenado);
+        if (novoUsuario && typeof novoUsuario === 'object') setUsuario(novoUsuario);
+      } catch (err) {
+        console.error('[TradeSports] Erro ao sincronizar usuario:', err);
+      }
+    };
+    window.addEventListener('tradesports-usuario-atualizado', sincronizarUsuario);
+    return () => window.removeEventListener('tradesports-usuario-atualizado', sincronizarUsuario);
+  }, []);
+
   const contextValue = useMemo(() => ({
     usuario,
     setUsuario,

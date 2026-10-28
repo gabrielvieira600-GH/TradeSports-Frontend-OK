@@ -49,6 +49,7 @@ export default function NegociacaoModal({
     spreadPct: null,
   });
   const modoInicialAplicadoRef = useRef(null);
+  const sincronizacaoRef = useRef(0);
 
   const [limiteOrdens, setLimiteOrdens] = useState({
   carregando: false,
@@ -195,6 +196,23 @@ export default function NegociacaoModal({
     setResultadoOrdem(null);
     setResultadoIpo(null);
   }, [modo]);
+
+  useEffect(() => {
+    if (!isOpen || !token || typeof window === 'undefined') return undefined;
+    const aoVoltar = () => {
+      if (document.visibilityState === 'visible') atualizarSaldoDoUsuario();
+    };
+    const intervalo = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && !carregando) {
+        atualizarSaldoDoUsuario();
+      }
+    }, 3000);
+    document.addEventListener('visibilitychange', aoVoltar);
+    return () => {
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', aoVoltar);
+    };
+  }, [isOpen, token, carregando]);
 
   const carregarOrdens = async () => {
     try {
@@ -446,45 +464,35 @@ export default function NegociacaoModal({
   }
 }
 
+ // TradeSports: sincronizacao de negociacoes v2
  async function atualizarSaldoDoUsuario() {
-  try {
-    const [respSaldo, respUsuario] = await Promise.all([
-      api.get('/usuario/saldo', {
-        headers: getAuthHeaders(),
-      }),
-      api.get('/usuario', {
-        headers: getAuthHeaders(),
-      }).catch(() => null),
-    ]);
+   const requestId = ++sincronizacaoRef.current;
+   try {
+     const [respUsuario, respSaldo] = await Promise.all([
+       api.get('/usuario', { headers: getAuthHeaders() }),
+       api.get('/usuario/saldo', { headers: getAuthHeaders() }),
+     ]);
+     const dadosUsuario = respUsuario?.data?.usuario || respUsuario?.data;
+     const valorSaldo = respSaldo?.data?.saldo;
+     const saldoAtual = Number(valorSaldo);
+     if (!dadosUsuario || typeof dadosUsuario !== 'object' ||
+         valorSaldo === undefined || valorSaldo === null ||
+         !Number.isFinite(saldoAtual) || requestId !== sincronizacaoRef.current) return null;
 
-    const novoSaldo = Number(respSaldo?.data?.saldo ?? 0);
-    const usuarioCompleto = respUsuario?.data || null;
-
-    setUsuario((prev) => {
-      const base = usuarioCompleto || prev;
-
-      if (!base) {
-        localStorage.setItem('saldo', novoSaldo.toFixed(2));
-        return prev;
-      }
-
-      const atualizado = {
-        ...base,
-        saldo: novoSaldo,
-      };
-
-      localStorage.setItem('usuario', JSON.stringify(atualizado));
-      localStorage.setItem('saldo', novoSaldo.toFixed(2));
-
-      return atualizado;
-    });
-
-    setPoderCompra(novoSaldo);
-    window.dispatchEvent(new Event('force-topbar-update'));
-  } catch (e) {
-    console.error('Erro ao atualizar usuário após ordem:', e);
-  }
-}
+     const atualizado = { ...dadosUsuario, saldo: saldoAtual };
+     setUsuario(atualizado);
+     setPoderCompra(saldoAtual);
+     localStorage.setItem('usuario', JSON.stringify(atualizado));
+     localStorage.setItem('saldo', saldoAtual.toFixed(2));
+     // O AuthProvider e a Topbar escutam estes eventos na mesma aba.
+     window.dispatchEvent(new Event('tradesports-usuario-atualizado'));
+     window.dispatchEvent(new Event('force-topbar-update'));
+     return atualizado;
+   } catch (err) {
+     console.error('[TradeSports] Falha ao sincronizar carteira/saldo:', err);
+     return null;
+   }
+ }
 
   async function enviarOrdem() {
   setCarregando(true);
@@ -573,7 +581,7 @@ if (
       let response;
 
       if (modo === 'venda') {
-  const usuarioAtualizado = await atualizarUsuarioCompleto();
+  const usuarioAtualizado = await atualizarSaldoDoUsuario();
 
   const carteiraAtualizada = Array.isArray(usuarioAtualizado?.carteira)
     ? usuarioAtualizado.carteira
@@ -596,7 +604,7 @@ if (
           .toLowerCase() === nomeClubeAtual
     );
 
-  const qtdDisp = Number(ativo?.quantidade || ativo?.cotas || 0);
+  const qtdDisp = Number(ativo?.quantidade ?? ativo?.cotas ?? 0);
 
   if (quantidade > qtdDisp) {
     setMensagem('Quantidade acima do disponí­vel na carteira.');
@@ -1009,9 +1017,7 @@ if (response?.franquiaOrdens) {
 
   if (ativo) {
     return Number(
-      ativo.quantidade ||
-        ativo.cotas ||
-        0
+      ativo.quantidade ?? ativo.cotas ?? 0
     );
   }
 
@@ -1116,7 +1122,7 @@ return (
             <Aba $ativa={modo === 'compra'} onClick={() => setModo('compra')}>
               Compra
             </Aba>
-            <Aba $ativa={modo === 'venda'} onClick={() => setModo('venda')}>
+            <Aba $ativa={modo === 'venda'} onClick={() => { setModo('venda'); atualizarSaldoDoUsuario(); }}>
               Venda
             </Aba>
           </Acoes>

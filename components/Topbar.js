@@ -83,10 +83,11 @@ const meuPerfilHref = meuPerfilId
 
       setUsuario(parsed);
 
-      if (saldoSalvo) {
-        setSaldo(saldoSalvo);
-      } else if (parsed?.saldo !== undefined) {
-        setSaldo(String(parsed.saldo));
+      const valor = saldoSalvo !== null ? Number(saldoSalvo) : Number(parsed?.saldo);
+      if (Number.isFinite(valor)) {
+        setSaldo(valor.toFixed(2));
+      } else {
+        setSaldo('0.00');
       }
     } catch {
       setUsuario(null);
