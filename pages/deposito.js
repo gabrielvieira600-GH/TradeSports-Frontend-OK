@@ -47,7 +47,7 @@ function RecargaRecuperacaoPage() {
       });
       setErro('');
     } catch (e) {
-      setErro(e?.response?.data?.erro || 'NÃ£o foi possÃ­vel calcular seu limite de recuperaÃ§Ã£o.');
+      setErro(e?.response?.data?.erro || 'Não foi possível calcular seu limite de recuperação.');
     } finally { setCarregando(false); }
   }, []);
 
@@ -78,7 +78,7 @@ function RecargaRecuperacaoPage() {
         await carregarResumo();
       }
     } catch (_) {
-      // Somente o backend e o webhook confirmam o crÃ©dito.
+      // Somente o backend e o webhook confirmam o crédito.
     }
   }, [refreshSaldo, refreshUsuario, adicionarToast, carregarResumo]);
 
@@ -97,7 +97,7 @@ function RecargaRecuperacaoPage() {
   const maximo = modoDemonstracao ? Number(resumo?.alvoPatrimonio || 1000) : maximoPermitido;
   const podeConcluir = Boolean(resumo?.elegivel) && patrimonio < 900;
   const motivoBloqueio = modoDemonstracao
-    ? 'O pagamento serÃ¡ liberado quando seu patrimÃ´nio total ficar abaixo de T$ 900.'
+    ? 'O pagamento será liberado quando seu patrimônio total ficar abaixo de T$ 900.'
     : resumo?.motivoInelegibilidade || 'Complete os requisitos da conta para liberar o pagamento.';
   const valorReais = useMemo(
     () => (Number(quantidade || 0) * Number(resumo?.centavosPorTs || 5)) / 100,
@@ -116,7 +116,7 @@ function RecargaRecuperacaoPage() {
   const iniciarPagamento = async () => {
     if (!podeConcluir || processando) return;
     if (!resumo?.asaasConfigurado) {
-      adicionarToast('O pagamento pelo Asaas ainda nÃ£o estÃ¡ habilitado.', 'erro');
+      adicionarToast('O pagamento pelo Asaas ainda não está habilitado.', 'erro');
       return;
     }
     try {
@@ -129,25 +129,25 @@ function RecargaRecuperacaoPage() {
         { headers: { 'Idempotency-Key': key } }
       );
       const url = data.checkoutUrl || data.url || data.recarga?.checkoutUrl;
-      if (!validCheckoutUrl(url)) throw new Error('O Asaas nÃ£o retornou um endereÃ§o seguro de pagamento.');
+      if (!validCheckoutUrl(url)) throw new Error('O Asaas não retornou um endereço seguro de pagamento.');
       const id = data.recarga?.id;
-      if (!id || !/^[a-f0-9]{24}$/i.test(id)) throw new Error('A recarga nÃ£o foi registrada corretamente.');
+      if (!id || !/^[a-f0-9]{24}$/i.test(id)) throw new Error('A recarga não foi registrada corretamente.');
       window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ id, url }));
       setRecarga(data.recarga);
       setCheckoutUrl(url);
       window.location.assign(url);
     } catch (e) {
-      const msg = e?.response?.data?.erro || e?.message || 'NÃ£o foi possÃ­vel iniciar o pagamento.';
+      const msg = e?.response?.data?.erro || e?.message || 'Não foi possível iniciar o pagamento.';
       setErro(msg);
       adicionarToast(msg, 'erro');
     } finally { setProcessando(false); }
   };
 
   if (carregando && !resumo) {
-    return <Page><EstadoInterface tipo="loading" titulo="Calculando seu limite" descricao="Estamos marcando suas posiÃ§Ãµes a mercado." /></Page>;
+    return <Page><EstadoInterface tipo="loading" titulo="Calculando seu limite" descricao="Estamos marcando suas posições a mercado." /></Page>;
   }
   if (erro && !resumo) {
-    return <Page><EstadoInterface tipo="error" titulo="Limite indisponÃ­vel" descricao={erro} acao="Tentar novamente" onAcao={carregarResumo} /></Page>;
+    return <Page><EstadoInterface tipo="error" titulo="Limite indisponível" descricao={erro} acao="Tentar novamente" onAcao={carregarResumo} /></Page>;
   }
 
   return (
@@ -155,23 +155,23 @@ function RecargaRecuperacaoPage() {
       <Hero>
         <HeroCopy>
           <Eyebrow><FiRefreshCw /> Continuidade competitiva</Eyebrow>
-          <h1>Recarga de RecuperaÃ§Ã£o</h1>
-          <p>Recomponha seu patrimÃ´nio atÃ© T$ 1.000 sem apagar prejuÃ­zos nem melhorar artificialmente sua posiÃ§Ã£o no ranking.</p>
+          <h1>Recarga de Recuperação</h1>
+          <p>Recomponha seu patrimônio até T$ 1.000 sem apagar prejuízos nem melhorar artificialmente sua posição no ranking.</p>
         </HeroCopy>
-        <RateBadge><span>CotaÃ§Ã£o fixa</span><strong>R$ 1 = T$ 20</strong><small>sem bÃ´nus ou desconto progressivo</small></RateBadge>
+        <RateBadge><span>Cotação fixa</span><strong>R$ 1 = T$ 20</strong><small>sem bônus ou desconto progressivo</small></RateBadge>
       </Hero>
 
       <SummaryGrid>
-        <SummaryCard><span>PatrimÃ´nio total</span><strong>{formatTs(resumo?.patrimonio)}</strong><small>saldo, ordens e posiÃ§Ãµes a mercado</small></SummaryCard>
-        <SummaryCard><span>Rentabilidade preservada</span><strong className={Number(resumo?.rentabilidade) < 0 ? 'negative' : 'positive'}>{formatPercent(resumo?.rentabilidade)}</strong><small>a recarga nÃ£o altera este percentual</small></SummaryCard>
-        <SummaryCard><span>Limite disponÃ­vel</span><strong>{podeConcluir ? formatTs(maximoPermitido) : 'Bloqueado'}</strong><small>{podeConcluir ? 'diferenÃ§a permitida atÃ© T$ 1.000' : motivoBloqueio}</small></SummaryCard>
+        <SummaryCard><span>Patrimônio total</span><strong>{formatTs(resumo?.patrimonio)}</strong><small>saldo, ordens e posições a mercado</small></SummaryCard>
+        <SummaryCard><span>Rentabilidade preservada</span><strong className={Number(resumo?.rentabilidade) < 0 ? 'negative' : 'positive'}>{formatPercent(resumo?.rentabilidade)}</strong><small>a recarga não altera este percentual</small></SummaryCard>
+        <SummaryCard><span>Limite disponível</span><strong>{podeConcluir ? formatTs(maximoPermitido) : 'Bloqueado'}</strong><small>{podeConcluir ? 'diferença permitida até T$ 1.000' : motivoBloqueio}</small></SummaryCard>
       </SummaryGrid>
 
-      {!podeConcluir && <Unavailable><FiInfo /><div><strong>Explore a recuperaÃ§Ã£o em modo de demonstraÃ§Ã£o</strong><p>VocÃª pode mover a barra, testar valores e entender a conversÃ£o. {motivoBloqueio}</p></div></Unavailable>}
+      {!podeConcluir && <Unavailable><FiInfo /><div><strong>Explore a recuperação em modo de demonstração</strong><p>Você pode mover a barra, testar valores e entender a conversão. {motivoBloqueio}</p></div></Unavailable>}
 
       <CheckoutGrid>
         <BuilderCard>
-          <SectionHead><div><span>{modoDemonstracao ? 'Simule sua recarga' : 'Escolha sua recarga'}</span><h2>{formatTs(quantidade)}</h2></div><Price><span>{modoDemonstracao ? 'Valor simulado' : 'VocÃª pagarÃ¡'}</span><strong>{formatBrl(valorReais)}</strong></Price></SectionHead>
+          <SectionHead><div><span>{modoDemonstracao ? 'Simule sua recarga' : 'Escolha sua recarga'}</span><h2>{formatTs(quantidade)}</h2></div><Price><span>{modoDemonstracao ? 'Valor simulado' : 'Você pagará'}</span><strong>{formatBrl(valorReais)}</strong></Price></SectionHead>
           <SliderLabels><span>{formatTs(minimo)}</span><span>{formatTs(maximo)}</span></SliderLabels>
           <Slider type="range" min={minimo} max={Math.max(minimo, maximo)} step={passo}
             value={Math.min(Math.max(minimo, maximo), Math.max(minimo, quantidade))}
@@ -183,42 +183,42 @@ function RecargaRecuperacaoPage() {
             <button type="button" onClick={() => selecionarPercentual(.25)}>25%</button>
             <button type="button" onClick={() => selecionarPercentual(.5)}>50%</button>
             <button type="button" onClick={() => selecionarPercentual(.75)}>75%</button>
-            <button type="button" onClick={() => selecionarPercentual(1)}>MÃ¡ximo</button>
+            <button type="button" onClick={() => selecionarPercentual(1)}>Máximo</button>
           </QuickActions>
           <ExactField><label htmlFor="quantidade-ts">Quantidade exata</label><div><span>T$</span><input id="quantidade-ts" type="number" min={minimo} max={Math.max(minimo,maximo)} step={passo} value={quantidade}
             onChange={(e) => { const v = Number(e.target.value); if (Number.isFinite(v)) setQuantidade(Math.min(Math.max(minimo,maximo), Math.max(minimo, Math.round(v/passo)*passo))); }} /></div></ExactField>
           <Projection>
-            <div><span>PatrimÃ´nio atual</span><strong>{formatTs(patrimonio)}</strong></div><Arrow>+</Arrow>
+            <div><span>Patrimônio atual</span><strong>{formatTs(patrimonio)}</strong></div><Arrow>+</Arrow>
             <div><span>Recarga</span><strong>{formatTs(quantidade)}</strong></div><Arrow>=</Arrow>
-            <div><span>{modoDemonstracao ? 'PatrimÃ´nio simulado' : 'PatrimÃ´nio projetado'}</span><strong>{formatTs(patrimonioProjetado)}</strong></div>
+            <div><span>{modoDemonstracao ? 'Patrimônio simulado' : 'Patrimônio projetado'}</span><strong>{formatTs(patrimonioProjetado)}</strong></div>
           </Projection>
           <PayButton type="button" onClick={iniciarPagamento} disabled={processando || !resumo?.asaasConfigurado || !podeConcluir}>
-            {processando ? 'Abrindo checkout seguro...' : !podeConcluir ? 'Pagamento disponÃ­vel abaixo de T$ 900' : resumo?.asaasConfigurado ? `Pagar ${formatBrl(valorReais)} via Pix ou cartÃ£o` : 'Asaas aguardando ativaÃ§Ã£o'}
+            {processando ? 'Abrindo checkout seguro...' : !podeConcluir ? 'Pagamento disponível abaixo de T$ 900' : resumo?.asaasConfigurado ? `Pagar ${formatBrl(valorReais)} via Pix ou cartão` : 'Asaas aguardando ativação'}
           </PayButton>
-          {!podeConcluir ? <ConfigHint>Esta simulaÃ§Ã£o nÃ£o cria cobranÃ§a nem altera seu saldo.</ConfigHint>
-            : !resumo?.asaasConfigurado && <ConfigHint>O pagamento estÃ¡ indisponÃ­vel atÃ© a ativaÃ§Ã£o do Asaas no backend.</ConfigHint>}
+          {!podeConcluir ? <ConfigHint>Esta simulação não cria cobrança nem altera seu saldo.</ConfigHint>
+            : !resumo?.asaasConfigurado && <ConfigHint>O pagamento está indisponível até a ativação do Asaas no backend.</ConfigHint>}
         </BuilderCard>
         <RulesCard>
-          <h3><FiShield /> ProteÃ§Ã£o da competiÃ§Ã£o</h3>
-          <Rule><FiCheck /><span>VocÃª sÃ³ pode comprar a diferenÃ§a atÃ© T$ 1.000.</span></Rule>
-          <Rule><FiCheck /><span>A rentabilidade negativa e todo o histÃ³rico permanecem.</span></Rule>
-          <Rule><FiCheck /><span>O aporte Ã© neutralizado nos rankings Geral, Premium e Privados.</span></Rule>
-          <Rule><FiCheck /><span>T$ nÃ£o pode ser sacado, transferido ou convertido em reais.</span></Rule>
-          <Rule><FiCheck /><span>O limite Ã© conferido novamente quando o pagamento Ã© confirmado.</span></Rule>
-          <Risk><FiAlertTriangle /><span>Recarga nÃ£o garante recuperaÃ§Ã£o. Suas decisÃµes podem reduzir novamente o saldo.</span></Risk>
+          <h3><FiShield /> Proteção da competição</h3>
+          <Rule><FiCheck /><span>Você só pode comprar a diferença até T$ 1.000.</span></Rule>
+          <Rule><FiCheck /><span>A rentabilidade negativa e todo o histórico permanecem.</span></Rule>
+          <Rule><FiCheck /><span>O aporte é neutralizado nos rankings Geral, Premium e Privados.</span></Rule>
+          <Rule><FiCheck /><span>T$ não pode ser sacado, transferido ou convertido em reais.</span></Rule>
+          <Rule><FiCheck /><span>O limite é conferido novamente quando o pagamento é confirmado.</span></Rule>
+          <Risk><FiAlertTriangle /><span>Recarga não garante recuperação. Suas decisões podem reduzir novamente o saldo.</span></Risk>
         </RulesCard>
       </CheckoutGrid>
 
       {recarga && <PaymentCard>
-        <PaymentHead><div><span>Pagamento Asaas</span><h2>{recarga.status === 'CONFIRMADA' ? 'Recarga confirmada' : recarga.status === 'PENDENTE' ? 'Aguardando confirmaÃ§Ã£o' : 'SituaÃ§Ã£o da recarga'}</h2></div><Status $status={recarga.status}>{recarga.status}</Status></PaymentHead>
+        <PaymentHead><div><span>Pagamento Asaas</span><h2>{recarga.status === 'CONFIRMADA' ? 'Recarga confirmada' : recarga.status === 'PENDENTE' ? 'Aguardando confirmação' : 'Situação da recarga'}</h2></div><Status $status={recarga.status}>{recarga.status}</Status></PaymentHead>
         {recarga.status === 'CONFIRMADA'
           ? <Success><FiCheck /><div><strong>{formatTs(recarga.quantidadeTs)} adicionados ao saldo.</strong><p>Sua rentabilidade anterior foi preservada.</p></div></Success>
           : recarga.status === 'PENDENTE'
-            ? <PaymentInstructions><p>Conclua a cobranÃ§a na pÃ¡gina segura do Asaas. O crÃ©dito serÃ¡ feito automaticamente apÃ³s a confirmaÃ§Ã£o oficial.</p>
+            ? <PaymentInstructions><p>Conclua a cobrança na página segura do Asaas. O crédito será feito automaticamente após a confirmação oficial.</p>
                 {validCheckoutUrl(checkoutUrl) && <CheckoutLink href={checkoutUrl} rel="noopener noreferrer"><FiExternalLink /> Continuar pagamento no Asaas</CheckoutLink>}
-                <RefreshButton type="button" onClick={() => consultarStatus(recarga.id)}>Atualizar situaÃ§Ã£o</RefreshButton>
+                <RefreshButton type="button" onClick={() => consultarStatus(recarga.id)}>Atualizar situação</RefreshButton>
               </PaymentInstructions>
-            : <Unavailable><FiInfo /><div><strong>{recarga.status === 'REEMBOLSADA' ? 'Pagamento reembolsado' : 'Pagamento nÃ£o concluÃ­do'}</strong><p>{recarga.motivoFalha || 'VocÃª pode tentar novamente quando estiver elegÃ­vel.'}</p></div></Unavailable>}
+            : <Unavailable><FiInfo /><div><strong>{recarga.status === 'REEMBOLSADA' ? 'Pagamento reembolsado' : 'Pagamento não concluído'}</strong><p>{recarga.motivoFalha || 'Você pode tentar novamente quando estiver elegível.'}</p></div></Unavailable>}
       </PaymentCard>}
       {erro && resumo && <InlineError>{erro}</InlineError>}
     </Page>
