@@ -1,3 +1,4 @@
+import SeoTradeSports from '../components/SeoTradeSports';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
@@ -218,6 +219,7 @@ export function MercadoCompeticao({ mercado }) {
 
   return (
     <Container>
+      <SeoTradeSports title={`${LIGA_NOME} — Classificação e Cotas Virtuais | TradeSports`} description={`Acompanhe a classificação da ${LIGA_NOME}, preços de referência, cotas virtuais e informações do mercado simulado na TradeSports.`} path={mercado.rota} />
       <Hero>
         <LeagueMain>
           <LeagueMark>

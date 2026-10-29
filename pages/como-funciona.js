@@ -1,3 +1,4 @@
+import SeoTradeSports from '../components/SeoTradeSports';
 import Link from "next/link";
 import styled from "styled-components";
 
@@ -55,6 +56,7 @@ const FLUXO = [
 function ComoFunciona() {
   return (
     <Page>
+      <SeoTradeSports title="Como Funciona a TradeSports — Regras e Mercado Virtual" description="Entenda como funcionam cotas virtuais, preços, IPO, ordens, taxas, carteira e liquidação na simulação esportiva TradeSports." path="/como-funciona" />
       <Hero>
         <HeroGlow />
 

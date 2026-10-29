@@ -1,3 +1,4 @@
+import SeoTradeSports from '../components/SeoTradeSports';
 import Link from "next/link";
 import styled, { keyframes } from "styled-components";
 import LiveMarketTable from "../components/LiveMarketTable";
@@ -84,6 +85,7 @@ const DIFERENCIAIS = [
 export default function Home() {
   return (
     <Page>
+      <SeoTradeSports title="TradeSports — Mercado Esportivo Virtual" description="Explore classificações esportivas, preços de referência e cotas virtuais de clubes na TradeSports, plataforma de simulação de mercado esportivo." path="/" />
       <Glow $top />
       <Glow />
 
