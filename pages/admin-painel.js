@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AdminMarketControls from "../components/AdminMarketControls";
 import PrecificacaoInicialAdmin from "../components/PrecificacaoInicialAdmin";
+import GerenciamentoClubesAdmin from "../components/GerenciamentoClubesAdmin";
 import LiquidacaoLigaAdmin from "../components/LiquidacaoLigaAdmin";
 
 function getApiBase() {
@@ -595,6 +596,7 @@ export default function AdminPainel() {
       )}
 
       <LiquidacaoLigaAdmin />
+      <GerenciamentoClubesAdmin />
       <PrecificacaoInicialAdmin />
 
       <section style={{ ...styles.card, ...styles.maintenanceCard }}>
