@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AdminMarketControls from "../components/AdminMarketControls";
 import PrecificacaoInicialAdmin from "../components/PrecificacaoInicialAdmin";
+import LiquidacaoLigaAdmin from "../components/LiquidacaoLigaAdmin";
 
 function getApiBase() {
   return process.env.NEXT_PUBLIC_API_URL;
@@ -593,6 +594,7 @@ export default function AdminPainel() {
         </div>
       )}
 
+      <LiquidacaoLigaAdmin />
       <PrecificacaoInicialAdmin />
 
       <section style={{ ...styles.card, ...styles.maintenanceCard }}>
