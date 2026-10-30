@@ -2,48 +2,97 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = process.cwd();
-const packageDir = __dirname;
-const footer = path.join(root, 'components', 'Footer.js');
-const contact = path.join(root, 'pages', 'contato.js');
-const modalSource = path.join(packageDir, 'components', 'FooterLegalModal.js');
-const modalDest = path.join(root, 'components', 'FooterLegalModal.js');
+const footerFile = path.join(root, 'components', 'Footer.js');
+const contactFile = path.join(root, 'pages', 'contato.js');
+const modalFile = path.join(root, 'components', 'FooterLegalModal.js');
+const modalSource = path.join(__dirname, 'components', 'FooterLegalModal.js');
 
-function assert(condition, message) { if (!condition) throw new Error(message); }
-function replaceOnce(content, from, to, label) {
-  assert(content.includes(from), `Não foi encontrado o trecho esperado: ${label}. Nenhum arquivo foi alterado.`);
-  return content.replace(from, to);
+function requireFile(file) {
+  if (!fs.existsSync(file)) throw new Error(`Arquivo não encontrado: ${file}`);
+  return fs.readFileSync(file, 'utf8');
 }
-function backup(file) {
-  const dest = `${file}.bak-footer`;
-  if (!fs.existsSync(dest)) fs.copyFileSync(file, dest);
+function replaceRequired(source, pattern, replacement, label) {
+  if (!pattern.test(source)) throw new Error(`Não foi encontrado: ${label}. Nenhum arquivo foi alterado.`);
+  return source.replace(pattern, replacement);
 }
 
 try {
-  assert(fs.existsSync(footer) && fs.existsSync(contact), 'Execute node aplicar_patch.js na raiz do frontend, onde existem components/Footer.js e pages/contato.js.');
-  assert(fs.existsSync(modalSource), 'O arquivo components/FooterLegalModal.js não está junto ao script. Extraia o ZIP inteiro.');
-  let s = fs.readFileSync(footer, 'utf8');
-  let c = fs.readFileSync(contact, 'utf8');
-  const alreadyApplied = s.includes('const [legalModal, setLegalModal] = useState(null);');
-  if (!alreadyApplied) {
-    s = replaceOnce(s, 'export default function Footer() {\n  return (', 'export default function Footer() {\n  const [legalModal, setLegalModal] = useState(null);\n  return (\n    <>', 'início do Footer');
-    s = replaceOnce(s, '    </FooterShell>\n  );', '    </FooterShell>\n    {legalModal && <FooterLegalModal documentType={legalModal} onClose={() => setLegalModal(null)} />}\n    </>\n  );', 'fim do Footer');
-    s = replaceOnce(s, '<FooterLink href="/termos">Termos de Uso</FooterLink>', '<LegalButton type="button" onClick={() => setLegalModal(\'termos\')}>Termos de Uso</LegalButton>', 'Termos de Uso');
-    s = replaceOnce(s, '<FooterLink href="/privacidade">Política de Privacidade</FooterLink>', '<LegalButton type="button" onClick={() => setLegalModal(\'privacidade\')}>Política de Privacidade</LegalButton>', 'Privacidade');
-    s = replaceOnce(s, '<FooterLink href="/cookies">Política de Cookies</FooterLink>', '<LegalButton type="button" onClick={() => setLegalModal(\'cookies\')}>Política de Cookies</LegalButton>', 'Cookies');
-    s = "import { useState } from 'react';\nimport FooterLegalModal from './FooterLegalModal';\n" + s;
-    s += '\nconst LegalButton = styled.button`\n  width: fit-content; padding: 0; border: 0; background: transparent;\n  color: #cbd5e1; font-size: .83rem; font-family: inherit;\n  text-align: left; cursor: pointer; &:hover { color: #00ff95; }\n`;\n';
+  const oldFooter = requireFile(footerFile);
+  const oldContact = requireFile(contactFile);
+  const modalContent = requireFile(modalSource);
+  let footer = oldFooter;
+  let contact = oldContact;
+
+  if (!footer.includes("import { useState } from 'react';")) {
+    footer = "import { useState } from 'react';\n" + footer;
   }
-  s = s.replace('<FooterLink href="/contato">Contato</FooterLink>', '<FooterLink href="/contato">Contato para suporte</FooterLink>');
-  c = c.replace("const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || '';", "const SUPPORT_EMAIL = 'suporte@tradesports.com';");
-  if (!c.includes('https://www.instagram.com/trade_sports_/')) {
-    c = replaceOnce(c, '        )}\n      </Card>\n\n      <Card>\n        <h2>Privacidade e dados pessoais</h2>', '        )}\n        <p>\n          Instagram: <a href="https://www.instagram.com/trade_sports_/" target="_blank" rel="noopener noreferrer">@trade_sports_</a>\n        </p>\n      </Card>\n\n      <Card>\n        <h2>Privacidade e dados pessoais</h2>', 'card Atendimento geral');
+  if (!footer.includes("import FooterLegalModal from './FooterLegalModal';")) {
+    footer = "import FooterLegalModal from './FooterLegalModal';\n" + footer;
   }
-  backup(footer);
-  backup(contact);
-  fs.writeFileSync(footer, s, 'utf8');
-  fs.writeFileSync(contact, c, 'utf8');
-  fs.copyFileSync(modalSource, modalDest);
-  console.log('Patch aplicado com sucesso. Backups: Footer.js.bak-footer e contato.js.bak-footer');
+
+  if (!footer.includes('const [legalModal, setLegalModal] = useState(null);')) {
+    footer = replaceRequired(footer,
+      /(export\s+default\s+function\s+Footer\s*\(\s*\)\s*\{)/,
+      '$1\n  const [legalModal, setLegalModal] = useState(null);', 'declaração da função Footer');
+  }
+
+  const footerLinks = [
+    ['termos', '/termos', 'Termos de Uso'],
+    ['privacidade', '/privacidade', 'Política de Privacidade'],
+    ['cookies', '/cookies', 'Política de Cookies'],
+  ];
+  for (const [key, href, title] of footerLinks) {
+    const button = `<LegalButton type="button" onClick={() => setLegalModal('${key}')}>${title}</LegalButton>`;
+    if (!footer.includes(`setLegalModal('${key}')`)) {
+      const re = new RegExp(`<FooterLink\\s+href=["']${href}["']\\s*>[\\s\\S]*?<\\/FooterLink>`, 'i');
+      footer = replaceRequired(footer, re, button, `link ${title}`);
+    }
+  }
+
+  footer = footer.replace(/(<FooterLink\s+href=["']\/contato["']\s*>)[\s\S]*?(<\/FooterLink>)/i,
+    '$1Contato para suporte$2');
+
+  if (!footer.includes('<FooterLegalModal documentType={legalModal}')) {
+    // O Footer retorna <FooterShell> como elemento raiz. Envolvemos o JSX em fragmento.
+    footer = replaceRequired(footer, /(\breturn\s*\(\s*)(<FooterShell\b)/,
+      '$1<>\n      $2', 'início do JSX do Footer');
+    footer = replaceRequired(footer, /(<\/FooterShell>)(\s*\);)/,
+      '$1\n      {legalModal && <FooterLegalModal documentType={legalModal} onClose={() => setLegalModal(null)} />}\n    </>$2', 'fim do JSX do Footer');
+  }
+  if (!footer.includes('const LegalButton = styled.button`')) {
+    footer += `\nconst LegalButton = styled.button\`\n  width: fit-content;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: #cbd5e1;\n  font: inherit;\n  font-size: .83rem;\n  text-align: left;\n  cursor: pointer;\n  &:hover { color: #00ff95; }\n\`;\n`;
+  }
+
+  // O e-mail é explicitamente definido para que uma variável antiga da Vercel não o substitua.
+  contact = replaceRequired(contact,
+    /const\s+SUPPORT_EMAIL\s*=\s*[^;]+;/,
+    "const SUPPORT_EMAIL = 'suporte@tradesports.com';", 'constante SUPPORT_EMAIL');
+  if (!contact.includes('https://www.instagram.com/trade_sports_/')) {
+    contact = replaceRequired(contact,
+      /(<h2>Atendimento geral<\/h2>[\s\S]*?)(\s*<\/Card>)/,
+      '$1\n        <p>Instagram: <a href="https://www.instagram.com/trade_sports_/" target="_blank" rel="noopener noreferrer">@trade_sports_</a></p>$2',
+      'card Atendimento geral');
+  }
+
+  // Validação de todos os arquivos antes de qualquer gravação.
+  for (const [name, text] of [['Footer.js', footer], ['contato.js', contact]]) {
+    if (!text.trim()) throw new Error(`Resultado vazio: ${name}`);
+  }
+  const changes = [[footerFile, oldFooter, footer], [contactFile, oldContact, contact]];
+  for (const [file, oldText, newText] of changes) {
+    if (oldText !== newText) {
+      const backup = file + '.bak-footer';
+      if (!fs.existsSync(backup)) fs.copyFileSync(file, backup);
+    }
+  }
+  for (const [file, oldText, newText] of changes) {
+    if (oldText !== newText) fs.writeFileSync(file, newText, 'utf8');
+  }
+  if (!fs.existsSync(modalFile) || fs.readFileSync(modalFile, 'utf8') !== modalContent) {
+    if (fs.existsSync(modalFile) && !fs.existsSync(modalFile + '.bak-footer')) fs.copyFileSync(modalFile, modalFile + '.bak-footer');
+    fs.writeFileSync(modalFile, modalContent, 'utf8');
+  }
+  console.log('Correção aplicada com sucesso. Execute npm run build.');
 } catch (error) {
   console.error('Erro:', error.message);
   process.exitCode = 1;
