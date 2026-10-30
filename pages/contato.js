@@ -1,7 +1,7 @@
 import InstitutionalLayout, { Card, Lead, Note, PageTitle } from '../components/InstitutionalLayout';
 import { COMPANY_CNPJ, COMPANY_ADDRESS, COMPANY_LEGAL_NAME } from '../lib/legal/company';
 
-const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || '';
+const SUPPORT_EMAIL = 'suporte@tradesports.com';
 const PRIVACY_EMAIL = process.env.NEXT_PUBLIC_PRIVACY_EMAIL?.trim() || SUPPORT_EMAIL;
 
 export default function Contato() {
@@ -42,6 +42,7 @@ export default function Contato() {
             Usuários cadastrados: <a href="/suporte">abrir a Central de Suporte</a>.
           </p>
         )}
+        <p>Instagram: <a href="https://www.instagram.com/trade_sports_/" target="_blank" rel="noopener noreferrer">@trade_sports_</a></p>
       </Card>
 
       <Card>

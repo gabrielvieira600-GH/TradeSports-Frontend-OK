@@ -1,3 +1,5 @@
+import FooterLegalModal from './FooterLegalModal';
+import { useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import {
@@ -7,8 +9,10 @@ import {
 } from '../lib/legal/company';
 
 export default function Footer() {
+  const [legalModal, setLegalModal] = useState(null);
   return (
-    <FooterShell>
+    <>
+      <FooterShell>
       <Grid>
         <Column>
           <Title>TradeSports</Title>
@@ -23,15 +27,15 @@ export default function Footer() {
           <Title>Plataforma</Title>
           <FooterLink href="/como-funciona">Como funciona</FooterLink>
           <FooterLink href="/planos">Planos</FooterLink>
-          <FooterLink href="/contato">Contato</FooterLink>
+          <FooterLink href="/contato">Contato para suporte</FooterLink>
           <FooterLink href="/suporte">Suporte para usuários</FooterLink>
         </Column>
 
         <Column>
           <Title>Legal e privacidade</Title>
-          <FooterLink href="/termos">Termos de Uso</FooterLink>
-          <FooterLink href="/privacidade">Política de Privacidade</FooterLink>
-          <FooterLink href="/cookies">Política de Cookies</FooterLink>
+          <LegalButton type="button" onClick={() => setLegalModal('termos')}>Termos de Uso</LegalButton>
+          <LegalButton type="button" onClick={() => setLegalModal('privacidade')}>Política de Privacidade</LegalButton>
+          <LegalButton type="button" onClick={() => setLegalModal('cookies')}>Política de Cookies</LegalButton>
         </Column>
 
         <Column>
@@ -55,6 +59,8 @@ export default function Footer() {
         <span>Ambiente de simulação · 18+</span>
       </Bottom>
     </FooterShell>
+      {legalModal && <FooterLegalModal documentType={legalModal} onClose={() => setLegalModal(null)} />}
+    </>
   );
 }
 
@@ -145,4 +151,17 @@ const CompanyIdentity = styled.div`
     color: #94a3b8;
     font-weight: 700;
   }
+`;
+
+const LegalButton = styled.button`
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font: inherit;
+  font-size: .83rem;
+  text-align: left;
+  cursor: pointer;
+  &:hover { color: #00ff95; }
 `;
