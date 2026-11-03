@@ -16,7 +16,7 @@ sub('  if (!usuario) return <Loading aria-label="Carregando perfil" />;',`  cons
     finally{setExcluindo(false)}
   };
   if (!usuario) return <Loading aria-label="Carregando perfil" />;`);
-sub('        </NotificationCard>\n      </Content>',`        </NotificationCard>
+sub('      </Content>',`
         <section style={{marginTop:24,padding:24,border:'1px solid rgba(248,113,113,.35)',borderRadius:20,background:'rgba(127,29,29,.08)'}}>
           <h2>Excluir minha conta</h2>
           <p style={{color:'#cbd5e1',lineHeight:1.6}}>Exclua seu perfil e encerre seu acesso à TradeSports. Registros necessários para auditoria e obrigações legais poderão ser conservados. A exclusão não cancela assinaturas nem ordens automaticamente.</p>
