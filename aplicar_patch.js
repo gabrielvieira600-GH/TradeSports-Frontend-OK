@@ -1,38 +1,28 @@
-const fs=require('fs'),p='pages/editarperfil.js';if(!fs.existsSync(p))throw Error('Execute na raiz do frontend');let s=fs.readFileSync(p,'utf8');const original=s;
-function sub(a,b){if(!s.includes(a))throw Error('Âncora não encontrada: '+a.slice(0,60));s=s.replace(a,b)}
-sub("  const [pushBusy, setPushBusy] = useState(false);",`  const [pushBusy, setPushBusy] = useState(false);
-  const [exclusaoAberta,setExclusaoAberta]=useState(false);
-  const [senhaExclusao,setSenhaExclusao]=useState('');
-  const [fraseExclusao,setFraseExclusao]=useState('');
-  const [excluindo,setExcluindo]=useState(false);`);
-sub('  if (!usuario) return <Loading aria-label="Carregando perfil" />;',`  const excluirConta=async()=>{
-    setExcluindo(true);setFeedback(null);
-    try{
-      await axios.delete(\`\${API}/usuario/conta\`,{headers:{authorization:\`Bearer \${token}\`},data:{senha:senhaExclusao,confirmacao:fraseExclusao}});
-      localStorage.removeItem('token');localStorage.removeItem('usuario');
-      window.dispatchEvent(new Event('force-topbar-update'));
-      router.replace('/login');
-    }catch(e){exibirFeedback('erro',e?.response?.data?.erro||'Não foi possível excluir a conta.');setExclusaoAberta(false)}
-    finally{setExcluindo(false)}
-  };
-  if (!usuario) return <Loading aria-label="Carregando perfil" />;`);
-sub('      </Content>',`
-        <section style={{marginTop:24,padding:24,border:'1px solid rgba(248,113,113,.35)',borderRadius:20,background:'rgba(127,29,29,.08)'}}>
-          <h2>Excluir minha conta</h2>
-          <p style={{color:'#cbd5e1',lineHeight:1.6}}>Exclua seu perfil e encerre seu acesso à TradeSports. Registros necessários para auditoria e obrigações legais poderão ser conservados. A exclusão não cancela assinaturas nem ordens automaticamente.</p>
-          {!exclusaoAberta?<DangerButton type="button" onClick={()=>setExclusaoAberta(true)}><FiTrash2/> Excluir conta</DangerButton>:(
-            <div style={{display:'grid',gap:12,maxWidth:440}}>
-              <p style={{color:'#fca5a5'}}>Ação irreversível. Cancele ordens e resolva sua assinatura antes de prosseguir.</p>
-              <label htmlFor="senha-exclusao">Senha atual</label>
-              <input id="senha-exclusao" type="password" value={senhaExclusao} onChange={e=>setSenhaExclusao(e.target.value)} style={{padding:12,background:'#091321',color:'white',border:'1px solid #475569',borderRadius:8}}/>
-              <label htmlFor="frase-exclusao">Digite EXCLUIR MINHA CONTA</label>
-              <input id="frase-exclusao" value={fraseExclusao} onChange={e=>setFraseExclusao(e.target.value)} style={{padding:12,background:'#091321',color:'white',border:'1px solid #475569',borderRadius:8}}/>
-              <div style={{display:'flex',gap:12}}>
-                <DangerButton type="button" disabled={excluindo||!senhaExclusao||fraseExclusao!=='EXCLUIR MINHA CONTA'} onClick={excluirConta}>{excluindo?'Excluindo...':'Confirmar exclusão'}</DangerButton>
-                <TextButton type="button" onClick={()=>setExclusaoAberta(false)}>Cancelar</TextButton>
-              </div>
-            </div>
-          )}
-        </section>
-      </Content>`);
-if(s===original)throw Error('Sem alterações');fs.copyFileSync(p,p+'.bak-exclusao');fs.writeFileSync(p,s);console.log('Editar perfil atualizado');
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const file = path.join(process.cwd(), 'pages', 'cadastro.js');
+if (!fs.existsSync(file)) {
+  console.error('Execute este script na raiz do FRONTEND, onde existe pages/cadastro.js.');
+  process.exit(1);
+}
+const before = fs.readFileSync(file, 'utf8');
+const vars = ['VERSAO_TERMOS','VERSAO_POLITICA_RISCO','VERSAO_POLITICA_PRIVACIDADE','VERSAO_POLITICA_COMUNIDADE'];
+let after = before;
+for (const name of vars) {
+  const pattern = new RegExp(`(const\\s+${name}\\s*=\\s*)['\"]([^'\"]+)['\"](\\s*;)`);
+  const match = after.match(pattern);
+  if (!match) throw new Error('Constante não encontrada: '+name+'. Nenhum arquivo alterado.');
+  after = after.replace(pattern, (_,a,v,b)=>`${a}'1.0'${b}`);
+}
+if (after === before) {
+  console.log('Cadastro já utiliza as versões 1.0 exigidas pelo backend. Nenhuma alteração necessária.');
+  process.exit(0);
+}
+const backup = file + '.bak-aceites-' + Date.now();
+fs.copyFileSync(file, backup);
+fs.writeFileSync(file, after, 'utf8');
+console.log('Corrigido:',file);
+console.log('Backup:',backup);
+console.log('Versões jurídicas agora alinhadas ao backend: 1.0.');
+console.log('Execute npm run build e publique o frontend.');
