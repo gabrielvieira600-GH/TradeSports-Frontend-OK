@@ -2,6 +2,7 @@ const mercados = {
   'brasileirao-a': { id: 'brasileirao-a', nome: 'Brasileirão Série A', badge: 'brasileirao-serie-a', rota: '/brasileirao-a', endpoint: '/api/tabela-brasileirao', participantes: 20, entidade: 'clube' },
   'brasileirao-b': { id: 'brasileirao-b', nome: 'Brasileirão Série B', badge: 'brasileirao-serie-b', rota: '/brasileirao-b', endpoint: '/api/tabelas/brasileirao-b', participantes: 20, entidade: 'clube' },
   'premier-league': { id: 'premier-league', nome: 'Premier League', badge: 'premier-league', rota: '/premierleague-a', endpoint: '/api/tabelas/premier-league', participantes: 20, entidade: 'clube' },
+  'champions-league': { id: 'champions-league', nome: 'UEFA Champions League', badge: 'champions-league', rota: '/champions-league', endpoint: '/api/tabelas/champions-league', participantes: 36, entidade: 'clube' },
   'la-liga': { id: 'la-liga', nome: 'La Liga', badge: 'la-liga', rota: '/laliga-a', endpoint: '/api/tabelas/la-liga', participantes: 20, entidade: 'clube' },
   bundesliga: { id: 'bundesliga', nome: 'Bundesliga', badge: 'bundesliga', rota: '/bundesliga', endpoint: '/api/tabelas/bundesliga', participantes: 18, entidade: 'clube' },
   'ligue-1': { id: 'ligue-1', nome: 'Ligue 1', badge: 'ligue-1', rota: '/ligue-1', endpoint: '/api/tabelas/ligue-1', participantes: 18, entidade: 'clube' },

@@ -354,7 +354,7 @@ export function MercadoCompeticao({ mercado }) {
 
                           <ClubNameWrap onClick={() => abrirPaginaClube(clube.id)}>
                             <EscudoWrapDesktop>
-                              <ClubBadge clube={clube.nome} escudo={clube.escudo} size={28} />
+                              <ClubBadge clube={clube.nome} liga={LIGA_ID} escudo={clube.escudo} size={28} />
                             </EscudoWrapDesktop>
 
                             <ClubText>
@@ -431,7 +431,7 @@ export function MercadoCompeticao({ mercado }) {
 
                     <ClubTap onClick={() => abrirPaginaClube(clube.id)}>
                       <EscudoWrapMobile>
-                        <ClubBadge clube={clube.nome} escudo={clube.escudo} size={25} />
+                        <ClubBadge clube={clube.nome} liga={LIGA_ID} escudo={clube.escudo} size={25} />
                       </EscudoWrapMobile>
                       <ClubName>{clube.nome}</ClubName>
                     </ClubTap>

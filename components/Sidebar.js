@@ -20,6 +20,11 @@ const mercados = [
     badge: 'premier-league',
   },
   {
+    href: '/champions-league',
+    nome: 'UEFA Champions League',
+    badge: 'champions-league',
+  },
+  {
     href: '/laliga-a',
     nome: 'La Liga',
     badge: 'la-liga',

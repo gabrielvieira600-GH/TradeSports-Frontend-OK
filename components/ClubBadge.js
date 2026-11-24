@@ -458,6 +458,25 @@ const AUTHORIAL_CLUB_BADGES = [
   ['washingtoncommanders', 'WAS', '#5a1414', '#ffb612', '#ffffff', 'chevron', 'hex', ['commanders', 'washingtonfootballteam']],
 ];
 
+// Champions League 2026/27. Badges novos, inspirados nas cores dos escudos
+// oficiais; clubes já cadastrados em ligas nacionais preservam seu badge.
+AUTHORIAL_CLUB_BADGES.push(
+  ['aekathens','AEK','#f6c500','#111111','#111111','vertical-stripes','shield',['aek','aekathensfc']],
+  ['bodoglimt','BOG','#f1ce18','#121212','#121212','horizontal-stripes','circle',['bodglimt','bodoeglimt']],
+  ['clubbrugge','BRU','#1756a8','#111111','#ffffff','vertical-stripes','shield',['clubbruggekv']],
+  ['como','COM','#1762a3','#f8fafc','#ffffff','waves','shield',['como1907']],
+  ['fenerbahce','FEN','#122c65','#f2c900','#f2c900','horizontal-stripes','circle',['fenerbahcesk','fenerbahceistanbul']],
+  ['galatasaray','GAL','#bf2132','#e7a824','#ffffff','quarters','shield',['galatasarayistanbul','galatasaraysk']],
+  ['lask','LASK','#111111','#ffffff','#ffffff','vertical-stripes-clean','shield',['lasklinz','linzerask']],
+  ['porto','FCP','#135da0','#ffffff','#ffffff','vertical-stripes','shield',['fcporto']],
+  ['sabah','SAB','#165ca8','#ffffff','#ffffff','half-horizontal','circle',['sabahfc','sabahmasazir']],
+  ['shakhtardonetsk','SHA','#f18b1b','#111111','#111111','horizontal-stripes','shield',['shakhtar','fcshakhtardonetsk']],
+  ['slaviapraha','SLA','#e2e8f0','#c92b3c','#c92b3c','quarters','circle',['slaviaprague','skslaviapraha']],
+  ['slovanbratislava','SLO','#4f9bc8','#ffffff','#ffffff','rings','shield',['skslovanbratislava']],
+  ['sportingcp','SCP','#12834c','#ffffff','#ffffff','horizontal-stripes','shield',['sportinglisbon','sportingclubedeportugal']],
+  ['viking','VIK','#b61930','#f8fafc','#ffffff','horizontal-stripes','circle',['vikingfk','vikingstavanger']]
+);
+
 function compactClubKey(value = '') {
   return String(value)
     .normalize('NFD')
@@ -500,6 +519,7 @@ AUTHORIAL_CLUB_BADGES.forEach(([
 });
 
 const LEAGUE_STYLES = {
+  championsleague: {outer:'#06164b', glow:'#a9c2ff', pattern:'radial-burst', colors:['#06164b','#416bc4','#f8fafc']},
   brasil: {
   outer: '#0b7a3b',
   glow: '#22c55e',
@@ -1481,6 +1501,8 @@ export default function ClubBadge({ clube, liga, mercado, escudo, size = 34 }) {
       : '');
   const key = normalizeClubName(clubName, leagueName);
   const hasAuthorialBadge = Boolean(CLUB_STYLES[key]);
+  // Clubes que estreiam na TradeSports: borda autoral + escudo oficial fornecido pela API.
+  const uclNovos = new Set(['aekathens','bodoglimt','clubbrugge','como','fenerbahce','galatasaray','lask','porto','sabah','shakhtardonetsk','slaviapraha','slovanbratislava','sportingcp','viking']);
 
   const style = CLUB_STYLES[key] || {
     outer: '#1f2937',
@@ -1501,7 +1523,7 @@ export default function ClubBadge({ clube, liga, mercado, escudo, size = 34 }) {
       aria-label={`Símbolo de ${clubName || 'clube'}`}
     >
       <Inner $bg={bg}>
-        {escudo && !hasAuthorialBadge && !logoFalhou ? (
+        {escudo && (!hasAuthorialBadge || uclNovos.has(key)) && !logoFalhou ? (
           <OfficialLogo
             src={String(escudo).replace(/^http:\/\//i, 'https://')}
             alt={`Escudo do ${clubName}`}
@@ -1560,6 +1582,9 @@ export function LeagueBadge({ liga, size = 28 }) {
       aria-label={`Símbolo de ${liga || 'liga'}`}
     >
       <Inner $bg={bg}>
+        {key === 'championsleague' && (
+          <span aria-hidden="true" style={{fontSize: Math.max(14, size*.56), color:'#fff', textShadow:'0 0 8px #a9c2ff', lineHeight:1}}>✦</span>
+        )}
         {style.pattern === 'flag-brazil-premium' && (
           <>
             <BrazilDiamond $color={style.colors[1]} />
