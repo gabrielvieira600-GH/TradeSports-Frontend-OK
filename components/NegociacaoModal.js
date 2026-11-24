@@ -528,9 +528,8 @@ export default function NegociacaoModal({
       return;
     }
     
-    // Compra IPO e operações secundárias compartilham a mesma franquia.
-    // A devolução ao sistema no IPO continua sem consumir ordens.
-    if (ipoEncerrado || modo === 'compra') {
+    // Compras e vendas executadas no IPO e no secundário consomem a mesma franquia.
+    if (modo === 'compra' || modo === 'venda') {
   if (limiteOrdens.carregando) {
     setMensagem(
       'Aguarde a verificação da franquia de ordens.'
@@ -635,6 +634,7 @@ if (
           `/clube/${clube.id}/comprar`,
           {
             quantidade: Number(quantidade),
+            precoEsperado: Number(precoAtual),
           },
           {
             headers: getAuthHeaders(),
@@ -648,6 +648,7 @@ if (
           `/clube/${clube.id}/devolver`,
           {
             quantidade: Number(quantidade),
+            precoEsperado: Number(precoAtual),
           },
           {
             headers: getAuthHeaders(),
@@ -852,6 +853,9 @@ if (response?.franquiaOrdens) {
 
   const codigoErro =
     error?.response?.data?.codigo;
+  if (codigoErro === 'PRECO_ATUALIZADO') {
+    await verificarIPO();
+  }
 
   if (
     codigoErro ===
@@ -1085,7 +1089,7 @@ useEffect(() => {
 }, [isOpen, clubeId, token, usuario, cotasDisponiveisVenda]);
 
 const mercadoSecundarioBloqueado =
-  ligaFechada || ((ipoEncerrado || modo === 'compra') &&
+  ligaFechada || ((ipoEncerrado || modo === 'compra' || modo === 'venda') &&
   Boolean(usuario) &&
   (
     limiteOrdens.carregando ||
@@ -1149,13 +1153,13 @@ return (
               <strong>Oferta inicial em andamento</strong>
               <span>
                 {modo === 'venda'
-                  ? 'Durante o IPO, você vende imediatamente ao sistema pelo preço atual da posição do clube, sem taxas. O resultado pode ser lucro ou prejuízo.'
-                  : 'No IPO, compra e venda seguem o preço atual da posição do clube na tabela. Sem taxas e sem livro de ofertas. Cada compra executada consome 1 ordem da franquia semanal Lite; vendas ao sistema não consomem.'}
+                  ? 'Durante o IPO, você vende imediatamente ao sistema pelo preço atual da posição do clube, sem taxas. Cada venda executada consome 1 ordem da franquia semanal Lite.'
+                  : 'No IPO, compra e venda seguem o preço atual da classificação, sem taxas ou livro de ofertas. Cada compra ou venda consome 1 ordem semanal Lite.'}
               </span>
             </IpoInfo>
           )}
 
-           {(ipoEncerrado || modo === 'compra') && usuario && (
+           {usuario && (
   <FranquiaCard
     $alerta={
       limiteOrdens.plano === 'lite' &&
@@ -1603,16 +1607,16 @@ return (
   ? 'Enviando...'
   : ligaFechada
   ? 'Mercado fechado'
-  : (ipoEncerrado || modo === 'compra') &&
+  : (ipoEncerrado || modo === 'compra' || modo === 'venda') &&
     limiteOrdens.carregando
   ? 'Verificando franquia...'
-  : (ipoEncerrado || modo === 'compra') &&
+  : (ipoEncerrado || modo === 'compra' || modo === 'venda') &&
     !limiteOrdens.temporadaAtiva
   ? 'Temporada indisponível'
-  : (ipoEncerrado || modo === 'compra') &&
+  : (ipoEncerrado || modo === 'compra' || modo === 'venda') &&
   !limiteOrdens.mercadoAberto
 ? 'Mercado fechado'
-  : (ipoEncerrado || modo === 'compra') &&
+  : (ipoEncerrado || modo === 'compra' || modo === 'venda') &&
     limiteOrdens.plano === 'lite' &&
     limiteOrdens.limiteAtingido
   ? 'Limite de ordens atingido'

@@ -154,27 +154,32 @@ export function MercadoCompeticao({ mercado }) {
     if (termoInicial) setFiltro(termoInicial);
   }, [router.query.search]);
 
-  const fetchDados = async () => {
+  const fetchDados = async ({ silent = false } = {}) => {
     try {
-      setCarregando(true);
-      setErro('');
+      if (!silent) setCarregando(true);
+      if (!silent) setErro('');
 
       if (!API_BASE) {
         throw new Error('Endereço da API não configurado.');
       }
 
-      const resTabela = await axios.get(`${API_BASE}${mercado.endpoint}`);
+      const resTabela = await axios.get(`${API_BASE}${mercado.endpoint}`, {headers:{"Cache-Control":"no-cache"}});
 
       const clubesApi = Array.isArray(resTabela?.data?.data)
         ? resTabela.data.data
         : [];
       setClubes(clubesApi);
+      setErro(resTabela?.data?.mercadoBloqueadoPorDados
+        ? 'Dados esportivos indisponíveis: classificação pode estar desatualizada e as operações estão bloqueadas.'
+        : '');
     } catch (e) {
       console.error('Erro ao buscar dados:', e);
-      setClubes([]);
-      setErro(`Não foi possível carregar os ${mercado.entidade === 'time' ? 'times' : 'clubes'} deste mercado.`);
+      if (!silent) {
+        setClubes([]);
+        setErro('Não foi possível atualizar a classificação.');
+      }
     } finally {
-      setCarregando(false);
+      if (!silent) setCarregando(false);
     }
   };
 
@@ -195,6 +200,15 @@ export function MercadoCompeticao({ mercado }) {
     carregarWatchlist();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Recarrega a tabela sem piscar o loading. Uma requisição apenas por aba.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') fetchDados({ silent: true });
+    }, 20_000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [LIGA_ID]);
 
   const favoritosClubes = useMemo(
     () => new Set((watchlist?.clubes || []).map((c) => String(c.id))),
