@@ -163,7 +163,7 @@ export function MercadoCompeticao({ mercado }) {
         throw new Error('Endereço da API não configurado.');
       }
 
-      const resTabela = await axios.get(`${API_BASE}${mercado.endpoint}`, {headers:{"Cache-Control":"no-cache"}});
+      const resTabela = await axios.get(`${API_BASE}${mercado.endpoint}`);
 
       const clubesApi = Array.isArray(resTabela?.data?.data)
         ? resTabela.data.data
