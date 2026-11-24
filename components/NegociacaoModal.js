@@ -528,12 +528,21 @@ export default function NegociacaoModal({
       return;
     }
     
-    if (ipoEncerrado) {
+    // Compra IPO e operações secundárias compartilham a mesma franquia.
+    // A devolução ao sistema no IPO continua sem consumir ordens.
+    if (ipoEncerrado || modo === 'compra') {
   if (limiteOrdens.carregando) {
     setMensagem(
       'Aguarde a verificação da franquia de ordens.'
     );
 
+    setCarregando(false);
+    return;
+  }
+
+  if (limiteOrdens.erro) {
+    setMensagem(limiteOrdens.erro);
+    adicionarToast(limiteOrdens.erro, 'erro');
     setCarregando(false);
     return;
   }
@@ -1076,10 +1085,11 @@ useEffect(() => {
 }, [isOpen, clubeId, token, usuario, cotasDisponiveisVenda]);
 
 const mercadoSecundarioBloqueado =
-  ligaFechada || (ipoEncerrado &&
+  ligaFechada || ((ipoEncerrado || modo === 'compra') &&
   Boolean(usuario) &&
   (
     limiteOrdens.carregando ||
+    Boolean(limiteOrdens.erro) ||
     !limiteOrdens.temporadaAtiva ||
     !limiteOrdens.mercadoAberto ||
     (
@@ -1140,12 +1150,12 @@ return (
               <span>
                 {modo === 'venda'
                   ? 'Durante o IPO, você vende imediatamente ao sistema pelo preço atual da posição do clube, sem taxas. O resultado pode ser lucro ou prejuízo.'
-                  : 'No IPO, compra e venda seguem o preço atual da posição do clube na tabela. Sem taxas e sem livro de ofertas nesta fase.'}
+                  : 'No IPO, compra e venda seguem o preço atual da posição do clube na tabela. Sem taxas e sem livro de ofertas. Cada compra executada consome 1 ordem da franquia semanal Lite; vendas ao sistema não consomem.'}
               </span>
             </IpoInfo>
           )}
 
-           {ipoEncerrado && usuario && (
+           {(ipoEncerrado || modo === 'compra') && usuario && (
   <FranquiaCard
     $alerta={
       limiteOrdens.plano === 'lite' &&
@@ -1593,16 +1603,16 @@ return (
   ? 'Enviando...'
   : ligaFechada
   ? 'Mercado fechado'
-  : ipoEncerrado &&
+  : (ipoEncerrado || modo === 'compra') &&
     limiteOrdens.carregando
   ? 'Verificando franquia...'
-  : ipoEncerrado &&
+  : (ipoEncerrado || modo === 'compra') &&
     !limiteOrdens.temporadaAtiva
   ? 'Temporada indisponível'
-  : ipoEncerrado &&
+  : (ipoEncerrado || modo === 'compra') &&
   !limiteOrdens.mercadoAberto
 ? 'Mercado fechado'
-  : ipoEncerrado &&
+  : (ipoEncerrado || modo === 'compra') &&
     limiteOrdens.plano === 'lite' &&
     limiteOrdens.limiteAtingido
   ? 'Limite de ordens atingido'
