@@ -276,7 +276,7 @@ export default function NegociacaoModal({
       let precoBase = 0;
 
       if (!encerrado) {
-        precoBase = Number(clubeInfo.preco ?? clubeInfo.precoAtual ?? 0);
+        precoBase = Number(clubeInfo.precoIPO ?? clubeInfo.precoAtual ?? clubeInfo.preco ?? 0);
       } else {
         precoBase = Number(clubeInfo.precoAtual ?? clubeInfo.preco ?? 0);
       }
@@ -289,6 +289,13 @@ export default function NegociacaoModal({
       setMensagem('Erro ao verificar status do IPO.');
     }
   };
+
+  // Atualiza o preço oficial enquanto o IPO está aberto e o modal visível.
+  useEffect(() => {
+    if (!isOpen || !clubeId || ipoEncerrado) return undefined;
+    const timer = window.setInterval(() => verificarIPO(), 15000);
+    return () => window.clearInterval(timer);
+  }, [isOpen, clubeId, ipoEncerrado]);
 
   const precoTotal = (
     Number(precoAtual || 0) * Number(quantidade || 0)
@@ -711,15 +718,15 @@ if (response?.franquiaOrdens) {
 
         setResultadoIpo({
           tipo: 'devolucao',
-          titulo: 'Cotas devolvidas ao IPO',
+          titulo: 'Venda ao sistema executada',
           quantidade: quantidadeDevolvida,
           precoUnitario,
           taxa: 0,
           valorLiquido,
         });
 
-        setMensagem('Devolução realizada imediatamente, sem cobrança de taxas.');
-        adicionarToast('Cotas devolvidas ao IPO sem taxas.', 'sucesso');
+        setMensagem('Venda executada pelo preço atual da classificação, sem taxas.');
+        adicionarToast('Venda ao sistema realizada sem taxas.', 'sucesso');
       } else if (ipoEncerrado && response?.ordem) {
   const execucoes = Array.isArray(response.execucoes)
     ? response.execucoes
@@ -1132,8 +1139,8 @@ return (
               <strong>Oferta inicial em andamento</strong>
               <span>
                 {modo === 'venda'
-                  ? 'Durante o IPO, suas cotas podem ser devolvidas imediatamente pelo preço de aquisição, sem cobrança de taxas.'
-                  : 'O preço é fixado pela TradeSports. Não há tick, livro de ofertas ou cobrança de taxas nesta fase.'}
+                  ? 'Durante o IPO, você vende imediatamente ao sistema pelo preço atual da posição do clube, sem taxas. O resultado pode ser lucro ou prejuízo.'
+                  : 'No IPO, compra e venda seguem o preço atual da posição do clube na tabela. Sem taxas e sem livro de ofertas nesta fase.'}
               </span>
             </IpoInfo>
           )}
@@ -1259,7 +1266,7 @@ return (
 )}
 
           <Bloco>
-            <label>{ipoEncerrado ? 'Preço da ordem (T$)' : 'Preço fixo do IPO (T$)'}</label>
+            <label>{ipoEncerrado ? 'Preço da ordem (T$)' : 'Preço atual da classificação (T$)'}</label>
             <InputNumero
               type="text"
               inputMode="decimal"
@@ -1346,14 +1353,14 @@ return (
                 {!ipoEncerrado
                   ? modo === 'compra'
                     ? 'Valor da compra'
-                    : 'Valor líquido da devolução'
+                    : 'Valor da venda ao sistema'
                   : 'Valor da ordem'}
               </span>
               <strong>T$ {precoTotal}</strong>
             </LinhaInfo>
 
             <LinhaInfo>
-              <span>{ipoEncerrado ? 'Preço de mercado' : 'Preço oficial do IPO'}</span>
+              <span>{ipoEncerrado ? 'Preço de mercado' : 'Preço atual da tabela'}</span>
               <span>T$ {Number(precoMercado).toFixed(2)}</span>
             </LinhaInfo>
 
@@ -1417,7 +1424,7 @@ return (
                 <div>
                   <ResultadoTitulo>{resultadoIpo.titulo}</ResultadoTitulo>
                   <ResultadoSubtitulo>
-                    Execução imediata pela oferta inicial
+                    Execução imediata pelo sistema
                   </ResultadoSubtitulo>
                 </div>
               </ResultadoCabecalho>
@@ -1602,7 +1609,7 @@ return (
   : modo === 'compra'
   ? 'Comprar'
   : !ipoEncerrado
-  ? 'Devolver cotas'
+  ? 'Vender ao sistema'
   : 'Vender'}
           </BotaoComprar>
 
